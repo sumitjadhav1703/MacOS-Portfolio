@@ -1,0 +1,10 @@
+node_modules
+.next
+out
+.vercel
+.DS_Store
+src/generated
+.wrangler
+.dev.vars
+worker/assets
+.env*.local

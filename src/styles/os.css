@@ -1,0 +1,117 @@
+/* Portfolio OS chrome — lifted verbatim from the original design
+   (legacy/portfolio-os.html). Selectors are keyed to the same element ids and
+   data-attributes, so the React tree reuses these rules unchanged. */
+
+*,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#0b0d0f}
+  a{color:var(--s-accent);text-decoration:none}
+  a:hover{color:var(--s-accent-hi);text-decoration:underline}
+  [data-root]{
+    --s-desk:#0e1013;--s-text:#f2f3f5;--s-dim:rgba(242,243,245,.66);--s-faint:rgba(242,243,245,.44);
+    --s-line:rgba(255,255,255,.12);--s-line-2:rgba(255,255,255,.2);
+    --s-fill:rgba(255,255,255,.05);--s-fill-2:rgba(255,255,255,.09);--s-fill-3:rgba(255,255,255,.15);
+    --s-side:rgba(255,255,255,.035);--s-win:#16181c;--s-chrome:#1b1e23;--s-bubble:#1c2128;--s-input:rgba(0,0,0,.28);
+    --s-pop:rgba(24,26,30,.94);--s-blur:blur(18px);--s-menu-bg:transparent;--s-menu-fg:#f2f3f5;
+    --s-menu-shadow:0 1px 2px rgba(0,0,0,.55);--s-accent:#3a6df0;--s-accent-hi:#7ba0f7;--s-on-accent:#fff;
+    --s-shadow-win:0 24px 56px rgba(0,0,0,.5);--s-shadow-pop:0 16px 38px rgba(0,0,0,.5);
+    --s-tip:rgba(30,32,36,.86);--s-sb:rgba(255,255,255,.28);
+    --s-ok:#4f9e5f;--s-warn:#c08b3a;
+    --s-win-border:rgba(255,255,255,.11);
+    --s-shadow-focus:0 26px 60px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.13);
+    --s-shadow-rest:0 12px 28px rgba(0,0,0,.4);
+    --s-term-bg:rgba(12,12,14,.9);--s-paper:#ffffff;--s-paper-ink:#16181c;--s-paper-desk:#3d4044;
+    --s-menu-dim:rgba(242,243,245,.78);--s-menu-line:rgba(255,255,255,.04);
+    --s-glass-icon:rgba(255,255,255,.15);--s-glass-icon-ring:rgba(255,255,255,.24);--s-glass-icon-ink:rgba(240,242,245,.9);
+    --s-onwall:#f2f3f5;--s-onwall-bg:rgba(0,0,0,.46);--s-onwall-shadow:0 1px 2px rgba(0,0,0,.7);--s-onwall-sel:rgba(58,109,240,.95);
+    --s-glass-ring:rgba(255,255,255,.2);--s-glass-edge:rgba(0,0,0,.28);
+    --s-dock-glass:linear-gradient(180deg,rgba(255,255,255,.13),rgba(255,255,255,.035));
+    --s-side-glass:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.022));
+    --s-icon-spec:linear-gradient(180deg,rgba(255,255,255,.3),rgba(255,255,255,0) 48%);
+  }
+  [data-root][data-theme="light"]{
+    --s-desk:#dfe3e8;--s-text:#1a1c20;--s-dim:rgba(26,28,32,.66);--s-faint:rgba(26,28,32,.45);
+    --s-line:rgba(0,0,0,.12);--s-line-2:rgba(0,0,0,.2);
+    --s-fill:rgba(0,0,0,.045);--s-fill-2:rgba(0,0,0,.07);--s-fill-3:rgba(0,0,0,.12);
+    --s-side:rgba(0,0,0,.03);--s-win:#f6f7f9;--s-chrome:#eaecef;--s-bubble:#e7eaf0;--s-input:rgba(0,0,0,.05);
+    --s-pop:rgba(250,251,252,.95);--s-menu-bg:transparent;--s-menu-fg:#15171b;
+    --s-menu-shadow:0 1px 2px rgba(255,255,255,.85),0 0 6px rgba(255,255,255,.5);--s-accent-hi:#22459f;
+    --s-shadow-win:0 24px 52px rgba(20,24,32,.24);--s-shadow-pop:0 16px 36px rgba(20,24,32,.2);
+    --s-tip:rgba(250,251,252,.94);--s-sb:rgba(0,0,0,.26);
+    --s-ok:#2f7a44;--s-warn:#96682a;
+    --s-win-border:rgba(0,0,0,.14);
+    --s-shadow-focus:0 26px 56px rgba(20,24,32,.26),0 0 0 1px rgba(0,0,0,.1);
+    --s-shadow-rest:0 12px 26px rgba(20,24,32,.16);
+    --s-term-bg:#14161a;--s-paper:#ffffff;--s-paper-ink:#16181c;--s-paper-desk:#b6bcc4;
+    --s-menu-dim:rgba(26,28,32,.78);--s-menu-line:rgba(0,0,0,.04);
+    --s-glass-icon:rgba(255,255,255,.86);--s-glass-icon-ring:rgba(0,0,0,.14);--s-glass-icon-ink:rgba(46,50,58,.7);
+    --s-onwall:#16181c;--s-onwall-bg:rgba(255,255,255,.74);--s-onwall-shadow:0 1px 2px rgba(255,255,255,.6);--s-onwall-sel:rgba(58,109,240,.95);
+    --s-glass-ring:rgba(255,255,255,.85);--s-glass-edge:rgba(0,0,0,.12);
+    --s-dock-glass:linear-gradient(180deg,rgba(255,255,255,.6),rgba(255,255,255,.34));
+    --s-side-glass:linear-gradient(180deg,rgba(255,255,255,.5),rgba(255,255,255,.24));
+    --s-icon-spec:linear-gradient(180deg,rgba(255,255,255,.42),rgba(255,255,255,0) 48%);
+  }
+  [data-root][data-contrast="1"]{--s-line:rgba(128,128,128,.55);--s-line-2:rgba(128,128,128,.75);--s-dim:var(--s-text);--s-faint:var(--s-dim)}
+  [data-root][data-contrast="1"]{--s-menu-dim:var(--s-menu-fg);--s-glass-icon-ink:var(--s-text);--s-onwall-shadow:none}
+  [data-root][data-contrast="1"][data-theme="light"]{--s-onwall-bg:rgba(255,255,255,.94)}
+  [data-root][data-contrast="1"]{--s-onwall-bg:rgba(0,0,0,.8)}
+  [data-root][data-contrast="1"] [data-focusable]:focus-visible{outline:2px solid var(--s-accent);outline-offset:2px}
+  [data-root][data-opaque="1"]{--s-blur:none;--s-pop:var(--s-win);--s-menu-bg:var(--s-chrome);--s-menu-shadow:none;--s-tip:var(--s-chrome);--s-dock:var(--s-chrome)!important;--s-glass-icon:var(--s-fill-3);--s-side-glass:var(--s-chrome);--s-glass-ring:var(--s-line)}
+  /* Liquid-glass chrome. Dock and in-window sidebars refract the wallpaper; Reduce Transparency flattens them onto --s-chrome. */
+  [data-root][data-dockstyle="glass"] #dock{background:var(--s-dock-glass)!important;backdrop-filter:blur(32px) saturate(190%) brightness(1.05)!important;-webkit-backdrop-filter:blur(32px) saturate(190%) brightness(1.05)!important;box-shadow:var(--s-shadow-pop),inset 0 1px 0 var(--s-glass-ring),inset 0 0 0 .5px var(--s-glass-edge)!important;border-color:transparent!important}
+  [data-root][data-opaque="1"] #dock{background:var(--s-chrome)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;border-color:var(--s-line)!important}
+  [data-glasspane]{background:var(--s-side-glass)!important;backdrop-filter:blur(22px) saturate(170%);-webkit-backdrop-filter:blur(22px) saturate(170%)}
+  [data-root][data-opaque="1"] [data-glasspane]{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+  [data-root][data-icons="clear"] [data-iconface]{background-image:linear-gradient(180deg,rgba(255,255,255,.26),rgba(255,255,255,.07)),var(--icon-grad)!important;box-shadow:0 7px 15px rgba(0,0,0,.2),inset 0 1px 0 var(--s-glass-ring),inset 0 0 0 .5px var(--s-glass-icon-ring)!important;backdrop-filter:blur(10px) saturate(150%);-webkit-backdrop-filter:blur(10px) saturate(150%)}
+  [data-root][data-icons="clear"] [data-ink],[data-root][data-icons="clear"] [data-inkline]{filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.5))}
+  [data-root][data-opaque="1"] [data-iconface]{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+  [data-root][data-lowpower="1"]{--s-blur:none;--s-shadow-win:0 10px 22px rgba(0,0,0,.34);--s-shadow-pop:0 8px 18px rgba(0,0,0,.3)}
+  [data-root][data-lowpower="1"] *{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+  :focus-visible{outline:2px solid var(--s-accent);outline-offset:2px}
+  *::-webkit-scrollbar{width:10px;height:10px}
+  *::-webkit-scrollbar-track{background:transparent}
+  *::-webkit-scrollbar-thumb{background:rgba(255,255,255,0);border-radius:10px;border:3px solid transparent;background-clip:content-box;transition:background .25s}
+  *:hover::-webkit-scrollbar-thumb{background:var(--s-sb);background-clip:content-box}
+  *{scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0) transparent}
+  *:hover{scrollbar-color:var(--s-sb) transparent}
+  @keyframes riseIn{from{opacity:0;transform:translateY(10px) scale(.96)}to{opacity:1;transform:none}}
+  @keyframes dockIn{from{opacity:0;transform:translateX(-50%) translateY(14px) scale(.96)}to{opacity:1;transform:translateX(-50%)}}
+  @keyframes bootOut{0%{opacity:1;visibility:visible}70%{opacity:1}100%{opacity:0;visibility:hidden}}
+  @keyframes bootBar{0%{width:0}100%{width:100%}}
+  @keyframes markIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:none}}
+  @keyframes caret{0%,49%{opacity:1}50%,100%{opacity:0}}
+  #term-in:focus + [data-caret]{display:none}
+  [data-tlgroup]:hover [data-glyph]{opacity:1}
+  [data-menu]:hover{background:var(--s-fill-3)}
+  [data-mi]:hover{background:var(--s-accent);color:var(--s-on-accent)}
+  [data-side]:hover{background:var(--s-fill-2)}
+  [data-dsk]:hover{transform:translateY(-2px)}
+  [data-dsk]{transition:transform .2s cubic-bezier(.32,.72,0,1)}
+  @keyframes pulseDot{0%,100%{opacity:1}50%{opacity:.35}}
+  @keyframes toastIn{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:none}}
+  [data-btn]:hover{filter:brightness(1.15)}
+  [data-chipbtn]:hover{background:var(--s-fill-3)}
+  [data-mobilenav]{display:none!important}
+  #mobile{display:none}
+  @media (max-width:767px){
+    #dock,#desktop-grid,#wm,#menubar,#desk-vignette,#toasts,#control-center,[data-mobilenav]{display:none!important}
+    #mobile{display:block!important}
+    #wallpaper{opacity:.5}
+  }
+  @media (min-width:768px) and (max-width:900px){
+    [data-desktopgrid]{grid-template-columns:repeat(1,86px)!important}
+  }
+  [data-mrow]:active{background:var(--s-fill-2)}
+  [data-mtile]:active{transform:scale(.96)}
+  [data-mtile]{transition:transform .16s ease}
+  [data-actrow]:hover{background:var(--s-fill-2)}
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:.001ms!important;transition-duration:.001ms!important}
+  }
+
+/* Mobile reuses the window bodies as plain sections: no inner scroller, no window padding.
+   (The original did the same thing by rewriting the padding declaration in `mstrip`.) */
+#mobile [data-appbody] {
+  height: auto !important;
+  overflow: visible !important;
+  padding: 2px 0 6px !important;
+}

@@ -1,0 +1,1905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sumit Jadhav — Portfolio OS</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<script src="./image-slot.js"></script>
+<style>
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#0b0d0f}
+  a{color:var(--s-accent);text-decoration:none}
+  a:hover{color:var(--s-accent-hi);text-decoration:underline}
+  [data-root]{
+    --s-desk:#0e1013;--s-text:#f2f3f5;--s-dim:rgba(242,243,245,.66);--s-faint:rgba(242,243,245,.44);
+    --s-line:rgba(255,255,255,.12);--s-line-2:rgba(255,255,255,.2);
+    --s-fill:rgba(255,255,255,.05);--s-fill-2:rgba(255,255,255,.09);--s-fill-3:rgba(255,255,255,.15);
+    --s-side:rgba(255,255,255,.035);--s-win:#16181c;--s-chrome:#1b1e23;--s-bubble:#1c2128;--s-input:rgba(0,0,0,.28);
+    --s-pop:rgba(24,26,30,.94);--s-blur:blur(18px);--s-menu-bg:transparent;--s-menu-fg:#f2f3f5;
+    --s-menu-shadow:0 1px 2px rgba(0,0,0,.55);--s-accent:#3a6df0;--s-accent-hi:#7ba0f7;--s-on-accent:#fff;
+    --s-shadow-win:0 24px 56px rgba(0,0,0,.5);--s-shadow-pop:0 16px 38px rgba(0,0,0,.5);
+    --s-tip:rgba(30,32,36,.86);--s-sb:rgba(255,255,255,.28);
+    --s-ok:#4f9e5f;--s-warn:#c08b3a;
+    --s-win-border:rgba(255,255,255,.11);
+    --s-shadow-focus:0 26px 60px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.13);
+    --s-shadow-rest:0 12px 28px rgba(0,0,0,.4);
+    --s-term-bg:rgba(12,12,14,.9);--s-paper:#ffffff;--s-paper-ink:#16181c;--s-paper-desk:#3d4044;
+    --s-menu-dim:rgba(242,243,245,.78);--s-menu-line:rgba(255,255,255,.04);
+    --s-glass-icon:rgba(255,255,255,.15);--s-glass-icon-ring:rgba(255,255,255,.24);--s-glass-icon-ink:rgba(240,242,245,.9);
+    --s-onwall:#f2f3f5;--s-onwall-bg:rgba(0,0,0,.46);--s-onwall-shadow:0 1px 2px rgba(0,0,0,.7);--s-onwall-sel:rgba(58,109,240,.95);
+    --s-glass-ring:rgba(255,255,255,.2);--s-glass-edge:rgba(0,0,0,.28);
+    --s-dock-glass:linear-gradient(180deg,rgba(255,255,255,.13),rgba(255,255,255,.035));
+    --s-side-glass:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.022));
+    --s-icon-spec:linear-gradient(180deg,rgba(255,255,255,.3),rgba(255,255,255,0) 48%);
+  }
+  [data-root][data-theme="light"]{
+    --s-desk:#dfe3e8;--s-text:#1a1c20;--s-dim:rgba(26,28,32,.66);--s-faint:rgba(26,28,32,.45);
+    --s-line:rgba(0,0,0,.12);--s-line-2:rgba(0,0,0,.2);
+    --s-fill:rgba(0,0,0,.045);--s-fill-2:rgba(0,0,0,.07);--s-fill-3:rgba(0,0,0,.12);
+    --s-side:rgba(0,0,0,.03);--s-win:#f6f7f9;--s-chrome:#eaecef;--s-bubble:#e7eaf0;--s-input:rgba(0,0,0,.05);
+    --s-pop:rgba(250,251,252,.95);--s-menu-bg:transparent;--s-menu-fg:#15171b;
+    --s-menu-shadow:0 1px 2px rgba(255,255,255,.85),0 0 6px rgba(255,255,255,.5);--s-accent-hi:#22459f;
+    --s-shadow-win:0 24px 52px rgba(20,24,32,.24);--s-shadow-pop:0 16px 36px rgba(20,24,32,.2);
+    --s-tip:rgba(250,251,252,.94);--s-sb:rgba(0,0,0,.26);
+    --s-ok:#2f7a44;--s-warn:#96682a;
+    --s-win-border:rgba(0,0,0,.14);
+    --s-shadow-focus:0 26px 56px rgba(20,24,32,.26),0 0 0 1px rgba(0,0,0,.1);
+    --s-shadow-rest:0 12px 26px rgba(20,24,32,.16);
+    --s-term-bg:#14161a;--s-paper:#ffffff;--s-paper-ink:#16181c;--s-paper-desk:#b6bcc4;
+    --s-menu-dim:rgba(26,28,32,.78);--s-menu-line:rgba(0,0,0,.04);
+    --s-glass-icon:rgba(255,255,255,.86);--s-glass-icon-ring:rgba(0,0,0,.14);--s-glass-icon-ink:rgba(46,50,58,.7);
+    --s-onwall:#16181c;--s-onwall-bg:rgba(255,255,255,.74);--s-onwall-shadow:0 1px 2px rgba(255,255,255,.6);--s-onwall-sel:rgba(58,109,240,.95);
+    --s-glass-ring:rgba(255,255,255,.85);--s-glass-edge:rgba(0,0,0,.12);
+    --s-dock-glass:linear-gradient(180deg,rgba(255,255,255,.6),rgba(255,255,255,.34));
+    --s-side-glass:linear-gradient(180deg,rgba(255,255,255,.5),rgba(255,255,255,.24));
+    --s-icon-spec:linear-gradient(180deg,rgba(255,255,255,.42),rgba(255,255,255,0) 48%);
+  }
+  [data-root][data-contrast="1"]{--s-line:rgba(128,128,128,.55);--s-line-2:rgba(128,128,128,.75);--s-dim:var(--s-text);--s-faint:var(--s-dim)}
+  [data-root][data-contrast="1"]{--s-menu-dim:var(--s-menu-fg);--s-glass-icon-ink:var(--s-text);--s-onwall-shadow:none}
+  [data-root][data-contrast="1"][data-theme="light"]{--s-onwall-bg:rgba(255,255,255,.94)}
+  [data-root][data-contrast="1"]{--s-onwall-bg:rgba(0,0,0,.8)}
+  [data-root][data-contrast="1"] [data-focusable]:focus-visible{outline:2px solid var(--s-accent);outline-offset:2px}
+  [data-root][data-opaque="1"]{--s-blur:none;--s-pop:var(--s-win);--s-menu-bg:var(--s-chrome);--s-menu-shadow:none;--s-tip:var(--s-chrome);--s-dock:var(--s-chrome)!important;--s-glass-icon:var(--s-fill-3);--s-side-glass:var(--s-chrome);--s-glass-ring:var(--s-line)}
+  /* Liquid-glass chrome. Dock and in-window sidebars refract the wallpaper; Reduce Transparency flattens them onto --s-chrome. */
+  [data-root][data-dockstyle="glass"] #dock{background:var(--s-dock-glass)!important;backdrop-filter:blur(32px) saturate(190%) brightness(1.05)!important;-webkit-backdrop-filter:blur(32px) saturate(190%) brightness(1.05)!important;box-shadow:var(--s-shadow-pop),inset 0 1px 0 var(--s-glass-ring),inset 0 0 0 .5px var(--s-glass-edge)!important;border-color:transparent!important}
+  [data-root][data-opaque="1"] #dock{background:var(--s-chrome)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;border-color:var(--s-line)!important}
+  [data-glasspane]{background:var(--s-side-glass)!important;backdrop-filter:blur(22px) saturate(170%);-webkit-backdrop-filter:blur(22px) saturate(170%)}
+  [data-root][data-opaque="1"] [data-glasspane]{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+  [data-root][data-icons="clear"] [data-iconface]{background-image:linear-gradient(180deg,rgba(255,255,255,.26),rgba(255,255,255,.07)),var(--icon-grad)!important;box-shadow:0 7px 15px rgba(0,0,0,.2),inset 0 1px 0 var(--s-glass-ring),inset 0 0 0 .5px var(--s-glass-icon-ring)!important;backdrop-filter:blur(10px) saturate(150%);-webkit-backdrop-filter:blur(10px) saturate(150%)}
+  [data-root][data-icons="clear"] [data-ink],[data-root][data-icons="clear"] [data-inkline]{filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.5))}
+  [data-root][data-opaque="1"] [data-iconface]{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+  [data-root][data-lowpower="1"]{--s-blur:none;--s-shadow-win:0 10px 22px rgba(0,0,0,.34);--s-shadow-pop:0 8px 18px rgba(0,0,0,.3)}
+  [data-root][data-lowpower="1"] *{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+  :focus-visible{outline:2px solid var(--s-accent);outline-offset:2px}
+  *::-webkit-scrollbar{width:10px;height:10px}
+  *::-webkit-scrollbar-track{background:transparent}
+  *::-webkit-scrollbar-thumb{background:rgba(255,255,255,0);border-radius:10px;border:3px solid transparent;background-clip:content-box;transition:background .25s}
+  *:hover::-webkit-scrollbar-thumb{background:var(--s-sb);background-clip:content-box}
+  *{scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0) transparent}
+  *:hover{scrollbar-color:var(--s-sb) transparent}
+  @keyframes riseIn{from{opacity:0;transform:translateY(10px) scale(.96)}to{opacity:1;transform:none}}
+  @keyframes dockIn{from{opacity:0;transform:translateX(-50%) translateY(14px) scale(.96)}to{opacity:1;transform:translateX(-50%)}}
+  @keyframes bootOut{0%{opacity:1;visibility:visible}70%{opacity:1}100%{opacity:0;visibility:hidden}}
+  @keyframes bootBar{0%{width:0}100%{width:100%}}
+  @keyframes markIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:none}}
+  @keyframes caret{0%,49%{opacity:1}50%,100%{opacity:0}}
+  #term-in:focus + [data-caret]{display:none}
+  [data-tlgroup]:hover [data-glyph]{opacity:1}
+  [data-menu]:hover{background:var(--s-fill-3)}
+  [data-mi]:hover{background:var(--s-accent);color:var(--s-on-accent)}
+  [data-side]:hover{background:var(--s-fill-2)}
+  [data-dsk]:hover{transform:translateY(-2px)}
+  [data-dsk]{transition:transform .2s cubic-bezier(.32,.72,0,1)}
+  @keyframes pulseDot{0%,100%{opacity:1}50%{opacity:.35}}
+  @keyframes toastIn{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:none}}
+  [data-btn]:hover{filter:brightness(1.15)}
+  [data-chipbtn]:hover{background:var(--s-fill-3)}
+  [data-mobilenav]{display:none!important}
+  #mobile{display:none}
+  @media (max-width:767px){
+    #dock,#desktop-grid,#wm,#menubar,#desk-vignette,#toasts,#control-center,[data-mobilenav]{display:none!important}
+    #mobile{display:block!important}
+    #wallpaper{opacity:.5}
+  }
+  @media (min-width:768px) and (max-width:900px){
+    [data-desktopgrid]{grid-template-columns:repeat(1,86px)!important}
+  }
+  [data-mrow]:active{background:var(--s-fill-2)}
+  [data-mtile]:active{transform:scale(.96)}
+  [data-mtile]{transition:transform .16s ease}
+  [data-actrow]:hover{background:var(--s-fill-2)}
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:.001ms!important;transition-duration:.001ms!important}
+  }
+</style>
+</head>
+<body>
+<div data-root="1" data-theme="dark" style="position:fixed;inset:0;overflow:hidden;background:var(--s-desk);color:var(--s-text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;font-size:13px;user-select:none">
+
+  <div id="wallpaper" style="position:absolute;inset:0;background-color:var(--s-desk);background-image:linear-gradient(178deg,#1c222b 0%,#141a22 48%,#0c1016 100%);transition:background-image .5s ease,background-color .5s ease"><div id="wall-slot-wrap" style="position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .35s ease"><image-slot id="desktop-wallpaper" shape="rect" fit="cover" src="./image.png" placeholder="Drop your desktop wallpaper here"></image-slot></div>
+  <div id="wall-pick-bar" style="display:none;position:absolute;left:50%;top:44px;transform:translateX(-50%);z-index:400;padding:8px 14px;border-radius:10px;background:rgba(24,26,30,.94);backdrop-filter:blur(18px);border:1px solid var(--s-fill-2);box-shadow:0 16px 38px rgba(0,0,0,.5);font-size:12.5px;display:none;align-items:center;gap:12px">Drop an image on the desktop, or click to browse<span data-act="pickwall:done" style="padding:3px 10px;border-radius:6px;background:#3a6df0;cursor:default;font-weight:600">Done</span></div></div>
+  <div id="desk-vignette" style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.5) 0%,rgba(0,0,0,0) 15%,rgba(0,0,0,0) 74%,rgba(0,0,0,.45) 100%);pointer-events:none;transition:opacity .5s ease"></div>
+
+  <div id="menubar" style="position:absolute;top:0;left:0;right:0;height:28px;border-bottom:1px solid var(--s-menu-line);box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;padding:0 14px;z-index:200;font-size:13px;color:var(--s-menu-fg);text-shadow:var(--s-menu-shadow);background:var(--s-menu-bg);backdrop-filter:var(--s-blur);-webkit-backdrop-filter:var(--s-blur);transition:background .4s ease,color .4s ease">
+    <div style="display:flex;align-items:center;gap:2px">
+      <div data-menu="sj" data-act="menu:sj" style="padding:2px 9px 3px;border-radius:5px;cursor:default;display:flex;align-items:center;position:relative">
+        <div style="font-size:11.5px;font-weight:700;letter-spacing:.06em;color:currentColor">SJ</div>
+        <div data-dropdown="sj" style="display:none;position:absolute;top:26px;left:0;min-width:210px;padding:5px;border-radius:11px;background:var(--s-pop);backdrop-filter:var(--s-blur);-webkit-backdrop-filter:var(--s-blur);border:1px solid var(--s-line);box-shadow:var(--s-shadow-pop);color:var(--s-text);text-shadow:none;z-index:10">
+          <div data-mi="1" data-act="open:about" style="padding:5px 10px;border-radius:6px;cursor:default">About Sumit's Portfolio OS</div>
+          <div style="height:1px;background:var(--s-line);margin:5px 8px"></div>
+          <div data-mi="1" data-act="open:settings" style="padding:5px 10px;border-radius:6px;cursor:default">System Settings…</div>
+          <div data-mi="1" data-act="controlcenter" style="padding:5px 10px;border-radius:6px;cursor:default">Control Center</div>
+          <div style="height:1px;background:var(--s-line);margin:5px 8px"></div>
+          <div data-mi="1" data-act="closeall" style="padding:5px 10px;border-radius:6px;cursor:default">Close All Windows</div>
+        </div>
+      </div>
+      <div id="menu-app-name" style="font-weight:700;padding:2px 8px;cursor:default">Workspace</div>
+      <div data-menu="file" data-act="menu:file" style="padding:2px 9px;border-radius:5px;cursor:default;position:relative">File
+        <div data-dropdown="file" style="display:none;position:absolute;top:24px;left:0;min-width:200px;padding:5px;border-radius:11px;background:var(--s-pop);backdrop-filter:var(--s-blur);-webkit-backdrop-filter:var(--s-blur);border:1px solid var(--s-line);box-shadow:var(--s-shadow-pop);color:var(--s-text);text-shadow:none;z-index:10">
+          <div data-mi="1" data-act="open:finder" style="padding:5px 10px;border-radius:6px">New Workspace Window</div>
+          <div data-mi="1" data-act="open:terminal" style="padding:5px 10px;border-radius:6px">New Shell</div>
+          <div data-mi="1" data-act="open:resume" style="padding:5px 10px;border-radius:6px">Open Resume</div>
+          <div style="height:1px;background:var(--s-line);margin:5px 8px"></div>
+          <div data-mi="1" data-act="closefront" style="padding:5px 10px;border-radius:6px">Close Window</div>
+        </div>
+      </div>
+      <div data-menu="edit" data-act="menu:edit" style="padding:2px 9px;border-radius:5px;cursor:default;position:relative">Edit
+        <div data-dropdown="edit" style="display:none;position:absolute;top:24px;left:0;min-width:200px;padding:5px;border-radius:11px;background:var(--s-pop);backdrop-filter:var(--s-blur);-webkit-backdrop-filter:var(--s-blur);border:1px solid var(--s-line);box-shadow:var(--s-shadow-pop);color:var(--s-text);text-shadow:none;z-index:10">
+          <div data-mi="1" data-act="copy:jadhavsumit534@gmail.com" style="padding:5px 10px;border-radius:6px">Copy Email Address</div>
+          <div data-mi="1" data-act="copy:github.com/sumitjadhav1703" style="padding:5px 10px;border-radius:6px">Copy GitHub URL</div>
+          <div style="height:1px;background:var(--s-line);margin:5px 8px"></div>
+          <div data-mi="1" data-act="spotlight" style="padding:5px 10px;border-radius:6px">Find…</div>
+        </div>
+      </div>
+      <div data-menu="view" data-act="menu:view" style="padding:2px 9px;border-radius:5px;cursor:default;position:relative">View
+        <div data-dropdown="view" style="display:none;position:absolute;top:24px;left:0;min-width:200px;padding:5px;border-radius:11px;background:var(--s-pop);backdrop-filter:var(--s-blur);-webkit-backdrop-filter:var(--s-blur);border:1px solid var(--s-line);box-shadow:var(--s-shadow-pop);color:var(--s-text);text-shadow:none;z-index:10">
+          <div data-mi="1" data-act="iconsize:0.85" style="padding:5px 10px;border-radius:6px">Small Icons</div>
+          <div data-mi="1" data-act="iconsize:1" style="padding:5px 10px;border-radius:6px">Medium Icons</div>
+          <div data-mi="1" data-act="iconsize:1.25" style="padding:5px 10px;border-radius:6px">Large Icons</div>
+          <div style="height:1px;background:var(--s-line);margin:5px 8px"></div>
+          <div data-mi="1" data-act="toggledesktop" style="padding:5px 10px;border-radius:6px">Show / Hide Desktop Items</div>
+          <div data-mi="1" data-act="toggledock" style="padding:5px 10px;border-radius:6px">Show / Hide Dock</div>
+          <div style="height:1px;background:var(--s-line);margin:5px 8px"></div>
+          <div data-mi="1" data-act="theme:light" style="padding:5px 10px;border-radius:6px">Appearance: Light</div>
+          <div data-mi="1" data-act="theme:dark" style="padding:5px 10px;border-radius:6px">Appearance: Dark</div>
+          <div data-mi="1" data-act="theme:system" style="padding:5px 10px;border-radius:6px">Appearance: System</div>
+        </div>
+      </div>
+      <div data-menu="go" data-act="menu:go" style="padding:2px 9px;border-radius:5px;cursor:default;position:relative">Go
+        <div data-dropdown="go" style="display:none;position:absolute;top:24px;left:0;min-width:200px;padding:5px;border-radius:11px;background:var(--s-pop);backdrop-filter:var(--s-blur);-webkit-backdrop-filter:var(--s-blur);border:1px solid var(--s-line);box-shadow:var(--s-shadow-pop);color:var(--s-text);text-shadow:none;z-index:10">
+          <div data-mi="1" data-act="open:finder-projects" style="padding:5px 10px;border-radius:6px">Projects</div>
+          <div data-mi="1" data-act="open:skills" style="padding:5px 10px;border-radius:6px">Skills</div>
+          <div data-mi="1" data-act="open:experience" style="padding:5px 10px;border-radius:6px">Experience</div>
+          <div data-mi="1" data-act="open:education" style="padding:5px 10px;border-radius:6px">Education</div>
+          <div data-mi="1" data-act="open:certificates" style="padding:5px 10px;border-radius:6px">Certificates</div>
+          <div style="height:1px;background:var(--s-line);margin:5px 8px"></div>
+          <div data-mi="1" data-act="open:contact" style="padding:5px 10px;border-radius:6px">Reach Out</div>
+        </div>
+      </div>
+      <div data-menu="window" data-act="menu:window" style="padding:2px 9px;border-radius:5px;cursor:default;position:relative">Window
+        <div data-dropdown="window" style="display:none;position:absolute;top:24px;left:0;min-width:230px;padding:5px;border-radius:11px;background:var(--s-pop);backdrop-filter:var(--s-blur);-webkit-backdrop-filter:var(--s-blur);border:1px solid var(--s-line);box-shadow:var(--s-shadow-pop);color:var(--s-text);text-shadow:none;z-index:10">
+          <div data-mi="1" data-act="minfront" style="padding:5px 10px;border-radius:6px">Minimize</div>
+          <div data-mi="1" data-act="maxfront" style="padding:5px 10px;border-radius:6px">Zoom</div>
+          <div data-mi="1" data-act="frontall" style="padding:5px 10px;border-radius:6px">Bring All to Front</div>
+          <div style="height:1px;background:var(--s-line);margin:5px 8px"></div>
+          <div data-mi="1" data-act="minall" style="padding:5px 10px;border-radius:6px">Minimize All</div>
+          <div style="height:1px;background:var(--s-line);margin:5px 8px"></div>
+          <div id="window-list" style="max-height:260px;overflow:auto"></div>
+        </div>
+      </div>
+      <div data-menu="help" data-act="open:about" style="padding:2px 9px;border-radius:5px;cursor:default">Help</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:13px">
+      <a href="./Sumit_Jadhav_Resume.pdf" download="Sumit_Jadhav_Resume.pdf" data-focusable="1" data-act="dlresume" style="display:flex;align-items:center;gap:6px;padding:2px 10px;border-radius:6px;background:var(--s-fill-2);border:1px solid var(--s-line);font-size:12px;font-weight:600;color:var(--s-menu-fg);text-decoration:none;text-shadow:none">
+        <span style="position:relative;display:inline-block;width:9px;height:10px">
+          <span style="position:absolute;left:3.5px;top:0;width:2px;height:6px;background:currentColor"></span>
+          <span style="position:absolute;left:1px;top:4px;width:7px;height:4px;border-left:2px solid currentColor;border-bottom:2px solid currentColor;transform:skewX(0) rotate(-45deg) scale(.9);transform-origin:center"></span>
+        </span>Resume</a>
+      <div data-act="statuspop" style="cursor:default;display:flex;align-items:center;gap:6px;padding:2px 7px;border-radius:5px" data-menu="status">
+        <span id="status-dot" style="width:7px;height:7px;border-radius:50%;background:var(--s-ok)"></span><span id="status-word" style="font-size:12px">Ready</span>
+        <div id="status-pop" style="display:none;position:absolute;top:30px;right:12px;width:276px;padding:13px;border-radius:13px;background:var(--s-pop);backdrop-filter:var(--s-blur);-webkit-backdrop-filter:var(--s-blur);border:1px solid var(--s-line);box-shadow:var(--s-shadow-pop);color:var(--s-text);text-shadow:none;z-index:10">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:11px">
+            <div style="font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--s-faint)">Portfolio Status</div>
+            <div id="status-pill" style="display:inline-flex;align-items:center;gap:6px;padding:3px 9px 3px 8px;border-radius:999px;background:var(--s-fill-2);border:1px solid var(--s-line);font-size:11px;font-weight:600;transition:border-color .35s ease">
+              <span id="status-pill-dot" style="width:6px;height:6px;border-radius:50%;background:var(--s-ok);transition:background .35s ease"></span>
+              <span id="status-pill-txt">Ready</span>
+            </div>
+          </div>
+          <div id="status-rows"></div>
+        </div>
+      </div>
+      <div data-act="activitypop" data-menu="activity" style="cursor:default;display:flex;align-items:center;gap:5px;padding:2px 6px;border-radius:5px">
+        <span style="position:relative;display:inline-block;width:23px;height:12px;border:1.4px solid currentColor;border-radius:3px;opacity:.85">
+          <span id="act-fill" style="position:absolute;left:1.5px;top:1.5px;bottom:1.5px;width:70%;border-radius:1.5px;background:currentColor;transition:width .5s cubic-bezier(.32,.72,0,1)"></span>
+        </span>
+        <span style="width:2px;height:5px;border-radius:0 2px 2px 0;background:currentColor;opacity:.6"></span>
+        <div id="act-pop" style="display:none;position:absolute;top:30px;right:12px;width:276px;padding:13px;border-radius:13px;background:var(--s-pop);backdrop-filter:var(--s-blur);-webkit-backdrop-filter:var(--s-blur);border:1px solid var(--s-line);box-shadow:var(--s-shadow-pop);color:var(--s-text);text-shadow:none;z-index:10">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:11px">
+            <div style="font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--s-faint)">Portfolio Activity</div>
+            <div id="act-pill" style="display:inline-flex;align-items:center;gap:6px;padding:3px 9px 3px 8px;border-radius:999px;background:var(--s-fill-2);border:1px solid var(--s-line);font-size:11px;font-weight:600;transition:border-color .35s ease,background .35s ease">
+              <span id="act-pill-dot" style="width:6px;height:6px;border-radius:50%;background:var(--s-ok);transition:background .35s ease"></span>
+              <span id="act-state">Ready</span>
+            </div>
+          </div>
+          <div data-actrow="1" style="padding:11px 12px 12px;border-radius:11px;background:var(--s-fill);border:1px solid var(--s-line);box-shadow:inset 0 1px 0 var(--s-fill-2);transition:background .24s cubic-bezier(.32,.72,0,1)">
+            <div style="font-size:11px;color:var(--s-faint)">Current task</div>
+            <div id="act-task" style="font-size:14.5px;font-weight:700;letter-spacing:-.012em;line-height:1.3;margin-top:3px;transition:opacity .22s ease,transform .32s cubic-bezier(.32,.72,0,1)">Idle</div>
+            <div style="margin-top:11px;height:4px;border-radius:3px;background:var(--s-fill-3);overflow:hidden">
+              <div id="act-meter" style="height:100%;width:34%;border-radius:3px;background:var(--s-ok);transition:width .55s cubic-bezier(.32,.72,0,1),background .35s ease"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:10.5px;color:var(--s-faint)"><span>Idle</span><span>Processing</span></div>
+          </div>
+          <div data-actrow="1" data-act="statuspop" style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px;padding:8px 12px;border-radius:10px;font-size:12px;cursor:default;transition:background .24s cubic-bezier(.32,.72,0,1)"><span style="color:var(--s-dim)">System status</span><span id="act-sys" style="font-weight:600">Ready</span></div>
+        </div>
+      </div>
+      <div data-act="controlcenter" style="cursor:default;display:flex;flex-direction:column;gap:3px;padding:3px 2px">
+        <div style="width:16px;height:2.5px;border-radius:2px;background:currentColor;opacity:.9"></div>
+        <div style="width:16px;height:2.5px;border-radius:2px;background:currentColor;opacity:.9"></div>
+      </div>
+      <div data-act="spotlight" style="cursor:default;width:14px;height:14px;position:relative">
+        <div style="position:absolute;left:0;top:0;width:10px;height:10px;border:1.8px solid currentColor;border-radius:50%;opacity:.92"></div>
+        <div style="position:absolute;left:8px;top:9px;width:6px;height:1.8px;background:currentColor;border-radius:2px;transform:rotate(45deg);transform-origin:left center;opacity:.92"></div>
+      </div>
+      <div data-act="calendarpop" data-menu="cal" style="cursor:default;position:relative;padding:2px 4px;border-radius:5px">
+        <span id="clock" style="font-variant-numeric:tabular-nums">—</span>
+        <div id="cal-pop" style="display:none;position:absolute;top:28px;right:0;width:288px;padding:14px;border-radius:13px;background:var(--s-pop);backdrop-filter:var(--s-blur);-webkit-backdrop-filter:var(--s-blur);border:1px solid var(--s-line);box-shadow:var(--s-shadow-pop);color:var(--s-text);text-shadow:none;z-index:10">
+          <div id="cal-head" style="font-size:13px;font-weight:700;margin-bottom:10px"></div>
+          <div id="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;font-size:11px;text-align:center"></div>
+          <div style="height:1px;background:var(--s-line);margin:13px 0 10px"></div>
+          <div style="font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--s-faint);margin-bottom:8px">Notifications</div>
+          <div id="notif-list" style="display:flex;flex-direction:column;gap:6px;max-height:150px;overflow:auto"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div data-desktopgrid="1" id="desktop-grid" style="position:absolute;top:44px;right:22px;display:grid;grid-template-columns:repeat(2,86px);gap:16px 6px;z-index:20;transform-origin:top right">
+    <div data-dsk="1" data-act="sel" data-dblact="open:project-lazarus" style="width:86px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:default;animation:riseIn .7s linear(0,0.006,0.025 2.8%,0.101 6.1%,0.539 18.9%,0.721 25.3%,0.849 31.5%,0.937 38.1%,0.968 41.8%,0.991 45.7%,1.006 50.1%,1.015 55%,1.017 63.9%,1.006 79%,1) both;animation-delay:2.0s">
+      <div style="position:relative;width:62px;height:48px;filter:drop-shadow(0 6px 11px rgba(0,0,0,.5))">
+        <div style="position:absolute;left:1px;top:1px;width:28px;height:14px;border-radius:5px 10px 0 0;background:#2b8743"></div>
+        <div style="position:absolute;left:6px;top:9px;width:50px;height:11px;border-radius:4px 4px 0 0;background:rgba(255,255,255,.72)"></div>
+        <div style="position:absolute;left:0;top:13px;width:62px;height:35px;border-radius:5px 9px 9px 9px;background:linear-gradient(180deg,#5cc36a,#2b8743);box-shadow:inset 0 1px 0 rgba(255,255,255,.6),inset 0 -10px 16px rgba(0,0,0,.14)"></div>
+      </div>
+      <span style="font-size:11.5px;line-height:1.25;text-align:center;color:var(--s-onwall);text-shadow:var(--s-onwall-shadow);background:var(--s-onwall-bg);padding:2px 6px;border-radius:6px;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);box-decoration-break:clone;-webkit-box-decoration-break:clone">Lazarus<br/>Sentinel</span>
+    </div>
+    <div data-dsk="1" data-act="sel" data-dblact="open:project-ai-video" style="width:86px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:default;animation:riseIn .7s linear(0,0.006,0.025 2.8%,0.101 6.1%,0.539 18.9%,0.721 25.3%,0.849 31.5%,0.937 38.1%,0.968 41.8%,0.991 45.7%,1.006 50.1%,1.015 55%,1.017 63.9%,1.006 79%,1) both;animation-delay:2.09s">
+      <div style="position:relative;width:62px;height:48px;filter:drop-shadow(0 6px 11px rgba(0,0,0,.5))">
+        <div style="position:absolute;left:1px;top:1px;width:28px;height:14px;border-radius:5px 10px 0 0;background:#1c62c9"></div>
+        <div style="position:absolute;left:6px;top:9px;width:50px;height:11px;border-radius:4px 4px 0 0;background:rgba(255,255,255,.72)"></div>
+        <div style="position:absolute;left:0;top:13px;width:62px;height:35px;border-radius:5px 9px 9px 9px;background:linear-gradient(180deg,#4ea3f5,#1c62c9);box-shadow:inset 0 1px 0 rgba(255,255,255,.6),inset 0 -10px 16px rgba(0,0,0,.14)"></div>
+      </div>
+      <span style="font-size:11.5px;line-height:1.25;text-align:center;color:var(--s-onwall);text-shadow:var(--s-onwall-shadow);background:var(--s-onwall-bg);padding:2px 6px;border-radius:6px;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);box-decoration-break:clone;-webkit-box-decoration-break:clone">AI Video<br/>Assistant</span>
+    </div>
+    <div data-dsk="1" data-act="sel" data-dblact="open:project-pm25" style="width:86px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:default;animation:riseIn .7s linear(0,0.006,0.025 2.8%,0.101 6.1%,0.539 18.9%,0.721 25.3%,0.849 31.5%,0.937 38.1%,0.968 41.8%,0.991 45.7%,1.006 50.1%,1.015 55%,1.017 63.9%,1.006 79%,1) both;animation-delay:2.18s">
+      <div style="position:relative;width:62px;height:48px;filter:drop-shadow(0 6px 11px rgba(0,0,0,.5))">
+        <div style="position:absolute;left:1px;top:1px;width:28px;height:14px;border-radius:5px 10px 0 0;background:#cf9611"></div>
+        <div style="position:absolute;left:6px;top:9px;width:50px;height:11px;border-radius:4px 4px 0 0;background:rgba(255,255,255,.72)"></div>
+        <div style="position:absolute;left:0;top:13px;width:62px;height:35px;border-radius:5px 9px 9px 9px;background:linear-gradient(180deg,#f6cd4c,#cf9611);box-shadow:inset 0 1px 0 rgba(255,255,255,.6),inset 0 -10px 16px rgba(0,0,0,.14)"></div>
+      </div>
+      <span style="font-size:11.5px;line-height:1.25;text-align:center;color:var(--s-onwall);text-shadow:var(--s-onwall-shadow);background:var(--s-onwall-bg);padding:2px 6px;border-radius:6px;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);box-decoration-break:clone;-webkit-box-decoration-break:clone">PM2.5<br/>Forecasting</span>
+    </div>
+    <div data-dsk="1" data-act="sel" data-dblact="open:project-sar" style="width:86px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:default;animation:riseIn .7s linear(0,0.006,0.025 2.8%,0.101 6.1%,0.539 18.9%,0.721 25.3%,0.849 31.5%,0.937 38.1%,0.968 41.8%,0.991 45.7%,1.006 50.1%,1.015 55%,1.017 63.9%,1.006 79%,1) both;animation-delay:2.27s">
+      <div style="position:relative;width:62px;height:48px;filter:drop-shadow(0 6px 11px rgba(0,0,0,.5))">
+        <div style="position:absolute;left:1px;top:1px;width:28px;height:14px;border-radius:5px 10px 0 0;background:#cd6212"></div>
+        <div style="position:absolute;left:6px;top:9px;width:50px;height:11px;border-radius:4px 4px 0 0;background:rgba(255,255,255,.72)"></div>
+        <div style="position:absolute;left:0;top:13px;width:62px;height:35px;border-radius:5px 9px 9px 9px;background:linear-gradient(180deg,#f79a3e,#cd6212);box-shadow:inset 0 1px 0 rgba(255,255,255,.6),inset 0 -10px 16px rgba(0,0,0,.14)"></div>
+      </div>
+      <span style="font-size:11.5px;line-height:1.25;text-align:center;color:var(--s-onwall);text-shadow:var(--s-onwall-shadow);background:var(--s-onwall-bg);padding:2px 6px;border-radius:6px;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);box-decoration-break:clone;-webkit-box-decoration-break:clone">SAR Crop<br/>Mapping</span>
+    </div>
+    <div data-dsk="1" data-act="sel" data-dblact="open:project-multi-agent" style="width:86px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:default;animation:riseIn .7s linear(0,0.006,0.025 2.8%,0.101 6.1%,0.539 18.9%,0.721 25.3%,0.849 31.5%,0.937 38.1%,0.968 41.8%,0.991 45.7%,1.006 50.1%,1.015 55%,1.017 63.9%,1.006 79%,1) both;animation-delay:2.36s">
+      <div style="position:relative;width:62px;height:48px;filter:drop-shadow(0 6px 11px rgba(0,0,0,.5))">
+        <div style="position:absolute;left:1px;top:1px;width:28px;height:14px;border-radius:5px 10px 0 0;background:#6a3ec0"></div>
+        <div style="position:absolute;left:6px;top:9px;width:50px;height:11px;border-radius:4px 4px 0 0;background:rgba(255,255,255,.72)"></div>
+        <div style="position:absolute;left:0;top:13px;width:62px;height:35px;border-radius:5px 9px 9px 9px;background:linear-gradient(180deg,#a97bf0,#6a3ec0);box-shadow:inset 0 1px 0 rgba(255,255,255,.6),inset 0 -10px 16px rgba(0,0,0,.14)"></div>
+      </div>
+      <span style="font-size:11.5px;line-height:1.25;text-align:center;color:var(--s-onwall);text-shadow:var(--s-onwall-shadow);background:var(--s-onwall-bg);padding:2px 6px;border-radius:6px;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);box-decoration-break:clone;-webkit-box-decoration-break:clone">Multi-Agent<br/>Research</span>
+    </div>
+    <div data-dsk="1" data-act="sel" data-dblact="open:project-airbnb" style="width:86px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:default;animation:riseIn .7s linear(0,0.006,0.025 2.8%,0.101 6.1%,0.539 18.9%,0.721 25.3%,0.849 31.5%,0.937 38.1%,0.968 41.8%,0.991 45.7%,1.006 50.1%,1.015 55%,1.017 63.9%,1.006 79%,1) both;animation-delay:2.45s">
+      <div style="position:relative;width:62px;height:48px;filter:drop-shadow(0 6px 11px rgba(0,0,0,.5))">
+        <div style="position:absolute;left:1px;top:1px;width:28px;height:14px;border-radius:5px 10px 0 0;background:#c33026"></div>
+        <div style="position:absolute;left:6px;top:9px;width:50px;height:11px;border-radius:4px 4px 0 0;background:rgba(255,255,255,.72)"></div>
+        <div style="position:absolute;left:0;top:13px;width:62px;height:35px;border-radius:5px 9px 9px 9px;background:linear-gradient(180deg,#f26a63,#c33026);box-shadow:inset 0 1px 0 rgba(255,255,255,.6),inset 0 -10px 16px rgba(0,0,0,.14)"></div>
+      </div>
+      <span style="font-size:11.5px;line-height:1.25;text-align:center;color:var(--s-onwall);text-shadow:var(--s-onwall-shadow);background:var(--s-onwall-bg);padding:2px 6px;border-radius:6px;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);box-decoration-break:clone;-webkit-box-decoration-break:clone">NYC Airbnb<br/>Classifier</span>
+    </div>
+  </div>
+
+  <div id="wm" style="position:absolute;inset:0;pointer-events:none;z-index:100"></div>
+  <div id="toasts" style="position:absolute;top:40px;right:14px;z-index:190;display:flex;flex-direction:column;gap:8px;pointer-events:none;width:262px"></div>
+
+  <div id="control-center" style="display:none;position:absolute;top:34px;right:12px;width:288px;padding:12px;border-radius:14px;background:var(--s-pop);backdrop-filter:var(--s-blur);-webkit-backdrop-filter:var(--s-blur);border:1px solid var(--s-line);box-shadow:var(--s-shadow-pop);color:var(--s-text);z-index:260;opacity:0;transform:scale(.94) translateY(-6px);transform-origin:top right;transition:opacity .22s ease,transform .5s linear(0,0.006,0.025 2.8%,0.101 6.1%,0.539 18.9%,0.721 25.3%,0.849 31.5%,0.937 38.1%,0.968 41.8%,0.991 45.7%,1.006 50.1%,1.015 55%,1.017 63.9%,1.006 79%,1)">
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="padding:11px 12px;border-radius:11px;background:var(--s-fill)">
+        <div style="font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--s-faint);margin-bottom:9px">Connectivity</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;font-size:12.5px"><span>Network</span><span id="cc-net" style="color:var(--s-dim)">—</span></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;font-size:12.5px;margin-top:5px"><span>Portfolio data</span><span style="color:var(--s-dim)">Local</span></div>
+      </div>
+      <div style="padding:11px 12px;border-radius:11px;background:var(--s-fill)">
+        <div style="font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--s-faint);margin-bottom:9px">Appearance</div>
+        <div style="display:flex;gap:5px">
+          <div data-act="theme:light" data-seg="light" style="flex:1;text-align:center;padding:6px 0;border-radius:8px;font-size:12px;cursor:default;background:var(--s-fill-2)">Light</div>
+          <div data-act="theme:dark" data-seg="dark" style="flex:1;text-align:center;padding:6px 0;border-radius:8px;font-size:12px;cursor:default;background:var(--s-fill-2)">Dark</div>
+          <div data-act="theme:system" data-seg="system" style="flex:1;text-align:center;padding:6px 0;border-radius:8px;font-size:12px;cursor:default;background:var(--s-fill-2)">System</div>
+        </div>
+      </div>
+      <div style="padding:11px 12px;border-radius:11px;background:var(--s-fill)">
+        <div style="font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--s-faint);margin-bottom:9px">Portfolio</div>
+        <div data-act="statuspop" style="display:flex;align-items:center;justify-content:space-between;font-size:12.5px;cursor:default"><span>System status</span><span id="cc-status" style="color:var(--s-dim)">Ready</span></div>
+        <div data-act="activitypop" style="display:flex;align-items:center;justify-content:space-between;font-size:12.5px;margin-top:5px;cursor:default"><span>Current activity</span><span id="cc-activity" style="color:var(--s-dim)">Idle</span></div>
+      </div>
+      <div style="padding:11px 12px;border-radius:11px;background:var(--s-fill)">
+        <div style="font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--s-faint);margin-bottom:9px">Quick Actions</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px">
+          <div data-side="1" data-act="open:finder-projects" style="padding:7px 9px;border-radius:8px;background:var(--s-fill-2);font-size:12px;cursor:default">Projects</div>
+          <div data-side="1" data-act="open:resume" style="padding:7px 9px;border-radius:8px;background:var(--s-fill-2);font-size:12px;cursor:default">Resume</div>
+          <div data-side="1" data-act="open:terminal" style="padding:7px 9px;border-radius:8px;background:var(--s-fill-2);font-size:12px;cursor:default">Shell</div>
+          <div data-side="1" data-act="open:contact" style="padding:7px 9px;border-radius:8px;background:var(--s-fill-2);font-size:12px;cursor:default">Reach Out</div>
+        </div>
+      </div>
+      <div data-act="open:settings" data-side="1" style="padding:9px 12px;border-radius:10px;background:var(--s-fill);cursor:default;font-weight:600;font-size:12.5px">Portfolio Settings…</div>
+    </div>
+  </div>
+
+  <div id="spotlight" style="display:none;position:absolute;inset:0;z-index:300;background:rgba(0,0,0,.35);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);align-items:flex-start;justify-content:center;padding-top:16vh;opacity:0;transition:opacity .26s cubic-bezier(.32,.72,0,1)">
+    <div id="spotlight-box" style="width:min(600px,86vw);border-radius:14px;overflow:hidden;background:var(--s-pop);backdrop-filter:var(--s-blur);-webkit-backdrop-filter:var(--s-blur);border:1px solid var(--s-line);box-shadow:var(--s-shadow-pop);color:var(--s-text);transform:scale(.96);transition:transform .5s linear(0,0.006,0.025 2.8%,0.101 6.1%,0.539 18.9%,0.721 25.3%,0.849 31.5%,0.937 38.1%,0.968 41.8%,0.991 45.7%,1.006 50.1%,1.015 55%,1.017 63.9%,1.006 79%,1)">
+      <div style="display:flex;align-items:center;gap:12px;padding:14px 18px">
+        <div style="width:19px;height:19px;position:relative;flex:none;opacity:.6">
+          <div style="position:absolute;left:0;top:0;width:14px;height:14px;border:2px solid currentColor;border-radius:50%"></div>
+          <div style="position:absolute;left:11px;top:12px;width:8px;height:2px;background:currentColor;border-radius:2px;transform:rotate(45deg);transform-origin:left center"></div>
+        </div>
+        <input id="spotlight-input" type="text" autocomplete="off" placeholder="Search this portfolio" style="flex:1;background:transparent;border:none;outline:none;color:var(--s-text);font-size:21px;font-family:inherit"/>
+      </div>
+      <div id="spotlight-results" style="max-height:340px;overflow:auto;border-top:1px solid var(--s-line)"></div>
+    </div>
+  </div>
+
+  <div id="shortcuts" style="display:none;position:absolute;inset:0;z-index:310;background:rgba(0,0,0,.4);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);align-items:center;justify-content:center;opacity:0;transition:opacity .24s cubic-bezier(.32,.72,0,1)">
+    <div id="shortcuts-box" style="width:min(470px,88vw);padding:20px 22px 18px;border-radius:16px;background:var(--s-pop);backdrop-filter:var(--s-blur);-webkit-backdrop-filter:var(--s-blur);border:1px solid var(--s-line);box-shadow:var(--s-shadow-pop);color:var(--s-text);transform:scale(.96);transition:transform .5s linear(0,0.006,0.025 2.8%,0.101 6.1%,0.539 18.9%,0.721 25.3%,0.849 31.5%,0.937 38.1%,0.968 41.8%,0.991 45.7%,1.006 50.1%,1.015 55%,1.017 63.9%,1.006 79%,1)">
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:14px">
+        <div style="font-size:15px;font-weight:700;letter-spacing:-.01em">Keyboard shortcuts</div>
+        <div style="flex:1"></div>
+        <div style="font-size:11.5px;color:var(--s-faint)">? or Esc to close</div>
+      </div>
+      <div id="shortcuts-list" style="display:flex;flex-direction:column"></div>
+    </div>
+  </div>
+
+  <div id="mission" style="display:none;position:absolute;inset:0;z-index:290;background:rgba(6,8,11,.52);backdrop-filter:blur(16px) saturate(140%);-webkit-backdrop-filter:blur(16px) saturate(140%);align-items:center;justify-content:center;padding:56px 40px;opacity:0;transition:opacity .26s cubic-bezier(.32,.72,0,1)">
+    <div style="width:100%;max-width:940px">
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:14px">
+        <div style="font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:rgba(255,255,255,.62)">Open windows</div>
+        <div style="flex:1"></div>
+        <div style="font-size:11.5px;color:rgba(255,255,255,.45)">Esc to close</div>
+      </div>
+      <div id="mission-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(196px,1fr));gap:14px"></div>
+    </div>
+  </div>
+
+  <div id="dock-hint" style="display:none;position:absolute;left:50%;bottom:82px;transform:translateX(-50%) translateY(8px);z-index:160;align-items:center;gap:12px;padding:8px 10px 8px 15px;border-radius:12px;background:var(--s-pop);backdrop-filter:var(--s-blur);-webkit-backdrop-filter:var(--s-blur);border:1px solid var(--s-line);box-shadow:var(--s-shadow-pop);color:var(--s-text);font-size:12.5px;opacity:0;transition:opacity .45s ease,transform .45s linear(0,0.006,0.025 2.8%,0.101 6.1%,0.539 18.9%,0.721 25.3%,0.849 31.5%,0.937 38.1%,0.968 41.8%,0.991 45.7%,1.006 50.1%,1.015 55%,1.017 63.9%,1.006 79%,1)">
+    <span>Press <b style="font-family:ui-monospace,Menlo,monospace">⌘K</b> to search · <b style="font-family:ui-monospace,Menlo,monospace">?</b> for shortcuts</span>
+    <span data-act="hintdismiss" style="padding:4px 11px;border-radius:8px;background:var(--s-fill-2);border:1px solid var(--s-line);cursor:default;font-size:11.5px">Got it</span>
+  </div>
+
+  <div data-dock="1" id="dock" style="position:absolute;left:50%;bottom:8px;transform:translateX(-50%);display:flex;align-items:flex-end;padding:6px 10px 8px;border-radius:20px;background:var(--s-dock,rgba(18,20,24,.72));backdrop-filter:blur(24px) saturate(130%);-webkit-backdrop-filter:blur(24px) saturate(130%);border:1px solid var(--s-line);box-shadow:var(--s-shadow-pop);z-index:150;animation:dockIn .8s linear(0,0.006,0.025 2.8%,0.101 6.1%,0.539 18.9%,0.721 25.3%,0.849 31.5%,0.937 38.1%,0.968 41.8%,0.991 45.7%,1.006 50.1%,1.015 55%,1.017 63.9%,1.006 79%,1) both;animation-delay:1.75s">
+    <div id="dock-list" style="display:flex;align-items:flex-end">
+      <div data-item="finder" data-act="launch:finder" style="position:relative;width:54px;height:54px;margin:0 5px;transform-origin:bottom center;will-change:transform;cursor:default;transition:transform .13s cubic-bezier(.32,.72,0,1),margin .13s cubic-bezier(.32,.72,0,1)">
+        <div data-iconface="1" style="--icon-grad:linear-gradient(180deg,#5d8df6,#2a55c6);position:absolute;inset:0;border-radius:15px;overflow:hidden;background:var(--icon-grad);box-shadow:0 8px 16px rgba(0,0,0,.36),inset 0 1px 0 rgba(255,255,255,.3),inset 0 0 0 .5px var(--s-glass-edge)"><div style="position:absolute;inset:0;background:var(--s-icon-spec);pointer-events:none"></div><div data-ink="1" style="position:absolute;left:13px;top:15px;width:15px;height:5px;border-radius:2px 4px 0 0;background:rgba(255,255,255,.94)"></div>
+        <div data-ink="1" style="position:absolute;left:12px;top:19px;width:30px;height:21px;border-radius:2px 4px 4px 4px;background:rgba(255,255,255,.94)"></div>
+        <div data-ink="1" style="position:absolute;left:12px;top:26px;width:30px;height:1.5px;background:rgba(20,40,90,.3)"></div></div>
+        <div data-tip="Workspace" style="position:absolute;left:50%;top:-38px;transform:translateX(-50%);padding:4px 9px;border-radius:8px;background:var(--s-tip);backdrop-filter:blur(20px);border:1px solid var(--s-line);color:var(--s-text);font-size:11.5px;white-space:nowrap;opacity:0;transition:opacity .2s cubic-bezier(.32,.72,0,1);pointer-events:none">Workspace</div><div data-ind="finder" style="position:absolute;left:50%;bottom:-7px;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:currentColor;opacity:0;transition:opacity .2s"></div>
+      </div>
+      <div data-item="terminal" data-act="launch:terminal" style="position:relative;width:54px;height:54px;margin:0 5px;transform-origin:bottom center;will-change:transform;cursor:default;transition:transform .13s cubic-bezier(.32,.72,0,1),margin .13s cubic-bezier(.32,.72,0,1)">
+        <div data-iconface="1" style="--icon-grad:linear-gradient(180deg,#3b424c,#14171b);position:absolute;inset:0;border-radius:15px;overflow:hidden;background:var(--icon-grad);box-shadow:0 8px 16px rgba(0,0,0,.36),inset 0 1px 0 rgba(255,255,255,.3),inset 0 0 0 .5px var(--s-glass-edge)"><div style="position:absolute;inset:0;background:var(--s-icon-spec);pointer-events:none"></div><div data-ink="1" style="position:absolute;left:0;right:0;top:0;height:11px;background:rgba(255,255,255,.12)"></div>
+        <div data-ink="1" style="position:absolute;left:14px;top:22px;width:10px;height:2.4px;border-radius:2px;background:rgba(255,255,255,.92);transform:rotate(38deg);transform-origin:left center"></div>
+        <div data-ink="1" style="position:absolute;left:14px;top:34px;width:10px;height:2.4px;border-radius:2px;background:rgba(255,255,255,.92);transform:rotate(-38deg);transform-origin:left center"></div>
+        <div data-ink="1" style="position:absolute;left:28px;top:34px;width:13px;height:2.4px;border-radius:2px;background:rgba(255,255,255,.62)"></div></div>
+        <div data-tip="Shell" style="position:absolute;left:50%;top:-38px;transform:translateX(-50%);padding:4px 9px;border-radius:8px;background:var(--s-tip);backdrop-filter:blur(20px);border:1px solid var(--s-line);color:var(--s-text);font-size:11.5px;white-space:nowrap;opacity:0;transition:opacity .2s cubic-bezier(.32,.72,0,1);pointer-events:none">Shell</div><div data-ind="terminal" style="position:absolute;left:50%;bottom:-7px;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:currentColor;opacity:0;transition:opacity .2s"></div>
+      </div>
+      <div data-item="sumit-ai" data-act="launch:sumit-ai" style="position:relative;width:54px;height:54px;margin:0 5px;transform-origin:bottom center;will-change:transform;cursor:default;transition:transform .13s cubic-bezier(.32,.72,0,1),margin .13s cubic-bezier(.32,.72,0,1)">
+        <div data-iconface="1" style="--icon-grad:linear-gradient(180deg,#9370f4,#4a2cb2);position:absolute;inset:0;border-radius:15px;overflow:hidden;background:var(--icon-grad);box-shadow:0 8px 16px rgba(0,0,0,.36),inset 0 1px 0 rgba(255,255,255,.3),inset 0 0 0 .5px var(--s-glass-edge)"><div style="position:absolute;inset:0;background:var(--s-icon-spec);pointer-events:none"></div><div data-inkline="1" style="position:absolute;left:12px;top:12px;width:30px;height:30px;border-radius:50%;border:1.6px solid rgba(255,255,255,.42)"></div>
+        <div data-inkline="1" style="position:absolute;left:18px;top:18px;width:18px;height:18px;border-radius:50%;border:1.6px solid rgba(255,255,255,.72)"></div>
+        <div data-ink="1" style="position:absolute;left:24.5px;top:24.5px;width:5px;height:5px;border-radius:50%;background:#fff"></div></div>
+        <div data-tip="Ask Sumit" style="position:absolute;left:50%;top:-38px;transform:translateX(-50%);padding:4px 9px;border-radius:8px;background:var(--s-tip);backdrop-filter:blur(20px);border:1px solid var(--s-line);color:var(--s-text);font-size:11.5px;white-space:nowrap;opacity:0;transition:opacity .2s cubic-bezier(.32,.72,0,1);pointer-events:none">Ask Sumit</div><div data-ind="sumit-ai" style="position:absolute;left:50%;bottom:-7px;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:currentColor;opacity:0;transition:opacity .2s"></div>
+      </div>
+      <div data-item="code" data-act="launch:code" style="position:relative;width:54px;height:54px;margin:0 5px;transform-origin:bottom center;will-change:transform;cursor:default;transition:transform .13s cubic-bezier(.32,.72,0,1),margin .13s cubic-bezier(.32,.72,0,1)">
+        <div data-iconface="1" style="--icon-grad:linear-gradient(180deg,#4e5a6e,#1e242d);position:absolute;inset:0;border-radius:15px;overflow:hidden;background:var(--icon-grad);box-shadow:0 8px 16px rgba(0,0,0,.36),inset 0 1px 0 rgba(255,255,255,.3),inset 0 0 0 .5px var(--s-glass-edge)"><div style="position:absolute;inset:0;background:var(--s-icon-spec);pointer-events:none"></div><div data-inkline="1" style="position:absolute;left:12px;top:21px;width:11px;height:11px;border-left:2.2px solid rgba(255,255,255,.9);border-bottom:2.2px solid rgba(255,255,255,.9);border-radius:0 0 0 2px;transform:rotate(45deg)"></div>
+        <div data-inkline="1" style="position:absolute;left:31px;top:21px;width:11px;height:11px;border-right:2.2px solid rgba(255,255,255,.9);border-top:2.2px solid rgba(255,255,255,.9);border-radius:0 2px 0 0;transform:rotate(45deg)"></div>
+        <div data-ink="1" style="position:absolute;left:26px;top:15px;width:2.2px;height:24px;border-radius:2px;background:rgba(255,255,255,.55);transform:rotate(14deg)"></div></div>
+        <div data-tip="Code" style="position:absolute;left:50%;top:-38px;transform:translateX(-50%);padding:4px 9px;border-radius:8px;background:var(--s-tip);backdrop-filter:blur(20px);border:1px solid var(--s-line);color:var(--s-text);font-size:11.5px;white-space:nowrap;opacity:0;transition:opacity .2s cubic-bezier(.32,.72,0,1);pointer-events:none">Code</div><div data-ind="code" style="position:absolute;left:50%;bottom:-7px;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:currentColor;opacity:0;transition:opacity .2s"></div>
+      </div>
+      <div data-item="contact" data-act="launch:contact" style="position:relative;width:54px;height:54px;margin:0 5px;transform-origin:bottom center;will-change:transform;cursor:default;transition:transform .13s cubic-bezier(.32,.72,0,1),margin .13s cubic-bezier(.32,.72,0,1)">
+        <div data-iconface="1" style="--icon-grad:linear-gradient(180deg,#53b7a9,#1c7a6d);position:absolute;inset:0;border-radius:15px;overflow:hidden;background:var(--icon-grad);box-shadow:0 8px 16px rgba(0,0,0,.36),inset 0 1px 0 rgba(255,255,255,.3),inset 0 0 0 .5px var(--s-glass-edge)"><div style="position:absolute;inset:0;background:var(--s-icon-spec);pointer-events:none"></div><div data-inkline="1" style="position:absolute;left:13px;top:26px;width:28px;height:14px;border:2px solid rgba(255,255,255,.92);border-top:none;border-radius:0 0 6px 6px"></div>
+        <div data-ink="1" style="position:absolute;left:26px;top:12px;width:2.2px;height:13px;border-radius:2px;background:rgba(255,255,255,.92)"></div>
+        <div data-inkline="1" style="position:absolute;left:22.5px;top:19px;width:9px;height:9px;border-right:2.2px solid rgba(255,255,255,.92);border-bottom:2.2px solid rgba(255,255,255,.92);border-radius:0 0 2px 0;transform:rotate(45deg)"></div></div>
+        <div data-tip="Reach Out" style="position:absolute;left:50%;top:-38px;transform:translateX(-50%);padding:4px 9px;border-radius:8px;background:var(--s-tip);backdrop-filter:blur(20px);border:1px solid var(--s-line);color:var(--s-text);font-size:11.5px;white-space:nowrap;opacity:0;transition:opacity .2s cubic-bezier(.32,.72,0,1);pointer-events:none">Reach Out</div><div data-ind="contact" style="position:absolute;left:50%;bottom:-7px;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:currentColor;opacity:0;transition:opacity .2s"></div>
+      </div>
+      <div data-item="settings" data-act="launch:settings" style="position:relative;width:54px;height:54px;margin:0 5px;transform-origin:bottom center;will-change:transform;cursor:default;transition:transform .13s cubic-bezier(.32,.72,0,1),margin .13s cubic-bezier(.32,.72,0,1)">
+        <div data-iconface="1" style="--icon-grad:linear-gradient(180deg,#828c9a,#3a414b);position:absolute;inset:0;border-radius:15px;overflow:hidden;background:var(--icon-grad);box-shadow:0 8px 16px rgba(0,0,0,.36),inset 0 1px 0 rgba(255,255,255,.3),inset 0 0 0 .5px var(--s-glass-edge)"><div style="position:absolute;inset:0;background:var(--s-icon-spec);pointer-events:none"></div><div data-ink="1" style="position:absolute;left:12px;top:17px;right:12px;height:1.8px;border-radius:2px;background:rgba(255,255,255,.62)"></div>
+        <div data-ink="1" style="position:absolute;left:12px;top:26px;right:12px;height:1.8px;border-radius:2px;background:rgba(255,255,255,.62)"></div>
+        <div data-ink="1" style="position:absolute;left:12px;top:35px;right:12px;height:1.8px;border-radius:2px;background:rgba(255,255,255,.62)"></div>
+        <div data-ink="1" style="position:absolute;left:29px;top:13px;width:7px;height:9px;border-radius:2.5px;background:#fff"></div>
+        <div data-ink="1" style="position:absolute;left:16px;top:22px;width:7px;height:9px;border-radius:2.5px;background:#fff"></div>
+        <div data-ink="1" style="position:absolute;left:33px;top:31px;width:7px;height:9px;border-radius:2.5px;background:#fff"></div></div>
+        <div data-tip="System" style="position:absolute;left:50%;top:-38px;transform:translateX(-50%);padding:4px 9px;border-radius:8px;background:var(--s-tip);backdrop-filter:blur(20px);border:1px solid var(--s-line);color:var(--s-text);font-size:11.5px;white-space:nowrap;opacity:0;transition:opacity .2s cubic-bezier(.32,.72,0,1);pointer-events:none">System</div><div data-ind="settings" style="position:absolute;left:50%;bottom:-7px;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:currentColor;opacity:0;transition:opacity .2s"></div>
+      </div>
+      <div style="width:1px;height:44px;background:var(--s-line-2);margin:0 9px 4px"></div>
+      <div data-item="trash" data-act="launch:trash" style="position:relative;width:54px;height:54px;margin:0 5px;transform-origin:bottom center;will-change:transform;cursor:default;transition:transform .13s cubic-bezier(.32,.72,0,1),margin .13s cubic-bezier(.32,.72,0,1)">
+        <div data-iconface="1" style="--icon-grad:linear-gradient(180deg,var(--s-glass-icon),var(--s-glass-icon));position:absolute;inset:0;border-radius:15px;overflow:hidden;background:var(--icon-grad);box-shadow:0 8px 16px rgba(0,0,0,.36),inset 0 1px 0 rgba(255,255,255,.3),inset 0 0 0 .5px var(--s-glass-edge)"><div style="position:absolute;inset:0;background:var(--s-icon-spec);pointer-events:none"></div><div data-ink="1" style="position:absolute;left:15px;top:14px;width:24px;height:2px;border-radius:2px;background:var(--s-glass-icon-ink)"></div>
+        <div data-ink="1" style="position:absolute;left:23px;top:10px;width:8px;height:3px;border-radius:2px 2px 0 0;background:var(--s-glass-icon-ink);opacity:.85"></div>
+        <div data-inkline="1" style="position:absolute;left:17px;top:19px;width:20px;height:24px;border-radius:2px 2px 6px 6px;border:1.6px solid var(--s-glass-icon-ink);opacity:.85"></div></div>
+        <div data-tip="Trash" style="position:absolute;left:50%;top:-38px;transform:translateX(-50%);padding:4px 9px;border-radius:8px;background:var(--s-tip);backdrop-filter:blur(20px);border:1px solid var(--s-line);color:var(--s-text);font-size:11.5px;white-space:nowrap;opacity:0;transition:opacity .2s cubic-bezier(.32,.72,0,1);pointer-events:none">Trash</div>
+      </div>
+    </div>
+  </div>
+
+  <div data-mobilenav="1" style="position:absolute;left:0;right:0;bottom:0;z-index:140;padding:10px 16px 22px;display:none;justify-content:space-around;align-items:center;background:var(--s-dock,rgba(18,20,24,.86));backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--s-line)">
+    <div data-act="launch:finder" style="width:46px;height:46px;border-radius:12px;background:var(--s-fill-2);box-shadow:inset 0 0 0 1px var(--s-line);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600">Work</div>
+    <div data-act="launch:terminal" style="width:46px;height:46px;border-radius:12px;background:#111417;box-shadow:inset 0 0 0 1px rgba(255,255,255,.11);display:flex;align-items:center;justify-content:center;font-family:ui-monospace,Menlo,monospace">&gt;_</div>
+    <div data-act="launch:sumit-ai" style="width:46px;height:46px;border-radius:12px;background:var(--s-fill-2);box-shadow:inset 0 0 0 1px var(--s-line);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600">Ask</div>
+    <div data-act="launch:project-lazarus" style="width:46px;height:46px;border-radius:12px;background:var(--s-fill-2);box-shadow:inset 0 0 0 1px var(--s-line);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600">Proj</div>
+    <div data-act="launch:contact" style="width:46px;height:46px;border-radius:12px;background:var(--s-fill-2);box-shadow:inset 0 0 0 1px var(--s-line);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600">Mail</div>
+  </div>
+
+  <div id="mobile" style="position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;z-index:400;background:var(--s-desk);color:var(--s-text);user-select:text;-webkit-overflow-scrolling:touch">
+    <div style="padding:26px 20px 20px;border-bottom:1px solid var(--s-line);background:var(--s-win)">
+      <div style="display:flex;align-items:center;gap:14px">
+        <div style="width:52px;height:52px;flex:none;border-radius:13px;background:var(--s-fill-2);box-shadow:inset 0 0 0 1px var(--s-line);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:600;letter-spacing:.04em">SJ</div>
+        <div style="min-width:0">
+          <div style="font-size:20px;font-weight:700;letter-spacing:-.02em">Sumit Jadhav</div>
+          <div style="color:var(--s-dim);font-size:13px;margin-top:2px">AI &amp; Data Science · B.Tech, JNEC</div>
+        </div>
+      </div>
+      <div style="color:var(--s-dim);font-size:13.5px;line-height:1.6;margin-top:14px">Generative AI, RAG systems and applied deep learning. Looking for an AI/ML engineering internship.</div>
+      <div style="display:flex;gap:8px;margin-top:16px">
+        <a href="./Sumit_Jadhav_Resume.pdf" download="Sumit_Jadhav_Resume.pdf" style="flex:1;min-height:44px;display:flex;align-items:center;justify-content:center;border-radius:11px;background:var(--s-accent);color:#fff;font-weight:600;font-size:14px;text-decoration:none">Download Resume</a>
+        <a href="mailto:jadhavsumit534@gmail.com" style="flex:1;min-height:44px;display:flex;align-items:center;justify-content:center;gap:8px;border-radius:11px;background:var(--s-fill-2);border:1px solid var(--s-line);color:var(--s-text);font-weight:600;font-size:14px;text-decoration:none"><span data-icoslot="email" data-icosize="15" style="display:flex;align-items:center;color:inherit"></span>Email</a>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:18px 20px 6px">
+      <div data-mtile="1" data-act="mgo:projects" style="min-height:74px;border-radius:14px;background:var(--s-fill);border:1px solid var(--s-line);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-size:12px;font-weight:600"><span style="width:20px;height:15px;border-radius:3px 5px 3px 3px;background:linear-gradient(180deg,#4ea3f5,#1c62c9)"></span>Projects</div>
+      <div data-mtile="1" data-act="mgo:skills" style="min-height:74px;border-radius:14px;background:var(--s-fill);border:1px solid var(--s-line);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-size:12px;font-weight:600"><span style="width:20px;height:15px;border-radius:3px 5px 3px 3px;background:linear-gradient(180deg,#a97bf0,#6a3ec0)"></span>Skills</div>
+      <div data-mtile="1" data-act="mgo:experience" style="min-height:74px;border-radius:14px;background:var(--s-fill);border:1px solid var(--s-line);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-size:12px;font-weight:600"><span style="width:20px;height:15px;border-radius:3px 5px 3px 3px;background:linear-gradient(180deg,#5cc36a,#2b8743)"></span>Experience</div>
+      <div data-mtile="1" data-act="mgo:resume" style="min-height:74px;border-radius:14px;background:var(--s-fill);border:1px solid var(--s-line);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-size:12px;font-weight:600"><span style="width:20px;height:15px;border-radius:3px 5px 3px 3px;background:linear-gradient(180deg,#f26a63,#c33026)"></span>Resume</div>
+      <div data-mtile="1" data-act="mgo:education" style="min-height:74px;border-radius:14px;background:var(--s-fill);border:1px solid var(--s-line);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-size:12px;font-weight:600"><span style="width:20px;height:15px;border-radius:3px 5px 3px 3px;background:linear-gradient(180deg,#f79a3e,#cd6212)"></span>Education</div>
+      <div data-mtile="1" data-act="mgo:contact" style="min-height:74px;border-radius:14px;background:var(--s-fill);border:1px solid var(--s-line);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-size:12px;font-weight:600"><span style="width:20px;height:15px;border-radius:3px 5px 3px 3px;background:linear-gradient(180deg,#8e97a6,#4c545f)"></span>Contact</div>
+    </div>
+    <div id="m-sections" style="padding:8px 20px 46px"></div>
+  </div>
+
+  <div id="boot" style="position:absolute;inset:0;z-index:500;background:#0b0d0f;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px;animation:bootOut 2.1s cubic-bezier(.32,.72,0,1) forwards">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:14px;animation:markIn .8s cubic-bezier(.32,.72,0,1) both">
+      <div style="width:60px;height:60px;border-radius:14px;border:1px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:600;letter-spacing:.06em;color:currentColor">SJ</div>
+      <div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:rgba(233,234,236,.5)">Sumit's Portfolio OS</div>
+    </div>
+    <div style="width:190px;height:4px;border-radius:3px;background:var(--s-fill-3);overflow:hidden">
+      <div style="height:100%;background:#fff;border-radius:3px;animation:bootBar 1.7s cubic-bezier(.32,.72,0,1) forwards"></div>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+const PROPS = {"themePack": "Graphite", "dockStyle": "Glass", "bootSequence": true, "startupApp": "about", "dockMagnification": 1.5};
+
+    const EASE = 'cubic-bezier(.32,.72,0,1)';
+    const nextFrame = fn => { requestAnimationFrame(()=>fn()); setTimeout(fn, 32); };
+    // If the document timeline is paused (backgrounded tab), transitions never advance and
+    // an element can stay stuck at its from-value. Cancel the transition and land the end state.
+    const settle = (el, props) => setTimeout(()=>{
+      if (!el || !el.isConnected) return;
+      const cs = getComputedStyle(el);
+      const stuck = Object.keys(props).some(k => k === 'opacity' ? Math.abs(parseFloat(cs.opacity) - parseFloat(props.opacity)) > .05 : cs[k] !== props[k]);
+      if (!stuck) return;
+      const keep = el.style.transition;
+      el.style.transition = 'none';
+      Object.keys(props).forEach(k => { el.style[k] = props[k]; });
+      void el.offsetWidth;
+      el.style.transition = keep;
+    }, 620);
+    const SPRING = 'linear(0,0.006,0.025 2.8%,0.101 6.1%,0.539 18.9%,0.721 25.3%,0.849 31.5%,0.937 38.1%,0.968 41.8%,0.991 45.7%,1.006 50.1%,1.015 55%,1.017 63.9%,1.006 79%,1)';
+    const SPRING_B = 'linear(0,0.09 3.3%,0.33 7.6%,0.75 13.6%,0.998 17.6%,1.08,1.14 22.6%,1.17 26%,1.16 29.6%,1.1 34.9%,1.03 40.6%,0.998 44.4%,0.973 49%,0.968 53.2%,0.981 60%,1.001 71%,1.005 78%,1)';
+    const WIN_T = `opacity .28s ease,transform .58s ${SPRING},box-shadow .3s ease`;
+    const P = {
+      pack: (PROPS.themePack ?? 'Graphite'),
+      dockStyle: (PROPS.dockStyle ?? 'Glass'),
+      accent: '#3a6df0',
+      bootSequence: PROPS.bootSequence ?? true,
+      startupApp: PROPS.startupApp ?? 'about',
+      dockMag: PROPS.dockMagnification ?? 1.65
+    };
+    // Theme packs: wallpaper + accent + dock glass tint. Custom properties only — no per-theme markup.
+    const PACKS = {
+      graphite: { name:'Graphite', note:'Neutral desktop grey-blue', accent:'#3a6df0', icons:'tinted', prefers:'dark',
+        wall:{ dark:'linear-gradient(178deg,#1c222b 0%,#141a22 48%,#0c1016 100%)', light:'linear-gradient(178deg,#eaeef3 0%,#dde4ec 48%,#cbd4df 100%)' },
+        dock:{ dark:'rgba(18,21,27,.72)', light:'rgba(250,251,252,.7)' },
+        glass:{ dark:'linear-gradient(180deg,rgba(210,224,255,.16),rgba(160,180,215,.05))', light:'linear-gradient(180deg,rgba(255,255,255,.62),rgba(232,238,246,.36))' },
+        swatch:['#39424f','#5d8df6'] },
+      latent: { name:'Latent Space', note:'Deep indigo bloom', accent:'#7b5cf0', icons:'tinted', prefers:'dark',
+        wall:{ dark:'radial-gradient(120% 92% at 24% 10%,#2c2456 0%,#181640 44%,#0a0b1c 100%)', light:'radial-gradient(120% 92% at 24% 10%,#eae5fb 0%,#dcdcf3 46%,#c9cee9 100%)' },
+        dock:{ dark:'rgba(24,20,46,.7)', light:'rgba(250,249,255,.72)' },
+        glass:{ dark:'linear-gradient(180deg,rgba(196,178,255,.18),rgba(120,100,210,.06))', light:'linear-gradient(180deg,rgba(255,255,255,.6),rgba(233,229,250,.38))' },
+        swatch:['#241f4c','#7b5cf0'] },
+      daylight: { name:'Daylight', note:'Light-first, warm paper', accent:'#b4552d', icons:'clear', prefers:'light',
+        wall:{ light:'linear-gradient(168deg,#f6f2ea 0%,#eae5da 46%,#d9d6cb 100%)', dark:'linear-gradient(168deg,#282520 0%,#1c1a16 48%,#131210 100%)' },
+        dock:{ light:'rgba(252,250,246,.7)', dark:'rgba(30,27,23,.72)' },
+        glass:{ light:'linear-gradient(180deg,rgba(255,255,255,.66),rgba(244,238,228,.4))', dark:'linear-gradient(180deg,rgba(255,236,210,.14),rgba(180,150,110,.05))' },
+        swatch:['#e6dccb','#b4552d'] }
+    };
+    const PACK_BY_NAME = { 'Graphite':'graphite', 'Latent Space':'latent', 'Daylight':'daylight' };
+    // Finder-only folder tinting. Fixed palette, not a colour wheel.
+    const FOLDER_TINTS = {
+      blue:['#4ea3f5','#1c62c9'], green:['#5cc36a','#2b8743'], sand:['#f79a3e','#cd6212'],
+      rose:['#f26a63','#c33026'], violet:['#a97bf0','#6a3ec0'], graphite:['#8e97a6','#4c545f']
+    };
+    const rm = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const S = {
+      apps: {}, z: 100, active: null, finderPath: '/', menu: null,
+      iconScale: 1, desktopHidden: false, reduced: rm.matches, spotIdx: -1, spotRes: []
+    };
+    rm.addEventListener('change', e => { S.reduced = e.matches; });
+    window.__portfolioOS = S;
+
+    const TITLES = {
+      finder:'Workspace', terminal:'Shell', 'sumit-ai':'Ask Sumit', about:'About',
+      resume:'Sumit_Jadhav_Resume.pdf', contact:'Reach Out', settings:'System', trash:'Trash', code:'Code',
+      skills:'Skills', education:'Education', experience:'Experience', certificates:'Certificates',
+      'project-ai-video':'AI Video Assistant', 'project-multi-agent':'Multi-Agent Research System',
+      'project-pm25':'PM2.5 Forecasting', 'project-airbnb':'NYC Airbnb Room Type Classification',
+      'project-sar':'SAR Crop Mapping', 'project-lazarus':'Lazarus Sentinel'
+    };
+    const SIZE = {
+      terminal:[720,440], finder:[860,520], 'sumit-ai':[620,560], about:[640,470], resume:[820,620],
+      contact:[700,520], settings:[820,560], trash:[520,320], skills:[720,520], education:[720,420],
+      experience:[720,460], certificates:[700,400], code:[880,560]
+    };
+    const DOCK_FOR = { finder:'finder', terminal:'terminal', 'sumit-ai':'sumit-ai', contact:'contact', settings:'settings', trash:'trash', code:'code' };
+
+    const $ = s => document.querySelector(s);
+    const wm = $('#wm');
+    const dockList = $('#dock-list');
+    const T = { dim:'var(--s-dim)', faint:'var(--s-faint)', line:'var(--s-line)' };
+    const LS = 'sumit-os-prefs';
+    const PREFS = Object.assign({ theme:'system', pack:(PACK_BY_NAME[P.pack]||'graphite'), dockStyle:(P.dockStyle==='Solid'?'solid':'glass'), folderTint:{}, dockLabels:true, reduceMotion:null, opaque:false, contrast:false, lowPower:false, bright:100, showStatus:true, showActivity:true, wins:{} }, (()=>{ try { return JSON.parse(localStorage.getItem(LS)) || {}; } catch(e){ return {}; } })());
+    const savePrefs = () => { try { localStorage.setItem(LS, JSON.stringify(PREFS)); } catch(e){} };
+
+
+    // ---------- theme & system services ----------
+    const root = document.querySelector('[data-root]');
+    const dm = window.matchMedia('(prefers-color-scheme: dark)');
+    const effTheme = () => PREFS.theme === 'system' ? (dm.matches ? 'dark' : 'light') : PREFS.theme;
+    function applyTheme(){
+      const t = effTheme();
+      root.dataset.theme = t;
+      root.dataset.opaque = PREFS.opaque ? '1' : '0';
+      root.dataset.contrast = PREFS.contrast ? '1' : '0';
+      root.dataset.lowpower = PREFS.lowPower ? '1' : '0';
+      const pk = PACKS[PREFS.pack] || PACKS.graphite;
+      P.accent = pk.accent;
+      root.dataset.dockstyle = PREFS.dockStyle === 'solid' ? 'solid' : 'glass';
+      root.dataset.icons = pk.icons || 'tinted';
+      root.style.setProperty('--s-accent', P.accent);
+      root.style.setProperty('--s-dock', pk.dock[t]);
+      root.style.setProperty('--s-dock-glass', pk.glass[t]);
+      const w = $('#wallpaper');
+      if (w) w.style.backgroundImage = pk.wall[t];
+      const v = $('#desk-vignette'); if (v) v.style.opacity = t === 'light' ? '.35' : '1';
+      document.querySelectorAll('[data-seg]').forEach(s => {
+        const on = s.dataset.seg === PREFS.theme;
+        s.style.background = on ? P.accent : 'var(--s-fill-2)';
+        s.style.color = on ? '#fff' : 'var(--s-text)';
+      });
+      document.querySelectorAll('[data-tr]').forEach(s => {
+        const on = s.dataset.tr === PREFS.theme;
+        s.style.background = on ? P.accent : 'var(--s-fill-2)';
+        s.style.color = on ? '#fff' : 'var(--s-text)';
+      });
+      document.querySelectorAll('[data-pk]').forEach(s => {
+        const on = s.dataset.pk === PREFS.pack;
+        s.style.borderColor = on ? P.accent : 'var(--s-line)';
+        s.style.boxShadow = on ? '0 0 0 1px '+P.accent : 'none';
+      });
+      document.querySelectorAll('[data-ds]').forEach(s => {
+        const on = s.dataset.ds === PREFS.dockStyle;
+        s.style.background = on ? P.accent : 'var(--s-fill-2)';
+        s.style.color = on ? '#fff' : 'var(--s-text)';
+      });
+      const st = $('#status-word'); if (st) st.parentElement.style.display = PREFS.showStatus ? 'flex' : 'none';
+      const ap = $('#act-fill'); if (ap) ap.closest('[data-menu="activity"]').style.display = PREFS.showActivity ? 'flex' : 'none';
+      document.querySelectorAll('[data-tip]').forEach(t2 => { t2.dataset.off = PREFS.dockLabels ? '' : '1'; });
+    }
+    function setTheme(v){ PREFS.theme = v; savePrefs(); applyTheme(); notify('Appearance', v === 'system' ? 'Following your system setting' : v[0].toUpperCase()+v.slice(1) + ' appearance'); }
+    function setPack(v){
+      const pk = PACKS[v]; if (!pk) return;
+      PREFS.pack = v; PREFS.theme = pk.prefers;
+      savePrefs(); applyTheme();
+      document.querySelectorAll('input[type="range"],input[type="checkbox"]').forEach(i => { i.style.accentColor = P.accent; });
+      Object.keys(S.apps).forEach(id => { if (!S.apps[id].min) render(id); });
+      notify('Themes', pk.name + ' applied');
+    }
+    dm.addEventListener('change', () => { if (PREFS.theme === 'system') applyTheme(); });
+
+    const STATE = { status:'Ready', task:'Idle', activity:'Ready', started:Date.now(), lastCheck:new Date() };
+    const ACT_FILL = { Idle:'34%', Ready:'70%', Working:'88%', Processing:'100%' };
+    // Each state has one tone, shared by the menu-bar dot, the popover pill and the meter,
+    // so a state change reads as one movement rather than three unrelated blips.
+    const ACT_TONE = { Idle:'var(--s-faint)', Ready:'var(--s-ok)', Working:'var(--s-accent)', Processing:'var(--s-accent)' };
+    function setActivity(state, task){
+      const busyState = state === 'Working' || state === 'Processing';
+      STATE.activity = state; if (task !== undefined) STATE.task = task;
+      const fill = $('#act-fill'); if (fill) fill.style.width = ACT_FILL[state] || '70%';
+      const a = $('#act-task'), b = $('#act-state'), c = $('#cc-activity');
+      // Only move the task line when it actually changes — motion marks the change, not the redraw.
+      if (a && a.textContent !== STATE.task){
+        if (S.reduced) a.textContent = STATE.task;
+        else {
+          a.style.opacity = '0'; a.style.transform = 'translateY(4px)';
+          setTimeout(()=>{ a.textContent = STATE.task; a.style.opacity = '1'; a.style.transform = 'none'; }, 150);
+        }
+      }
+      if (b) b.textContent = state; if (c) c.textContent = state;
+      const tone = ACT_TONE[state] || 'var(--s-ok)';
+      const pd = $('#act-pill-dot');
+      if (pd){ pd.style.background = tone; pd.style.animation = (busyState && !S.reduced) ? 'pulseDot 1.1s ease-in-out infinite' : 'none'; }
+      const pill = $('#act-pill');
+      if (pill) pill.style.borderColor = busyState ? 'var(--s-accent)' : 'var(--s-line)';
+      const meter = $('#act-meter');
+      if (meter){ meter.style.width = ACT_FILL[state] || '70%'; meter.style.background = tone; }
+      const sys = $('#act-sys'); if (sys) sys.textContent = STATE.status;
+      const d = $('#status-dot');
+      if (d) d.style.animation = busyState ? 'pulseDot 1.1s ease-in-out infinite' : 'none';
+    }
+    function busy(task, done){
+      setActivity('Working', task);
+      setTimeout(()=>setActivity('Processing', task), 260);
+      setTimeout(()=>{ setActivity('Ready', done || 'Idle'); }, 720);
+    }
+    function setStatus(v){
+      STATE.status = v; STATE.lastCheck = new Date();
+      const w = $('#status-word'); if (w) w.textContent = v;
+      const c = $('#cc-status'); if (c) c.textContent = v;
+      const as = $('#act-sys'); if (as) as.textContent = v;
+      const d = $('#status-dot'); if (d) d.style.background = v === 'Offline' ? 'var(--s-warn)' : 'var(--s-ok)';
+      drawStatus();
+    }
+    // Three tiers: the one live fact (network), the two counters that move,
+    // then the two constants. Only the top tier gets emphasis.
+    const statMetric = (label, value) => `<div data-actrow="1" style="padding:9px 11px;border-radius:10px;background:var(--s-fill);border:1px solid var(--s-line);transition:background .24s cubic-bezier(.32,.72,0,1)"><div style="font-size:17px;font-weight:700;letter-spacing:-.015em;font-variant-numeric:tabular-nums">${value}</div><div style="font-size:11px;color:var(--s-dim);margin-top:1px">${label}</div></div>`;
+    const statQuiet = (label, value, div) => `<div style="display:flex;justify-content:space-between;gap:12px;padding:8px 12px;font-size:12px;background:var(--s-fill)${div?';border-top:1px solid var(--s-line)':''}"><span style="color:var(--s-dim);flex:none;white-space:nowrap">${label}</span><span style="text-align:right">${value}</span></div>`;
+    function drawStatus(animate){
+      const box = $('#status-rows'); if (!box) return;
+      const on = navigator.onLine;
+      const wins = Object.keys(S.apps).length;
+      const mins = Math.max(1, Math.round((Date.now()-STATE.started)/60000));
+      const checked = STATE.lastCheck.toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});
+      box.innerHTML =
+        `<div data-actrow="1" data-stg="0" style="padding:11px 12px 12px;border-radius:11px;background:var(--s-fill);border:1px solid var(--s-line);box-shadow:inset 0 1px 0 var(--s-fill-2);transition:background .24s cubic-bezier(.32,.72,0,1)">
+          <div style="font-size:11px;color:var(--s-faint)">Network</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:3px">
+            <span style="width:7px;height:7px;border-radius:50%;flex:none;background:${on?'var(--s-ok)':'var(--s-warn)'}"></span>
+            <span style="font-size:14.5px;font-weight:700;letter-spacing:-.012em">${on?'Online':'Offline'}</span>
+          </div>
+          <div style="font-size:11px;color:var(--s-faint);margin-top:7px">Last checked ${checked}</div>
+        </div>
+        <div data-stg="1" style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px">${statMetric('Open windows', String(wins))}${statMetric('Session', mins+' min')}</div>
+        <div data-stg="2" style="margin-top:8px;border-radius:11px;border:1px solid var(--s-line);overflow:hidden">${statQuiet('Interface','Running locally')}${statQuiet('Portfolio data','Bundled — no backend', true)}</div>`;
+      const pd = $('#status-pill-dot'); if (pd) pd.style.background = STATE.status === 'Offline' ? 'var(--s-warn)' : 'var(--s-ok)';
+      const pt = $('#status-pill-txt'); if (pt) pt.textContent = STATE.status;
+      // Stagger only on open — it orders the tiers for the eye. A background
+      // status change redraws in place without replaying the entrance.
+      if (animate && !S.reduced) box.querySelectorAll('[data-stg]').forEach(el => {
+        const d = (+el.dataset.stg) * 55;
+        el.style.opacity = '0'; el.style.transform = 'translateY(5px)';
+        el.style.transition = `opacity .26s ease ${d}ms,transform .45s ${SPRING} ${d}ms`;
+        nextFrame(()=>{ el.style.opacity = '1'; el.style.transform = 'none'; });
+        settle(el, { opacity:'1', transform:'none' });
+      });
+      const n = $('#cc-net'); if (n) n.textContent = on ? 'Online' : 'Offline';
+    }
+    window.addEventListener('online', ()=>setStatus('Ready'));
+    window.addEventListener('offline', ()=>setStatus('Offline'));
+
+    const NOTIFS = [];
+    function notify(title, msg){
+      NOTIFS.unshift({ title, msg, at:new Date() });
+      if (NOTIFS.length > 14) NOTIFS.pop();
+      drawNotifs();
+      const rail = $('#toasts'); if (!rail) return;
+      const el = document.createElement('div');
+      el.style.cssText = 'padding:10px 12px;border-radius:11px;background:var(--s-pop);backdrop-filter:var(--s-blur);border:1px solid var(--s-line);box-shadow:var(--s-shadow-pop);color:var(--s-text);font-size:12px;transition:opacity .35s ease,transform .35s ease';
+      if (!S.reduced) el.style.animation = 'toastIn .4s ' + SPRING + ' both';
+      el.innerHTML = '<div style="font-weight:600;font-size:12.5px">'+title+'</div><div style="color:var(--s-dim);margin-top:2px">'+msg+'</div>';
+      rail.appendChild(el);
+      setTimeout(()=>{ el.style.opacity='0'; el.style.transform='translateX(14px)'; setTimeout(()=>el.remove(), 380); }, 3200);
+    }
+    function drawNotifs(){
+      const l = $('#notif-list'); if (!l) return;
+      l.innerHTML = NOTIFS.length ? NOTIFS.map(n=>'<div style="padding:8px 10px;border-radius:9px;background:var(--s-fill);font-size:12px"><div style="display:flex;justify-content:space-between;gap:8px"><span style="font-weight:600">'+n.title+'</span><span style="color:var(--s-faint);font-size:11px">'+n.at.toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})+'</span></div><div style="color:var(--s-dim);margin-top:1px">'+n.msg+'</div></div>').join('')
+        : '<div style="color:var(--s-faint);font-size:12px">Nothing new.</div>';
+    }
+    function drawCal(){
+      const g = $('#cal-grid'), h = $('#cal-head'); if (!g) return;
+      const now = new Date(), y = now.getFullYear(), m = now.getMonth();
+      h.textContent = now.toLocaleDateString([], { month:'long', year:'numeric' });
+      const first = new Date(y,m,1).getDay(), days = new Date(y,m+1,0).getDate();
+      let out = ['S','M','T','W','T','F','S'].map(d=>'<div style="color:var(--s-faint);font-size:10px;padding-bottom:3px">'+d+'</div>').join('');
+      for (let i=0;i<first;i++) out += '<div></div>';
+      for (let d=1;d<=days;d++){
+        const today = d === now.getDate();
+        out += '<div style="padding:4px 0;border-radius:6px;'+(today?'background:'+P.accent+';color:#fff;font-weight:700':'')+'">'+d+'</div>';
+      }
+      g.innerHTML = out;
+    }
+
+    // ---------- content ----------
+    // Tag string -> icon slug. Plain tags slugify by rule; compound or
+    // multi-brand labels need an explicit target, and are listed here.
+    const TAG_SLUG = {
+      'hugging face spaces':'huggingface', 'hugging face':'huggingface',
+      'postgresql / pgvector':'postgresql', 'c++':'cplusplus', 'java':'openjdk', 'sql':'mysql',
+      'capella space x-band sar':null, 'search / reader / writer / critic':null
+    };
+    const tagSlug = t => {
+      const k = String(t).toLowerCase().trim();
+      if (Object.prototype.hasOwnProperty.call(TAG_SLUG, k)) return TAG_SLUG[k];
+      return k.replace(/[^a-z0-9]/g, '');
+    };
+    const chip = (t,c) => { const s = tagSlug(t); return `<span style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:11.5px;background:var(--s-fill-2);border:1px solid var(--s-line);color:${c||'var(--s-text)'}">${s?icoSlot(s,13):''}${t}</span>`; };
+    const chips = (a,c) => `<div style="display:flex;flex-wrap:wrap;gap:7px;margin:14px 0 18px">${a.map(x=>chip(x,c)).join('')}</div>`;
+    const status = (t,ok) => `<span style="display:inline-flex;align-items:center;gap:7px;padding:4px 11px;border-radius:999px;font-size:11.5px;background:${ok?'rgba(48,209,88,.14)':'var(--s-fill)'};border:1px solid ${ok?'rgba(48,209,88,.35)':'var(--s-line)'}"><span style="width:6px;height:6px;border-radius:50%;background:${ok?'#30d158':'rgba(255,255,255,.45)'}"></span>${t}</span>`;
+    const link = (label,url) => `<a href="${url}" target="_blank" rel="noopener" data-btn="1" style="display:inline-block;padding:9px 16px;border-radius:10px;background:${P.accent};color:#fff;font-weight:600;font-size:12.5px;text-decoration:none;transition:filter .28s ${EASE}">${label}</a>`;
+    const pageHead = (t,s) => `<h2 style="margin:0 0 6px;font-size:25px;letter-spacing:-.02em;font-weight:700">${t}</h2><div style="color:${T.dim};font-size:13.5px;margin-bottom:4px">${s}</div>`;
+    const body = inner => `<div style="height:100%;overflow:auto;padding:30px 34px 36px;line-height:1.62;font-size:13.5px">${inner}</div>`;
+    const sec = (h,c) => `<div style="margin-top:22px"><div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:${T.faint};margin-bottom:8px">${h}</div><div style="color:var(--s-text)">${c}</div></div>`;
+
+    const flow = steps => `<div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:4px">${steps.map((s,i)=>`<div style="display:flex;align-items:center;gap:8px"><div style="padding:9px 12px;border-radius:10px;background:var(--s-fill);border:1px solid var(--s-line);min-width:94px"><div style="font-weight:600;font-size:12px">${s[0]}</div>${s[1]?`<div style="color:var(--s-dim);font-size:11px;margin-top:2px;line-height:1.35">${s[1]}</div>`:''}</div>${i<steps.length-1?'<span style="color:var(--s-faint);font-size:14px">→</span>':''}</div>`).join('')}</div>`;
+    const metrics = rows => `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(136px,1fr));gap:10px;margin-top:4px">${rows.map(([k,v,n])=>`<div style="padding:12px 14px;border-radius:12px;background:var(--s-fill);border:1px solid var(--s-line)"><div style="font-size:19px;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums">${v}</div><div style="color:var(--s-dim);font-size:11.5px;margin-top:2px">${k}</div>${n?`<div style="color:var(--s-faint);font-size:11px;margin-top:4px;line-height:1.4">${n}</div>`:''}</div>`).join('')}</div>`;
+    const caveat = t => `<div style="margin-top:22px;padding:12px 14px;border-radius:12px;background:var(--s-fill);border:1px solid var(--s-line);color:var(--s-dim);font-size:12.5px">${t}</div>`;
+
+    // Project content as plain data. renderProject() is the only thing that knows about markup,
+    // so this array can later come from an external source without touching the view.
+    const PROJECT_DATA = [
+      { id:'project-lazarus', title:'Lazarus Sentinel', tagline:'Desktop SSH safety terminal · Electron + React',
+        status:{ label:'Code + live deployment', ok:true },
+        stack:['Electron','React','GitHub Actions','Vitest'],
+        sections:[
+          { heading:'What it is', body:'A desktop terminal that puts a safety layer in front of SSH sessions, packaged as an Electron app with a React interface.' },
+          { heading:'Architecture', body:{ flow:[['React renderer','Terminal UI, session list'],['Electron main','Process + IPC boundary'],['Safety layer','Command review before send'],['SSH session','Remote host']] } },
+          { heading:'Engineering record', body:{ metrics:[['Commits','278'],['CI','GitHub Actions',''],['Tests','Vitest','Unit suite in CI'],['Deployment','Live','']] } }
+        ],
+        links:[],
+        caveat:'Repository and live deployment URLs pending — no button is shown until real links are supplied. The diagram describes the stack listed above, not a published internal spec.' },
+
+      { id:'project-ai-video', title:'AI Video Assistant', tagline:'Multi-modal RAG pipeline',
+        status:{ label:'Live demo · code private', ok:true },
+        stack:['LangChain','Mistral AI','FastAPI','Docker','PostgreSQL / pgvector','Streamlit'],
+        sections:[
+          { heading:'What it is', body:'A RAG and multi-modal pipeline for transcription, summarisation and conversational Q&amp;A over uploaded media.' },
+          { heading:'Pipeline', body:{ flow:[['Upload','Video / audio'],['Transcribe','Speech to text'],['Embed','pgvector store'],['Retrieve','Top-k chunks'],['Mistral AI','Grounded answer']] } },
+          { heading:'Deployment', body:{ flow:[['Streamlit','Interface layer'],['FastAPI','Service layer'],['Docker','Packaging'],['Render','API hosting']] } }
+        ],
+        links:[],
+        caveat:'Demo URL pending. Source is private, so no repository link is shown.' },
+
+      { id:'project-pm25', title:'PM2.5 Forecasting', tagline:'ConvLSTM + Fourier Neural Operator hybrid',
+        status:{ label:'Live · public demo', ok:true },
+        stack:['ConvLSTM','Fourier Neural Operator','Hugging Face Spaces'],
+        sections:[
+          { heading:'Model', body:'A hybrid spatio-temporal network pairing ConvLSTM encoders with a Fourier Neural Operator for grid-level PM2.5 forecasting.' },
+          { heading:'Architecture', body:{ flow:[['Gridded input','Spatio-temporal frames'],['ConvLSTM','Local temporal encoder'],['Fourier operator','Global spectral pass'],['Forecast','Grid-level PM2.5']] } },
+          { heading:'Context', body:'ANRF AISEHack Phase 2, IIT Delhi. Team MGM.' }
+        ],
+        links:[{ label:'Live Demo', url:'https://huggingface.co/spaces/sumit1703/pm25-forecasting' }] },
+
+      { id:'project-sar', title:'SAR Crop Mapping', tagline:'Unsupervised MSE optimisation on X-band SAR',
+        status:{ label:'Case study · code private', ok:false },
+        stack:['Capella Space X-band SAR','Unsupervised optimisation','Remote sensing'],
+        sections:[
+          { heading:'Task', body:'Estimate crop areas — rice, cotton, maize, bajra, groundnut — for 29 villages in Gujarat from Capella Space X-band SAR imagery. ANRF AISEHack 2026, Round 1.' },
+          { heading:'Architecture', body:{ flow:[['Capella X-band','Scene tiles'],['Preprocessing','Speckle + calibration'],['Unsupervised fit','MSE objective'],['Per-village area','5 crop classes']] } },
+          { heading:'Results', body:{ metrics:[['Best MSE','1348.108','From ≈3568 on the first run'],['Documented experiments','26+'],['Villages','29','Gujarat'],['Crop classes','5','Rice, cotton, maize, bajra, groundnut']] } },
+          { heading:'The experiment log', body:'26+ documented experiments. MSE moved from roughly 3568 to a best of 1348.108.' },
+          { raw:true, body:`<div style="margin-top:20px;display:flex;align-items:flex-end;gap:14px;height:120px;padding:16px;border-radius:12px;background:var(--s-fill);border:1px solid ${T.line}">
+          <div style="flex:1;height:100%;background:linear-gradient(180deg,rgba(255,190,120,.85),rgba(255,190,120,.25));border-radius:6px 6px 3px 3px"></div>
+          <div style="flex:1;height:62%;background:linear-gradient(180deg,rgba(255,190,120,.7),rgba(255,190,120,.2));border-radius:6px 6px 3px 3px"></div>
+          <div style="flex:1;height:48%;background:linear-gradient(180deg,rgba(255,190,120,.6),rgba(255,190,120,.18));border-radius:6px 6px 3px 3px"></div>
+          <div style="flex:1;height:38%;background:linear-gradient(180deg,rgba(120,230,190,.85),rgba(120,230,190,.25));border-radius:6px 6px 3px 3px"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:${T.faint};margin-top:8px"><span>MSE ≈ 3568 (first run)</span><span>1348.108 (best)</span></div>` }
+        ],
+        links:[] },
+
+      { id:'project-multi-agent', title:'Multi-Agent Research System', tagline:'Four-agent pipeline — a learning project',
+        status:{ label:'Code private · no deployment', ok:false },
+        stack:['LangChain','Search / Reader / Writer / Critic'],
+        sections:[
+          { heading:'Pipeline', body:{ flow:[['Search','Finds sources'],['Reader','Extracts claims'],['Writer','Drafts the brief'],['Critic','Reviews and returns']] } },
+          { heading:'Honest assessment', body:'Self-rated 5/10. Built to understand agent orchestration rather than to ship; the interesting part is where the handoffs break down.' }
+        ],
+        links:[] },
+
+      { id:'project-airbnb', title:'NYC Airbnb Room Type Classification', tagline:'Supervised classification, served over an API',
+        status:{ label:'Code public', ok:true },
+        stack:['Scikit-learn','FastAPI','Pandas'],
+        sections:[
+          { heading:'What it does', body:'Classifies NYC Airbnb listings by room type from listing features, served through a FastAPI endpoint.' },
+          { heading:'Architecture', body:{ flow:[['Listing data','Pandas cleaning'],['Features','Encoded inputs'],['Scikit-learn','Room-type classifier'],['FastAPI','Prediction endpoint']] } }
+        ],
+        links:[{ label:'View Code', url:'https://github.com/sumitjadhav1703/NYC_Airbnb_Room_Type_Classification' }],
+        note:'Deployment URL unconfirmed — no live demo button until one is verified.' }
+    ];
+
+    function renderSection(s){
+      if (s.raw) return s.body;
+      const b = typeof s.body === 'string' ? s.body
+        : s.body.flow ? flow(s.body.flow)
+        : s.body.metrics ? metrics(s.body.metrics) : '';
+      return sec(s.heading, b);
+    }
+    function renderProject(p){
+      return body(
+        pageHead(p.title, p.tagline) +
+        `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">${status(p.status.label, p.status.ok)}</div>` +
+        chips(p.stack) +
+        p.sections.map(renderSection).join('') +
+        ((p.links && p.links.length) ? `<div style="margin-top:24px">${p.links.map(l=>link(l.label,l.url)).join(' ')}</div>` : '') +
+        (p.note ? `<div style="margin-top:14px;color:${T.dim};font-size:12.5px">${p.note}</div>` : '') +
+        (p.caveat ? caveat(p.caveat) : '')
+      );
+    }
+    const PROJECTS = {};
+    PROJECT_DATA.forEach(p => { PROJECTS[p.id] = () => renderProject(p); });
+
+    // ---------- shared icon lookup (icons.js) ----------
+    // Pills are declared as data only; the slug is resolved by the shared helper at
+    // hydration time, so adding or removing a link never touches rendering code.
+    let ICO = null;
+    const icoSlot = (slug, size, req) => `<span data-icoslot="${slug}" data-icosize="${size||14}"${req?' data-icoreq="1"':''} style="display:flex;align-items:center;color:inherit"></span>`;
+    function hydrateIcons(scope){
+      if (!ICO) return;
+      (scope || document).querySelectorAll('[data-icoslot]').forEach(el => {
+        // Structural slots (profile rows) always draw — the generic mark keeps them aligned.
+        // Decorative slots (tag chips) drop out entirely when there is no real mark, so a
+        // conceptual tag reads as a plain label rather than a broken logo.
+        if (!el.dataset.icoreq && !ICO.has(el.dataset.icoslot)) { el.remove(); return; }
+        el.setAttribute('aria-hidden', 'true');
+        el.innerHTML = ICO.icon(el.dataset.icoslot, { size: +(el.dataset.icosize || 14), label: null });
+      });
+    }
+    import('./icons.js').then(m => { ICO = m; hydrateIcons(); }).catch(()=>{});
+
+    // Every link Sumit is reachable at, in one place. Anything that shows a link
+    // — About pills, Contact grid, mobile — renders from this array via icoSlot().
+    const PROFILE_LINKS = [
+      { slug:'email',       label:'Email',        handle:'jadhavsumit534@gmail.com',        url:'mailto:jadhavsumit534@gmail.com', pill:false },
+      { slug:'github',      label:'GitHub',       handle:'github.com/sumitjadhav1703',      url:'https://github.com/sumitjadhav1703', pill:true },
+      { slug:'linkedin',    label:'LinkedIn',     handle:'linkedin.com/in/sumit-jadhav-1703s', url:'https://linkedin.com/in/sumit-jadhav-1703s', pill:true },
+      { slug:'kaggle',      label:'Kaggle',       handle:'kaggle.com/sumit1703',            url:'https://kaggle.com/sumit1703', pill:true },
+      { slug:'huggingface', label:'Hugging Face', handle:'huggingface.co/sumit1703',        url:'https://huggingface.co/sumit1703', pill:true }
+    ];
+    const extLink = l => l.url.startsWith('mailto:') ? '' : ' target="_blank" rel="noopener"';
+    const profilePills = () => `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:20px">${PROFILE_LINKS.filter(l=>l.pill).map(l=>`<a href="${l.url}"${extLink(l)} style="display:inline-flex;align-items:center;gap:8px;padding:7px 13px;border-radius:9px;background:var(--s-fill-2);border:1px solid var(--s-line);font-size:12.5px;text-decoration:none;color:var(--s-text)">${icoSlot(l.slug,14,true)}${l.label}</a>`).join('')}</div>`;
+    const profileCards = () => PROFILE_LINKS.map(l=>`<a href="${l.url}"${extLink(l)} style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:13px;background:var(--s-fill);border:1px solid var(--s-line);text-decoration:none;color:var(--s-text)"><span style="color:var(--s-dim);display:flex;flex:none">${icoSlot(l.slug,18,true)}</span><span style="min-width:0"><span style="display:block;font-weight:600;font-size:13px">${l.label}</span><span style="display:block;color:var(--s-dim);font-size:12px;margin-top:2px;overflow:hidden;text-overflow:ellipsis">${l.handle}</span></span></a>`).join('');
+
+    const sideItem = (id,label,color) => `<div data-side="1" data-act="open:${id}" style="display:flex;align-items:center;gap:9px;padding:6px 9px;border-radius:7px;cursor:default;font-size:12.5px;transition:background .2s ${EASE}"><span style="width:15px;height:15px;border-radius:4px;background:${color};flex:none"></span>${label}</div>`;
+    const folder = (act,label,c1,c2) => {
+      const tk = PREFS.folderTint && PREFS.folderTint[act];
+      if (tk && FOLDER_TINTS[tk]) { c1 = FOLDER_TINTS[tk][0]; c2 = FOLDER_TINTS[tk][1]; }
+      const on = S.finderSel === act;
+      return `<div data-act="fsel:${act}" data-dblact="open:${act}" style="width:96px;display:flex;flex-direction:column;align-items:center;gap:7px;cursor:default">
+      <div style="position:relative;width:62px;height:48px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.4))">
+        <div style="position:absolute;left:1px;top:1px;width:28px;height:14px;border-radius:5px 10px 0 0;background:${c2}"></div>
+        <div style="position:absolute;left:6px;top:9px;width:50px;height:11px;border-radius:4px 4px 0 0;background:rgba(255,255,255,.72)"></div>
+        <div style="position:absolute;left:0;top:13px;width:62px;height:35px;border-radius:5px 9px 9px 9px;background:linear-gradient(180deg,${c1},${c2});box-shadow:inset 0 1px 0 rgba(255,255,255,.6),inset 0 -10px 16px rgba(0,0,0,.14)"></div>
+      </div>
+      <span style="font-size:11.5px;text-align:center;line-height:1.25;padding:1px 6px;border-radius:6px;background:${on?P.accent:'transparent'};color:${on?'#fff':'var(--s-text)'}">${label}</span></div>`;
+    };
+
+    function finderContent(){
+      const items = S.finderPath === 'projects' ? [
+        folder('project-lazarus','Lazarus Sentinel','#5cc36a','#2b8743'),
+        folder('project-ai-video','AI Video Assistant','#4ea3f5','#1c62c9'),
+        folder('project-pm25','PM2.5 Forecasting','#f6cd4c','#cf9611'),
+        folder('project-sar','SAR Crop Mapping','#f79a3e','#cd6212'),
+        folder('project-multi-agent','Multi-Agent Research','#a97bf0','#6a3ec0'),
+        folder('project-airbnb','NYC Airbnb Classifier','#f26a63','#c33026')
+      ].join('') : [ folder('finder-projects','Projects','#4ea3f5','#1c62c9') ].join('');
+      return `<div style="display:flex;height:100%">
+        <div data-glasspane="1" style="width:186px;flex:none;padding:10px 8px;border-right:1px solid ${T.line};overflow:auto">
+          <div style="font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:${T.faint};padding:8px 9px 6px">Favourites</div>
+          <div data-side="1" data-act="nav:projects" style="display:flex;align-items:center;gap:9px;padding:6px 9px;border-radius:7px;cursor:default;font-size:12.5px;background:${S.finderPath==='projects'?'var(--s-fill-2)':'transparent'}"><span style="width:15px;height:15px;border-radius:4px;background:#1c62c9;flex:none"></span>Projects</div>
+          ${sideItem('skills','Skills','linear-gradient(180deg,#a97bf0,#6a3ec0)')}
+          ${sideItem('certificates','Certificates','linear-gradient(180deg,#f79a3e,#cd6212)')}
+          ${sideItem('education','Education','linear-gradient(180deg,#4ea3f5,#1c62c9)')}
+          ${sideItem('experience','Experience','linear-gradient(180deg,#5cc36a,#2b8743)')}
+          ${sideItem('resume','Resume','linear-gradient(180deg,#f26a63,#c33026)')}
+          ${sideItem('about','About','linear-gradient(180deg,#8e97a6,#4c545f)')}
+        </div>
+        <div style="flex:1;overflow:auto;padding:22px 24px">
+          <div data-glasspane="1" style="display:flex;align-items:center;gap:10px;margin:-22px -24px 18px;padding:9px 24px;font-size:12px;color:${T.dim};border-bottom:1px solid ${T.line};min-height:42px">
+            <span data-side="1" data-act="nav:/" style="padding:3px 8px;border-radius:6px;cursor:default">Portfolio</span>${S.finderPath==='projects'?'<span>›</span><span style="color:var(--s-text)">Projects</span>':''}
+            <span style="flex:1"></span>
+            ${S.finderSel ? `<span style="color:${T.faint};font-size:11px">Tag</span>` + Object.keys(FOLDER_TINTS).map(k=>`<span data-act="ftint:${k}" title="${k}" style="width:14px;height:14px;border-radius:50%;background:linear-gradient(180deg,${FOLDER_TINTS[k][0]},${FOLDER_TINTS[k][1]});box-shadow:inset 0 0 0 1px rgba(0,0,0,.2)${(PREFS.folderTint||{})[S.finderSel]===k?',0 0 0 2px var(--s-accent)':''};cursor:default;flex:none"></span>`).join('') : `<span style="color:${T.faint};font-size:11px">Select a folder to tag it</span>`}
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:22px 14px">${items}</div>
+        </div>
+      </div>`;
+    }
+
+    const CODE = {
+      'dock/magnification.js': [
+        "// Gaussian falloff: r(d) = r_base + (r_max - r_base) * exp(-d^2 / 2*sigma^2)",
+        "// Sigma is 60px, so the lift is effectively gone by ~3 icons out.",
+        "const SIGMA = 60, RADIUS = 190;",
+        "",
+        "dockList.addEventListener('mousemove', e => {",
+        "  if (S.reduced || PREFS.lowPower || window.innerWidth < 768) return;",
+        "  dockItems().forEach(it => {",
+        "    const r = it.getBoundingClientRect();",
+        "    const d = Math.abs(e.clientX - (r.left + r.width / 2));",
+        "    let s = 1;",
+        "    if (d < RADIUS) {",
+        "      const g = Math.exp(-(d * d) / (2 * SIGMA * SIGMA));",
+        "      s = 1 + (P.dockMag - 1) * g;",
+        "    }",
+        "    it.style.transform = 'scale(' + s + ')';",
+        "    it.style.margin = '0 ' + (5 + (s - 1) * 27) + 'px';",
+        "  });",
+        "});"
+      ].join('\n'),
+      'system/theme.js': [
+        "// One source of truth. Every surface reads a semantic token,",
+        "// so a theme switch never leaves a component on the old palette.",
+        "const effTheme = () => PREFS.theme === 'system'",
+        "  ? (dm.matches ? 'dark' : 'light')",
+        "  : PREFS.theme;",
+        "",
+        "function applyTheme() {",
+        "  const t = effTheme();",
+        "  root.dataset.theme = t;",
+        "  root.dataset.opaque = PREFS.opaque ? '1' : '0';",
+        "  root.dataset.contrast = PREFS.contrast ? '1' : '0';",
+        "  root.dataset.lowpower = PREFS.lowPower ? '1' : '0';",
+        "  root.style.setProperty('--s-accent', P.accent);",
+        "  root.style.setProperty('--s-dock', t === 'light'",
+        "    ? 'rgba(250,251,252,.7)'",
+        "    : 'rgba(18,20,24,.72)');",
+        "}",
+        "",
+        "dm.addEventListener('change', () => {",
+        "  if (PREFS.theme === 'system') applyTheme();",
+        "});"
+      ].join('\n'),
+      'wm/minimize.js': [
+        "// Minimise animates to the real dock icon rather than to a guessed point,",
+        "// so the window lands where the user will click to get it back.",
+        "function minimizeApp(id) {",
+        "  const el = document.getElementById('win-' + id);",
+        "  if (!el) return;",
+        "  S.apps[id].min = true;",
+        "",
+        "  const target = document.querySelector('[data-item=' + DOCK_FOR[id] + ']');",
+        "  const wr = el.getBoundingClientRect();",
+        "  let dx = 0, dy = window.innerHeight - (wr.top + wr.height / 2) + 40;",
+        "  if (target) {",
+        "    const tr = target.getBoundingClientRect();",
+        "    dx = (tr.left + tr.width / 2) - (wr.left + wr.width / 2);",
+        "    dy = (tr.top + tr.height / 2) - (wr.top + wr.height / 2);",
+        "  }",
+        "  el.style.transform = 'translate(' + dx + 'px,' + dy + 'px) scale(.06)';",
+        "  el.style.opacity = '0';",
+        "  el.style.pointerEvents = 'none';",
+        "}"
+      ].join('\n'),
+      'apps/shell.js': [
+        "// The shell only runs commands that exist. Anything else says so",
+        "// instead of printing a convincing-looking fake response.",
+        "function termRun(raw) {",
+        "  const cmd = raw.trim(), low = cmd.toLowerCase();",
+        "  let res = '';",
+        "",
+        "  if (low === 'clear') { out.innerHTML = ''; return; }",
+        "  else if (TERM[low]) res = TERM[low];",
+        "  else if (low.startsWith('project ')) {",
+        "    const k = PROJ_ALIAS[low.slice(8).trim()];",
+        "    if (k) { openApp(k); res = 'Opening ' + TITLES[k]; }",
+        "    else res = 'Unknown project.';",
+        "  }",
+        "  else res = 'command not found: ' + low + ' - type help';",
+        "",
+        "  print(res);",
+        "}"
+      ].join('\n')
+    };
+    const HL = { kw:'#c191f0', str:'#8fd0a0', num:'#e0a879', com:'#6e7681', fn:'#79b8ff' };
+    function hl(src){
+      const esc = src.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      return esc.replace(/(\/\/[^\n]*)|('(?:[^'\\]|\\.)*')|\b(const|let|var|function|return|if|else|for|new|null|true|false|this|of|in|document|window)\b|\b(\d+(?:\.\d+)?)\b/g,
+        (m,c,s,k,n) => c ? `<span style="color:${HL.com}">${c}</span>`
+          : s ? `<span style="color:${HL.str}">${s}</span>`
+          : k ? `<span style="color:${HL.kw}">${k}</span>`
+          : `<span style="color:${HL.num}">${n}</span>`);
+    }
+    function codeContent(){
+      const files = Object.keys(CODE);
+      const cur = files.includes(S.codeFile) ? S.codeFile : files[0];
+      const src = CODE[cur];
+      const lines = src.split('\n');
+      const gutter = lines.map((_,i)=>i+1).join('\n');
+      return `<div style="display:flex;height:100%;background:var(--s-term-bg);--s-text:#e6eaf0;--s-dim:rgba(215,222,232,.62);--s-faint:rgba(215,222,232,.42);--s-side:rgba(255,255,255,.04);--s-fill-2:rgba(255,255,255,.09);--s-fill-3:rgba(255,255,255,.15);--s-line:rgba(255,255,255,.12);--s-line-2:rgba(255,255,255,.2);--s-chrome:#1b1f26;color:#e6eaf0">
+        <div style="width:206px;flex:none;border-right:1px solid var(--s-line);background:var(--s-side);padding:10px 8px;overflow:auto">
+          <div style="font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--s-faint);padding:6px 9px 8px">This desktop</div>
+          ${files.map(f=>`<div data-act="codefile:${f}" data-side="1" tabindex="0" data-focusable="1" style="display:flex;align-items:center;gap:8px;padding:6px 9px;border-radius:7px;font-size:12px;cursor:default;font-family:ui-monospace,Menlo,monospace;background:${f===cur?'var(--s-fill-2)':'transparent'}"><span style="width:5px;height:5px;border-radius:1px;background:${f===cur?P.accent:'var(--s-line-2)'};flex:none"></span>${f}</div>`).join('')}
+          <div style="color:var(--s-faint);font-size:11.5px;padding:14px 9px 0;line-height:1.5">Real excerpts from the code running this page.</div>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;min-width:0">
+          <div style="flex:none;display:flex;align-items:center;gap:8px;padding:0 10px;height:36px;border-bottom:1px solid var(--s-line);background:var(--s-chrome)">
+            <div style="padding:5px 11px;border-radius:7px;background:var(--s-fill-2);font-size:12px;font-family:ui-monospace,Menlo,monospace">${cur}</div>
+            <div style="flex:1"></div>
+            <span style="font-size:11.5px;color:var(--s-faint)">${lines.length} lines</span>
+            <span data-act="copycode" data-side="1" tabindex="0" data-focusable="1" style="padding:5px 12px;border-radius:7px;background:var(--s-fill-2);border:1px solid var(--s-line);font-size:12px;cursor:default">Copy</span>
+          </div>
+          <div style="flex:1;overflow:auto;display:flex;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;line-height:1.65">
+            <pre style="margin:0;padding:16px 10px 24px 16px;color:rgba(160,167,178,.5);text-align:right;user-select:none;flex:none">${gutter}</pre>
+            <pre style="margin:0;padding:16px 20px 24px 6px;color:#d5dae2;white-space:pre;flex:1">${hl(src)}</pre>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    const swRow = (label, desc, key, on) => `<div data-act="pref:${key}=${!on}" data-side="1" tabindex="0" data-focusable="1" role="switch" aria-checked="${on}" style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:13px 16px;border-radius:13px;background:var(--s-fill);border:1px solid var(--s-line);cursor:default;transition:background .2s ease"><span><span style="font-weight:600">${label}</span><div style="color:var(--s-dim);font-size:12px;margin-top:2px;line-height:1.45">${desc}</div></span><span style="flex:none;width:41px;height:24px;border-radius:999px;background:${on?P.accent:'var(--s-fill-3)'};position:relative;transition:background .25s ease"><span style="position:absolute;top:3px;left:${on?'20px':'3px'};width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.35);transition:left .25s ${EASE}"></span></span></div>`;
+    const setRows = rows => `<div style="border-radius:13px;background:var(--s-fill);border:1px solid var(--s-line);overflow:hidden">${rows.map(([a,b],i)=>`<div style="display:flex;justify-content:space-between;gap:16px;padding:11px 16px;font-size:12.5px;${i?'border-top:1px solid var(--s-line)':''}"><span style="color:var(--s-dim)">${a}</span><span style="text-align:right">${b}</span></div>`).join('')}</div>`;
+    const setHead = (t,s) => `<h2 style="margin:0 0 4px;font-size:20px;font-weight:700;letter-spacing:-.01em">${t}</h2><div style="color:var(--s-dim);font-size:12.5px;margin-bottom:18px">${s}</div>`;
+    const SHORTCUTS = [['⌘K / Ctrl K','Search everything'],['?','Show this shortcut list'],['⌘↑ / F3','Mission Control'],['⌘⇧F','Open Projects'],['⌘W','Close front window'],['⌘M','Minimise front window'],['⌘,','Open System'],['Esc','Dismiss overlays, menus and popovers']];
+    const SET_TABS = [['overview','Overview'],['appearance','Appearance'],['performance','Performance'],['accessibility','Accessibility'],['about','About']];
+
+    function settingsPane(){
+      const tab = S.setTab || 'overview';
+      if (tab === 'appearance') return setHead('Appearance','Themes, dock material and desktop picture') +
+        `<div style="display:flex;flex-direction:column;gap:10px;max-width:470px">
+          <div style="padding:13px 16px;border-radius:13px;background:var(--s-fill);border:1px solid var(--s-line)">
+            <div style="font-weight:600;margin-bottom:10px">Themes</div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+              ${Object.keys(PACKS).map(k=>{const p=PACKS[k];return `<div data-pk="${k}" data-act="pack:${k}" tabindex="0" data-focusable="1" style="padding:7px;border-radius:11px;border:1px solid var(--s-line);cursor:default;background:var(--s-fill-2)">
+                <div style="height:44px;border-radius:7px;background:${p.wall[p.prefers]};position:relative;overflow:hidden"><span style="position:absolute;left:6px;bottom:6px;width:13px;height:13px;border-radius:4px;background:${p.accent}"></span></div>
+                <div style="font-size:12px;font-weight:600;margin-top:7px">${p.name}</div>
+                <div style="font-size:11px;color:var(--s-dim);line-height:1.35;margin-top:1px">${p.note}</div>
+              </div>`;}).join('')}
+            </div>
+            <div style="color:var(--s-faint);font-size:11.5px;margin-top:9px">Each theme swaps wallpaper, accent and dock tint. Daylight switches the interface to light.</div>
+          </div>
+          <div style="padding:13px 16px;border-radius:13px;background:var(--s-fill);border:1px solid var(--s-line)">
+            <div style="font-weight:600;margin-bottom:10px">Dock material</div>
+            <div style="display:flex;gap:6px">${[['glass','Glass'],['solid','Solid']].map(([v,l])=>`<div data-ds="${v}" data-act="dockstyle:${v}" tabindex="0" data-focusable="1" style="flex:1;text-align:center;padding:8px 0;border-radius:9px;font-size:12.5px;cursor:default;background:var(--s-fill-2)">${l}</div>`).join('')}</div>
+            <div style="color:var(--s-faint);font-size:11.5px;margin-top:9px">Glass refracts the wallpaper behind the dock. Reduce Transparency overrides both with a solid surface.</div>
+          </div>
+          <div style="padding:13px 16px;border-radius:13px;background:var(--s-fill);border:1px solid var(--s-line)">
+            <div style="font-weight:600;margin-bottom:10px">Theme</div>
+            <div style="display:flex;gap:6px">${[['light','Light'],['dark','Dark'],['system','System']].map(([v,l])=>`<div data-tr="${v}" data-act="theme:${v}" tabindex="0" data-focusable="1" style="flex:1;text-align:center;padding:8px 0;border-radius:9px;font-size:12.5px;cursor:default;background:var(--s-fill-2)">${l}</div>`).join('')}</div>
+            <div style="color:var(--s-faint);font-size:11.5px;margin-top:9px">System follows your device's light/dark setting live.</div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:13px 16px;border-radius:13px;background:var(--s-fill);border:1px solid var(--s-line)">
+            <span><span style="font-weight:600">Desktop picture</span><div style="color:var(--s-dim);font-size:12px;margin-top:2px">Drop in your own photograph</div></span>
+            <span data-act="pickwall:on" data-btn="1" tabindex="0" data-focusable="1" style="padding:8px 14px;border-radius:9px;background:${P.accent};color:#fff;font-size:12.5px;font-weight:600;cursor:default;white-space:nowrap">Choose…</span>
+          </div>
+          <div style="padding:13px 16px;border-radius:13px;background:var(--s-fill);border:1px solid var(--s-line)">
+            <div style="font-weight:600">Wallpaper brightness</div>
+            <input id="set-bright" type="range" min="45" max="115" value="${PREFS.bright || 100}" style="width:100%;margin-top:11px;accent-color:var(--s-accent)"/>
+          </div>
+          ${swRow('Dock labels','Show the application name above a magnified dock icon','dockLabels',PREFS.dockLabels)}
+          ${swRow('Menu bar status','Show the portfolio status indicator','showStatus',PREFS.showStatus)}
+          ${swRow('Menu bar activity','Show the activity meter','showActivity',PREFS.showActivity)}
+        </div>`;
+      if (tab === 'performance') return setHead('Performance','Reduce the cost of the interface on low-power hardware') +
+        `<div style="display:flex;flex-direction:column;gap:10px;max-width:470px">
+          ${swRow('Low Power Mode','Turns off background blur, shortens animation and flattens dock magnification. Surfaces stay theme-correct rather than falling back to a fixed dark colour.','lowPower',!!PREFS.lowPower)}
+          ${setRows([['Blur', PREFS.lowPower ? 'Disabled' : 'Enabled'],['Dock magnification', (PREFS.lowPower||S.reduced) ? 'Off' : Math.round(P.dockMag*100)+'%'],['Window animation', S.reduced ? 'Off' : 'On'],['Open windows', String(Object.keys(S.apps).length)]])}
+          <div style="color:var(--s-faint);font-size:12px">Nothing here polls in the background. The clock updates once every ten seconds; everything else redraws only on interaction.</div>
+        </div>`;
+      if (tab === 'accessibility') return setHead('Accessibility','Motion, transparency and contrast') +
+        `<div style="display:flex;flex-direction:column;gap:10px;max-width:470px">
+          ${swRow('Reduce motion','Removes window, dock and typing animation. Follows your system setting until you change it here.','reduceMotion',!!S.reduced)}
+          ${swRow('Reduce transparency','Replaces translucent menus, popovers and the dock with solid theme surfaces','opaque',!!PREFS.opaque)}
+          ${swRow('Increase contrast','Strengthens borders and lifts secondary text to full contrast','contrast',!!PREFS.contrast)}
+          <div style="padding:13px 16px;border-radius:13px;background:var(--s-fill);border:1px solid var(--s-line)">
+            <div style="font-weight:600;margin-bottom:8px">Keyboard</div>
+            ${SHORTCUTS.map(([k,v])=>`<div style="display:flex;justify-content:space-between;gap:14px;font-size:12.5px;padding:3px 0"><span style="color:var(--s-dim)">${v}</span><span style="font-family:ui-monospace,Menlo,monospace">${k}</span></div>`).join('')}
+          </div>
+        </div>`;
+      if (tab === 'about') return setHead("Sumit's Portfolio OS",'An interactive portfolio built as a desktop environment') +
+        `<div style="display:flex;flex-direction:column;gap:10px;max-width:470px">
+          ${setRows([['Interface','HTML, CSS and vanilla JavaScript'],['Portfolio data','Bundled with the page — no backend'],['Ask Sumit','Local keyword lookup, not a language model'],['Storage','Preferences and window positions in this browser']])}
+          <div style="color:var(--s-dim);font-size:12.5px;line-height:1.6">Sumit's Portfolio OS is an independent personal portfolio by Sumit Jadhav. The desktop metaphor is original work and is not affiliated with, sponsored by or endorsed by any operating-system vendor.</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <span data-act="open:about" data-side="1" tabindex="0" data-focusable="1" style="padding:8px 14px;border-radius:9px;background:var(--s-fill-2);border:1px solid var(--s-line);font-size:12.5px;cursor:default">About Sumit</span>
+            <span data-act="resetprefs" data-side="1" tabindex="0" data-focusable="1" style="padding:8px 14px;border-radius:9px;background:var(--s-fill-2);border:1px solid var(--s-line);font-size:12.5px;cursor:default">Reset preferences</span>
+          </div>
+        </div>`;
+      return setHead('Overview','This machine') +
+        `<div style="display:flex;flex-direction:column;gap:12px;max-width:470px">
+          <div style="display:flex;align-items:center;gap:14px;padding:16px;border-radius:14px;background:var(--s-fill);border:1px solid var(--s-line)">
+            <div style="width:50px;height:50px;flex:none;border-radius:12px;background:var(--s-fill-2);box-shadow:inset 0 0 0 1px var(--s-line);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:600">SJ</div>
+            <div><div style="font-size:15px;font-weight:700">Sumit Jadhav</div><div style="color:var(--s-dim);font-size:12.5px">AI &amp; Data Science · B.Tech, JNEC / MGM University</div></div>
+          </div>
+          ${setRows([['Appearance', PREFS.theme === 'system' ? 'System ('+effTheme()+')' : effTheme()[0].toUpperCase()+effTheme().slice(1)],['Status', STATE.status],['Activity', STATE.activity],['Open windows', String(Object.keys(S.apps).length)],['Session', Math.max(1, Math.round((Date.now()-STATE.started)/60000))+' min'],['Network', navigator.onLine ? 'Online' : 'Offline']])}
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <a href="./Sumit_Jadhav_Resume.pdf" download="Sumit_Jadhav_Resume.pdf" data-btn="1" style="padding:9px 15px;border-radius:10px;background:${P.accent};color:#fff;font-weight:600;font-size:12.5px;text-decoration:none">Download Resume</a>
+            <span data-act="open:finder-projects" data-side="1" tabindex="0" data-focusable="1" style="padding:9px 15px;border-radius:10px;background:var(--s-fill-2);border:1px solid var(--s-line);font-size:12.5px;cursor:default">Open Projects</span>
+          </div>
+        </div>`;
+    }
+    function settingsContent(){
+      const tab = S.setTab || 'overview';
+      return `<div style="display:flex;height:100%">
+        <div data-glasspane="1" style="width:186px;flex:none;padding:12px 8px;border-right:1px solid var(--s-line);overflow:auto">
+          ${SET_TABS.map(([v,l])=>`<div data-act="settab:${v}" data-side="1" tabindex="0" data-focusable="1" style="padding:7px 10px;border-radius:8px;font-size:12.5px;cursor:default;margin-bottom:2px;background:${tab===v?'var(--s-fill-2)':'transparent'};font-weight:${tab===v?'600':'400'}">${l}</div>`).join('')}
+        </div>
+        <div style="flex:1;overflow:auto;padding:26px 30px 34px">${settingsPane()}</div>
+      </div>`;
+    }
+
+    function contentFor(id){
+      if (PROJECTS[id]) return PROJECTS[id]();
+      switch(id){
+        case 'finder': return finderContent();
+        case 'terminal': return `<div data-act="focusterm" style="height:100%;display:flex;flex-direction:column;background:var(--s-term-bg);--s-ok:#8fd0a0;--s-text:#e6eaf0;--s-dim:rgba(215,222,232,.62);--s-faint:rgba(215,222,232,.42);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;color:#8fd0a0;padding:16px 18px">
+            <div id="term-out" style="flex:1;overflow:auto;line-height:1.65"><div style="color:var(--s-dim)">Sumit's Portfolio OS — type <span style="color:var(--s-ok)">help</span> for commands.</div><div style="height:8px"></div></div>
+            <div style="display:flex;align-items:center;gap:8px;padding-top:8px"><span style="color:var(--s-faint)">sumit@portfolio ~ %</span><input id="term-in" type="text" autocomplete="off" spellcheck="false" style="flex:1;background:transparent;border:none;outline:none;color:var(--s-ok);font-family:inherit;font-size:12.5px"/></div>
+          </div>`;
+        case 'sumit-ai': return `<div style="height:100%;display:flex;flex-direction:column">
+            <div id="ai-scroll" style="flex:1;overflow:auto;padding:22px 22px 8px;display:flex;flex-direction:column;gap:12px">
+              <div style="align-self:flex-start;max-width:82%;padding:11px 14px;border-radius:16px 16px 16px 5px;background:var(--s-bubble);border:1px solid var(--s-fill-2);font-size:13px;line-height:1.6">Ask me about Sumit's projects, stack, education or how to reach him. I answer from his portfolio only.</div>
+              <div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:2px">
+                ${['What is your tech stack?','Tell me about SAR Crop Mapping','What is Lazarus Sentinel?','How do I contact you?'].map(q=>`<div data-chipbtn="1" data-act="ask:${q}" style="padding:7px 12px;border-radius:999px;background:var(--s-fill-2);border:1px solid var(--s-line);font-size:12px;cursor:default;transition:background .28s ${EASE}">${q}</div>`).join('')}
+              </div>
+            </div>
+            <div style="padding:12px 16px;border-top:1px solid ${T.line};display:flex;gap:10px;align-items:center;background:var(--s-side)">
+              <input id="ai-in" type="text" placeholder="Ask something…" style="flex:1;background:var(--s-input);border:1px solid ${T.line};border-radius:999px;padding:9px 15px;color:var(--s-text);outline:none;font-family:inherit;font-size:13px"/>
+              <div data-act="aisend" data-btn="1" style="width:34px;height:34px;border-radius:50%;background:${P.accent};display:flex;align-items:center;justify-content:center;cursor:default;flex:none;transition:filter .28s ${EASE}">↑</div>
+            </div>
+          </div>`;
+        case 'about': return body(
+            `<div style="display:flex;align-items:center;gap:16px;margin-bottom:22px"><div style="width:58px;height:58px;border-radius:12px;background:var(--s-fill-2);box-shadow:inset 0 0 0 1px var(--s-line);display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:600;letter-spacing:.04em;flex:none">SJ</div>
+            <div><div style="font-size:22px;font-weight:700;letter-spacing:-.02em">Sumit Jadhav</div><div style="color:${T.dim}">AI &amp; Data Science · Chhatrapati Sambhajinagar, Maharashtra</div></div></div>
+            <p style="margin:0;color:var(--s-text)">Third-year B.Tech student in AI &amp; Data Science at MGM's Jawaharlal Nehru Engineering College (JNEC), MGM University, entered by lateral transfer from a Diploma in Computer Engineering.</p>
+            <p style="color:var(--s-text)">Focus: generative AI, RAG systems and applied deep learning. Currently looking for an AI/ML engineering internship.</p>
+            ${profilePills()}
+            <div style="margin-top:24px;color:${T.dim};font-size:12.5px">Double-click a folder, open Shell, or press ⌘K to search.</div>`);
+        case 'skills': return body(pageHead('Skills','')+
+            sec('Languages &amp; data','<div style="display:flex;flex-wrap:wrap;gap:7px">'+['Python','C++','Java','SQL','JavaScript','Pandas','NumPy'].map(x=>chip(x)).join('')+'</div>')+
+            sec('ML &amp; deep learning','<div style="display:flex;flex-wrap:wrap;gap:7px">'+['PyTorch','TensorFlow','Scikit-learn','OpenCV','ConvLSTM','Fourier Neural Operator','Hugging Face'].map(x=>chip(x)).join('')+'</div>')+
+            sec('Generative AI &amp; MLOps','<div style="display:flex;flex-wrap:wrap;gap:7px">'+['LangChain','RAG architectures','Multi-agent systems','Mistral AI','pgvector','FastAPI','Docker','Streamlit','Git'].map(x=>chip(x)).join('')+'</div>')+
+            sec('Application','<div style="display:flex;flex-wrap:wrap;gap:7px">'+['Electron','React','Vitest','GitHub Actions'].map(x=>chip(x)).join('')+'</div>'));
+        case 'education': return body(pageHead('Education','')+
+            `<div style="margin-top:20px;padding:16px 18px;border-radius:14px;background:var(--s-fill);border:1px solid ${T.line}">
+              <div style="font-weight:600;font-size:15px">B.Tech, AI &amp; Data Science</div>
+              <div style="color:${T.dim};margin-top:3px">MGM's Jawaharlal Nehru Engineering College (JNEC), MGM University</div>
+              <div style="color:${T.faint};font-size:12.5px;margin-top:6px">Third year · Chhatrapati Sambhajinagar, Maharashtra</div>
+            </div>
+            <div style="margin-top:12px;padding:16px 18px;border-radius:14px;background:var(--s-fill);border:1px solid ${T.line}">
+              <div style="font-weight:600;font-size:15px">Diploma in Computer Engineering</div>
+              <div style="color:${T.dim};margin-top:3px">Entered B.Tech by lateral transfer</div>
+            </div>`);
+        case 'experience': return body(pageHead('Experience','Independent and competition work')+
+            `<div style="margin-top:20px;border-left:2px solid var(--s-line-2);padding-left:18px;display:flex;flex-direction:column;gap:18px">
+              <div><div style="font-weight:600">ANRF AISEHack 2026 — SAR Crop Mapping (Round 1)</div><div style="color:${T.dim};font-size:12.5px">Crop-area estimation for 29 Gujarat villages from Capella Space X-band SAR. 26+ documented experiments; MSE ≈ 3568 → 1348.108 best.</div></div>
+              <div><div style="font-weight:600">ANRF AISEHack — PM2.5 Forecasting (Phase 2, IIT Delhi)</div><div style="color:${T.dim};font-size:12.5px">Team MGM. ConvLSTM + Fourier Neural Operator hybrid, deployed publicly on Hugging Face Spaces.</div></div>
+              <div><div style="font-weight:600">Applied GenAI projects</div><div style="color:${T.dim};font-size:12.5px">RAG and multi-agent systems built on LangChain, Mistral AI, FastAPI, Docker and pgvector.</div></div>
+              <div><div style="font-weight:600">Lazarus Sentinel</div><div style="color:${T.dim};font-size:12.5px">Electron + React desktop SSH safety terminal. 278 commits, CI on GitHub Actions, Vitest suite, live deploy.</div></div>
+            </div>`);
+        case 'certificates': return body(pageHead('Certificates','')+`<div style="margin-top:18px;color:${T.dim}">No certificates have been supplied for this build. Add them and they will appear here.</div>`);
+        case 'contact': return body(pageHead('Reach Out','Open to AI/ML engineering internships')+
+            `<div style="display:flex;flex-direction:column;gap:9px;margin-top:20px;max-width:560px">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px">
+                <label style="display:block"><span style="font-size:11.5px;color:${T.dim}">Your name</span><input id="rc-name" type="text" autocomplete="name" style="width:100%;margin-top:5px;background:var(--s-input);border:1px solid ${T.line};border-radius:9px;padding:10px 12px;color:var(--s-text);outline:none;font-family:inherit;font-size:13px"/></label>
+                <label style="display:block"><span style="font-size:11.5px;color:${T.dim}">Your email</span><input id="rc-mail" type="email" autocomplete="email" style="width:100%;margin-top:5px;background:var(--s-input);border:1px solid ${T.line};border-radius:9px;padding:10px 12px;color:var(--s-text);outline:none;font-family:inherit;font-size:13px"/></label>
+              </div>
+              <label style="display:block"><span style="font-size:11.5px;color:${T.dim}">Message</span><textarea id="rc-msg" rows="5" style="width:100%;margin-top:5px;background:var(--s-input);border:1px solid ${T.line};border-radius:9px;padding:10px 12px;color:var(--s-text);outline:none;font-family:inherit;font-size:13px;resize:vertical;line-height:1.55"></textarea></label>
+              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                <span data-act="sendmail" data-btn="1" tabindex="0" data-focusable="1" style="padding:10px 17px;border-radius:10px;background:${P.accent};color:#fff;font-weight:600;font-size:12.5px;cursor:default">Compose email</span>
+                <span data-act="copy:jadhavsumit534@gmail.com" data-side="1" tabindex="0" data-focusable="1" style="padding:10px 15px;border-radius:10px;background:var(--s-fill-2);border:1px solid ${T.line};font-size:12.5px;cursor:default">Copy address</span>
+                <span id="rc-note" style="font-size:12px;color:${T.faint}">Opens your own mail client — nothing is sent from this page.</span>
+              </div>
+            </div>
+            <div style="margin-top:26px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:${T.faint}">Elsewhere</div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin-top:10px">
+              ${profileCards()}
+            </div>`);
+        case 'code': return codeContent();
+        case 'resume': return `<div style="height:100%;display:flex;flex-direction:column">
+            <div style="flex:none;display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--s-line);background:var(--s-chrome)">
+              <div style="font-size:12.5px;font-weight:600">Sumit_Jadhav_Resume.pdf</div>
+              <div style="flex:1"></div>
+              <div style="display:flex;align-items:center;gap:2px;padding:2px;border-radius:8px;background:var(--s-fill);border:1px solid var(--s-line)">
+                <span data-act="zoom:out" data-side="1" tabindex="0" data-focusable="1" style="width:24px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:6px;font-size:14px;cursor:default">−</span>
+                <span id="res-zoom" style="min-width:44px;text-align:center;font-size:11.5px;font-variant-numeric:tabular-nums;color:var(--s-dim)">Fit</span>
+                <span data-act="zoom:in" data-side="1" tabindex="0" data-focusable="1" style="width:24px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:6px;font-size:14px;cursor:default">+</span>
+              </div>
+              <span data-act="zoom:fit" data-side="1" tabindex="0" data-focusable="1" style="padding:6px 11px;border-radius:8px;background:var(--s-fill-2);border:1px solid var(--s-line);font-size:12px;cursor:default">Fit width</span>
+              <span style="width:1px;height:20px;background:var(--s-line);margin:0 2px"></span>
+              <a href="./Sumit_Jadhav_Resume.pdf" target="_blank" rel="noopener" data-side="1" style="padding:6px 12px;border-radius:8px;background:var(--s-fill-2);border:1px solid var(--s-line);font-size:12px;text-decoration:none;color:var(--s-text)">Open in new tab</a>
+              <a href="./Sumit_Jadhav_Resume.pdf" download="Sumit_Jadhav_Resume.pdf" data-side="1" style="padding:6px 12px;border-radius:8px;background:var(--s-fill-2);border:1px solid var(--s-line);font-size:12px;text-decoration:none;color:var(--s-text)">Download</a>
+            </div>
+            <div style="flex:1;position:relative;background:var(--s-paper-desk)">
+              <object id="res-obj" data-z="100" data="./Sumit_Jadhav_Resume.pdf#view=FitH" type="application/pdf" style="position:absolute;inset:0;width:100%;height:100%;border:0">
+              <div style="position:absolute;inset:0;overflow:auto;padding:26px;display:flex;justify-content:center">
+            <div style="width:100%;max-width:660px;height:max-content;background:var(--s-paper);color:var(--s-paper-ink);padding:44px 46px;box-shadow:0 20px 50px rgba(0,0,0,.4);font-size:12.5px;line-height:1.6">
+              <div style="font-size:24px;font-weight:700;letter-spacing:-.01em">Sumit Jadhav</div>
+              <div style="color:#4a4f57;margin-top:4px">AI &amp; Data Science · Chhatrapati Sambhajinagar, Maharashtra · jadhavsumit534@gmail.com</div>
+              <div style="height:1px;background:#d8dbe0;margin:18px 0"></div>
+              <div style="font-weight:700;margin-bottom:6px">Education</div>
+              <div>B.Tech, AI &amp; Data Science — MGM's Jawaharlal Nehru Engineering College, MGM University (third year, lateral entry)</div>
+              <div>Diploma in Computer Engineering</div>
+              <div style="font-weight:700;margin:16px 0 6px">Focus</div>
+              <div>Generative AI, RAG systems, applied deep learning.</div>
+              <div style="font-weight:700;margin:16px 0 6px">Selected projects</div>
+              <div>Lazarus Sentinel · AI Video Assistant · PM2.5 Forecasting · SAR Crop Mapping · Multi-Agent Research System · NYC Airbnb Room Type Classification</div>
+              <div style="font-weight:700;margin:16px 0 6px">Links</div>
+              <div>github.com/sumitjadhav1703 · kaggle.com/sumit1703 · huggingface.co/sumit1703 · linkedin.com/in/sumit-jadhav-1703s</div>
+              <div style="margin-top:20px;color:#6a7078;font-size:11.5px">Your browser could not display the PDF inline. Use Download above for the full document.</div>
+            </div></div></object>
+            </div></div>`;
+        case 'trash': return body(`<div style="height:100%;display:flex;align-items:center;justify-content:center;color:${T.faint}">Trash is empty.</div>`);
+        case 'settings': return settingsContent();
+        default: return body(`<div style="color:${T.faint}">Nothing here yet.</div>`);
+      }
+    }
+
+    // ---------- window manager ----------
+    function tl(color,act,id,glyph){ return `<div data-tl="1" data-act="${act}:${id}" style="width:12px;height:12px;border-radius:50%;background:${color};box-shadow:inset 0 0 0 .5px rgba(0,0,0,.22);cursor:default;display:flex;align-items:center;justify-content:center;transition:filter .2s ease"><span data-glyph="1" style="font-size:9px;line-height:1;font-weight:700;color:rgba(0,0,0,.55);opacity:0;transition:opacity .16s ease;pointer-events:none">${glyph}</span></div>`; }
+    function handles(id){
+      const dirs = [['n','0','0','auto','0','100%','5px','ns-resize'],['s','auto','0','0','0','100%','5px','ns-resize'],['w','0','auto','0','0','5px','100%','ew-resize'],['e','0','0','0','auto','5px','100%','ew-resize']];
+      let h = dirs.map(([d,t,r,b,l,w,hh,c])=>`<div data-rs="${d}" data-win="${id}" style="position:absolute;top:${t};right:${r};bottom:${b};left:${l};width:${w};height:${hh};cursor:${c};z-index:5"></div>`).join('');
+      const corners = [['nw','-3px','auto','auto','-3px','nwse-resize'],['ne','-3px','-3px','auto','auto','nesw-resize'],['sw','auto','auto','-3px','-3px','nesw-resize'],['se','auto','-3px','-3px','auto','nwse-resize']];
+      h += corners.map(([d,t,r,b,l,c])=>`<div data-rs="${d}" data-win="${id}" style="position:absolute;top:${t};right:${r};bottom:${b};left:${l};width:14px;height:14px;cursor:${c};z-index:6"></div>`).join('');
+      return h;
+    }
+
+    function render(id){
+      const a = S.apps[id]; if (!a) return;
+      let el = document.getElementById('win-'+id);
+      const isNew = !el;
+      if (isNew){
+        el = document.createElement('div');
+        el.id = 'win-'+id;
+        const mobile = window.innerWidth < 768;
+        const [w,h] = SIZE[id] || [780,520];
+        Object.assign(el.style, {
+          position:'absolute', left:a.x+'px', top:a.y+'px',
+          width: mobile ? '100%' : w+'px', height: mobile ? 'calc(100% - 96px)' : h+'px',
+          pointerEvents:'auto', display:'flex', flexDirection:'column', overflow:'hidden',
+          borderRadius: mobile ? '0' : '13px',
+          background:'var(--s-win)',
+          border:'1px solid var(--s-win-border)',
+          boxShadow:'var(--s-shadow-win)',
+          transition: WIN_T
+        });
+        if (mobile){ el.style.left='0'; el.style.top='28px'; }
+        if (!S.reduced){ el.style.opacity='0'; el.style.transform='scale(.94) translateY(10px)'; }
+        wm.appendChild(el);
+      }
+      el.innerHTML =
+        `<div data-titlebar="${id}" style="height:38px;flex:none;display:flex;align-items:center;padding:0 12px;gap:8px;border-bottom:1px solid ${T.line};background:var(--s-chrome);cursor:grab">
+           <div data-tlgroup="1" style="display:flex;gap:8px">${tl('#d0655b','close',id,'\u2715')}${tl('#cfa04a','min',id,'\u2212')}${tl('#5c9c63','max',id,'\u2921')}</div>
+           <div style="flex:1;text-align:center;font-size:12.5px;font-weight:600;color:var(--s-text);pointer-events:none;margin-left:-56px">${TITLES[id]||id}${id==='finder'&&S.finderPath!=='/'?' — Projects':''}</div>
+         </div>
+         <div data-wbody="${id}" style="flex:1;overflow:hidden;position:relative">${contentFor(id)}</div>
+         ${a.max?'':handles(id)}`;
+      el.style.zIndex = a.z;
+      if (a.max){
+        el.style.left='0'; el.style.top='28px'; el.style.width='100%'; el.style.height='calc(100% - 28px)'; el.style.borderRadius='0';
+      } else if (!el.dataset.mobile && window.innerWidth >= 768 && a.w){
+        el.style.left=a.x+'px'; el.style.top=a.y+'px'; el.style.width=a.w+'px'; el.style.height=a.h+'px'; el.style.borderRadius='13px';
+      }
+      if (isNew && !S.reduced){ nextFrame(()=>{ el.style.opacity='1'; el.style.transform='none'; }); settle(el, {opacity:'1', transform:'none'}); }
+      applyFocusStyles();
+      hydrateIcons(el);
+      if (id==='terminal') setTimeout(()=>{ const i=document.getElementById('term-in'); if(i) i.focus(); },60);
+      if (id==='settings') wireSettings();
+    }
+
+    function applyFocusStyles(){
+      Object.keys(S.apps).forEach(k=>{
+        const el = document.getElementById('win-'+k); if (!el) return;
+        const act = S.active===k;
+        if (S.apps[k].min) return;
+        el.style.boxShadow = act ? 'var(--s-shadow-focus)' : 'var(--s-shadow-rest)';
+        el.style.opacity = act ? '1' : '.965';
+      });
+      const n = document.getElementById('menu-app-name');
+      if (n) n.textContent = S.active ? (TITLES[S.active]||'Workspace').split(' — ')[0] : 'Workspace';
+      Object.keys(DOCK_FOR).forEach(k=>{
+        const d = document.querySelector(`[data-ind="${k}"]`);
+        if (d) d.style.opacity = S.apps[k] ? '1' : '0';
+      });
+      renderWindowList();
+    }
+
+    function renderWindowList(){
+      const list = document.getElementById('window-list'); if (!list) return;
+      const ks = Object.keys(S.apps);
+      list.innerHTML = ks.length ? ks.map(k=>`<div data-mi="1" data-act="open:${k}" style="padding:5px 10px;border-radius:6px;cursor:default;white-space:nowrap">${S.active===k?'✓ ':'&nbsp;&nbsp;&nbsp;'}${TITLES[k]||k}</div>`).join('')
+        : `<div style="padding:5px 10px;color:${T.faint}">No open windows</div>`;
+    }
+
+    function bounceDock(id){
+      const d = document.querySelector(`[data-item="${id}"]`);
+      if (!d || S.reduced) return;
+      d.style.transition = 'transform .12s cubic-bezier(.3,0,.2,1)';
+      d.style.transform = 'translateY(-17px) scale(1.05)';
+      setTimeout(()=>{ d.style.transition = `transform .78s ${SPRING_B}`; d.style.transform = ''; }, 130);
+      setTimeout(()=>{ d.style.transition = `transform .13s ${EASE},margin .13s ${EASE}`; }, 950);
+    }
+
+    function openApp(id, sub){
+      if (id === 'finder-projects'){ S.finderPath='projects'; id='finder'; }
+      if (!TITLES[id]) return;
+      if (id==='finder' && sub) S.finderPath = sub;
+      bounceDock(DOCK_FOR[id]);
+      if (!S.apps[id]){
+        const n = Object.keys(S.apps).length;
+        const [w,h] = SIZE[id] || [780,520];
+        const saved = (PREFS.wins || {})[id] || {};
+        const cw = saved.w ?? w, ch = saved.h ?? h;
+        const cx = Math.max(8, Math.min(saved.x ?? (90 + n*26), window.innerWidth - cw - 8));
+        const cy = Math.max(34, Math.min(saved.y ?? (66 + n*22), window.innerHeight - 120));
+        S.apps[id] = { x: cx, y: cy, w: cw, h: ch, max:false, min:false, z:++S.z };
+      }
+      const a = S.apps[id];
+      a.z = ++S.z; S.active = id;
+      const el = document.getElementById('win-'+id);
+      if (a.min && el){ a.min=false; el.style.transition = S.reduced?'none':WIN_T; el.style.transform='none'; el.style.opacity='1'; el.style.pointerEvents='auto'; el.style.zIndex=a.z; applyFocusStyles(); return; }
+      render(id);
+      focusPulse(id);
+      busy('Loading ' + (TITLES[id]||id), 'Idle');
+      notify(TITLES[id] || id, 'Opened');
+      drawStatus();
+    }
+
+    function focusPulse(id){
+      const el = document.getElementById('win-'+id); if (!el || S.reduced) return;
+      el.style.transform='scale(1.006)';
+      setTimeout(()=>{ el.style.transform='none'; }, 170);
+    }
+
+    function focusApp(id){
+      if (S.active===id) return;
+      S.active = id; S.apps[id].z = ++S.z;
+      const el = document.getElementById('win-'+id); if (el) el.style.zIndex = S.apps[id].z;
+      applyFocusStyles(); focusPulse(id);
+    }
+
+    function closeApp(id){
+      const el = document.getElementById('win-'+id);
+      const done = ()=>{ if(el) el.remove(); delete S.apps[id];
+        const rest = Object.keys(S.apps); S.active = rest.length ? rest.reduce((a,b)=>S.apps[a].z>S.apps[b].z?a:b) : null;
+        applyFocusStyles(); };
+      if (el && !S.reduced){ el.style.opacity='0'; el.style.transform='scale(.94)'; setTimeout(done,260); } else done();
+    }
+
+    function minimizeApp(id){
+      const el = document.getElementById('win-'+id); if (!el) return;
+      const a = S.apps[id]; a.min = true;
+      const target = document.querySelector(`[data-item="${DOCK_FOR[id]||'finder'}"]`) || document.querySelector('[data-item="finder"]');
+      const wr = el.getBoundingClientRect();
+      let dx = 0, dy = window.innerHeight - (wr.top + wr.height/2) + 40;
+      if (target){ const tr = target.getBoundingClientRect(); dx = (tr.left+tr.width/2) - (wr.left+wr.width/2); dy = (tr.top+tr.height/2) - (wr.top+wr.height/2); }
+      el.style.transformOrigin='center';
+      el.style.transition = S.reduced ? 'none' : `transform .62s ${SPRING},opacity .4s ease`;
+      el.style.transform = `translate(${dx}px,${dy}px) scale(.06)`;
+      el.style.opacity = '0';
+      el.style.pointerEvents = 'none';
+      const rest = Object.keys(S.apps).filter(k=>!S.apps[k].min);
+      S.active = rest.length ? rest.reduce((a,b)=>S.apps[a].z>S.apps[b].z?a:b) : null;
+      applyFocusStyles();
+    }
+
+    function toggleMax(id){
+      const a = S.apps[id]; if (!a) return;
+      a.max = !a.max; render(id); focusApp(id);
+    }
+
+    // ---------- drag & resize ----------
+    let drag = null, resize = null;
+    document.addEventListener('mousedown', e => {
+      const tb = e.target.closest('[data-titlebar]');
+      if (tb && !e.target.closest('[data-tl]')){
+        const id = tb.dataset.titlebar; const a = S.apps[id]; if (!a || a.max) { focusApp(id); return; }
+        const el = document.getElementById('win-'+id);
+        focusApp(id);
+        drag = { id, el, sx:e.clientX, sy:e.clientY, ox:parseInt(el.style.left)||0, oy:parseInt(el.style.top)||0 };
+        el.style.transition='none'; tb.style.cursor='grabbing'; document.body.style.cursor='grabbing';
+        e.preventDefault(); return;
+      }
+      const rs = e.target.closest('[data-rs]');
+      if (rs){
+        const id = rs.dataset.win; const el = document.getElementById('win-'+id); focusApp(id);
+        resize = { id, el, dir:rs.dataset.rs, sx:e.clientX, sy:e.clientY, ox:parseInt(el.style.left)||0, oy:parseInt(el.style.top)||0, ow:el.offsetWidth, oh:el.offsetHeight };
+        el.style.transition='none'; e.preventDefault(); return;
+      }
+      const win = e.target.closest('[id^="win-"]');
+      if (win) focusApp(win.id.slice(4));
+    });
+    document.addEventListener('mousemove', e => {
+      if (drag){
+        let x = drag.ox + (e.clientX-drag.sx), y = Math.max(28, drag.oy + (e.clientY-drag.sy));
+        x = Math.min(Math.max(x, -drag.el.offsetWidth+120), window.innerWidth-120);
+        y = Math.min(y, window.innerHeight-60);
+        drag.el.style.left = x+'px'; drag.el.style.top = y+'px';
+        const a = S.apps[drag.id]; a.x=x; a.y=y;
+      } else if (resize){
+        const d = resize.dir, dx = e.clientX-resize.sx, dy = e.clientY-resize.sy;
+        let w=resize.ow, h=resize.oh, x=resize.ox, y=resize.oy;
+        if (d.includes('e')) w = Math.max(360, resize.ow+dx);
+        if (d.includes('s')) h = Math.max(240, resize.oh+dy);
+        if (d.includes('w')){ w = Math.max(360, resize.ow-dx); x = resize.ox + (resize.ow-w); }
+        if (d.includes('n')){ h = Math.max(240, resize.oh-dy); y = Math.max(28, resize.oy + (resize.oh-h)); }
+        Object.assign(resize.el.style,{width:w+'px',height:h+'px',left:x+'px',top:y+'px'});
+        const a = S.apps[resize.id]; a.w=w; a.h=h; a.x=x; a.y=y;
+      }
+    });
+    function persistWins(){
+      PREFS.wins = {};
+      Object.keys(S.apps).forEach(id=>{ const a=S.apps[id]; PREFS.wins[id] = {x:a.x,y:a.y,w:a.w,h:a.h}; });
+      savePrefs();
+    }
+    document.addEventListener('mouseup', () => {
+      if (drag || resize) persistWins();
+      if (drag){ drag.el.style.transition=WIN_T; const tb=drag.el.querySelector('[data-titlebar]'); if(tb) tb.style.cursor='grab'; document.body.style.cursor=''; }
+      if (resize){ resize.el.style.transition=WIN_T; }
+      drag = null; resize = null;
+    });
+
+    // ---------- dock magnification ----------
+    const dockItems = () => Array.from(document.querySelectorAll('[data-item]'));
+    dockList.addEventListener('mousemove', e => {
+      if (S.reduced || PREFS.lowPower || window.innerWidth < 768) return;
+      const SIGMA = 60, RADIUS = 190;
+      dockItems().forEach(it => {
+        const r = it.getBoundingClientRect();
+        const dist = Math.abs(e.clientX - (r.left + r.width/2));
+        let s = 1;
+        if (dist < RADIUS) s = 1 + (P.dockMag - 1) * Math.exp(-(dist*dist)/(2*SIGMA*SIGMA));
+        it.style.transform = `scale(${s})`;
+        it.style.margin = `0 ${5 + (s-1)*27}px`;
+        it.style.zIndex = Math.round(s*10);
+        const tip = it.querySelector('[data-tip]');
+        if (tip) tip.style.opacity = (PREFS.dockLabels && s > 1.22) ? '1' : '0';
+      });
+    });
+    dockList.addEventListener('mouseleave', () => {
+      dockItems().forEach(it => { it.style.transform='scale(1)'; it.style.margin='0 5px'; it.style.zIndex=1; const t=it.querySelector('[data-tip]'); if(t) t.style.opacity='0'; });
+    });
+
+    // ---------- menus / control center / spotlight ----------
+    const POPS = { status:'#status-pop', activity:'#act-pop', cal:'#cal-pop' };
+    function closeMenus(){
+      document.querySelectorAll('[data-dropdown]').forEach(d=>d.style.display='none');
+      Object.values(POPS).forEach(sel=>{ const e=$(sel); if(e) e.style.display='none'; });
+      S.menu=null;
+    }
+    function togglePop(name, before){
+      const sel = POPS[name], el = $(sel); if (!el) return;
+      const open = el.style.display === 'block';
+      closeMenus();
+      if (!open){
+        if (before) before();
+        el.style.display = 'block';
+        el.style.transformOrigin = 'top right';
+        if (!S.reduced){
+          el.style.transition = 'none'; el.style.opacity = '0'; el.style.transform = 'scale(.96) translateY(-6px)';
+          void el.offsetWidth;
+          el.style.transition = `opacity .2s ease,transform .45s ${SPRING}`;
+          nextFrame(()=>{ el.style.opacity = '1'; el.style.transform = 'none'; });
+          settle(el, { opacity:'1', transform:'none' });
+        }
+        S.menu = name;
+      }
+    }
+    function toggleMenu(name){
+      const d = document.querySelector(`[data-dropdown="${name}"]`);
+      const open = S.menu === name; closeMenus();
+      if (!open && d){ d.style.display='block'; S.menu = name; if (name==='window') renderWindowList(); }
+    }
+    const cc = $('#control-center');
+    function toggleCC(force){
+      const open = cc.style.display === 'block';
+      if (open || force === false){ cc.style.opacity='0'; cc.style.transform='scale(.94) translateY(-6px)'; setTimeout(()=>{ cc.style.display='none'; },260); }
+      else { cc.style.display='block'; nextFrame(()=>{ cc.style.opacity='1'; cc.style.transform='none'; }); settle(cc, {opacity:'1'}); }
+    }
+    const spot = $('#spotlight'), spotIn = $('#spotlight-input'), spotRes = $('#spotlight-results'), spotBox = $('#spotlight-box');
+    function toggleSpot(force){
+      const open = spot.style.display === 'flex';
+      if (open || force === false){ spot.style.opacity='0'; spotBox.style.transform='scale(.96)'; setTimeout(()=>{ spot.style.display='none'; },240); }
+      else { spot.style.display='flex'; spotIn.value=''; spotRes.innerHTML=''; S.spotRes=[]; S.spotIdx=-1;
+        nextFrame(()=>{ spot.style.opacity='1'; spotBox.style.transform='none'; spotIn.focus(); }); settle(spot, {opacity:'1'}); settle(spotBox, {transform:'none'}); }
+    }
+    spot.addEventListener('click', e => { if (e.target === spot) toggleSpot(false); });
+
+    // ---------- shortcut overlay, mission control, first-visit hint ----------
+    const shortEl = $('#shortcuts'), shortBox = $('#shortcuts-box'), missEl = $('#mission');
+    function toggleShortcuts(force){
+      const open = shortEl.style.display === 'flex';
+      if (open || force === false){ shortEl.style.opacity='0'; shortBox.style.transform='scale(.96)'; setTimeout(()=>{ shortEl.style.display='none'; },240); return; }
+      $('#shortcuts-list').innerHTML = SHORTCUTS.map(([k,v],i)=>`<div style="display:flex;justify-content:space-between;align-items:center;gap:16px;padding:8px 2px;font-size:12.5px;${i?'border-top:1px solid var(--s-line)':''}"><span style="color:var(--s-dim)">${v}</span><span style="font-family:ui-monospace,Menlo,monospace;padding:2px 8px;border-radius:6px;background:var(--s-fill-2);border:1px solid var(--s-line)">${k}</span></div>`).join('');
+      shortEl.style.display='flex';
+      nextFrame(()=>{ shortEl.style.opacity='1'; shortBox.style.transform='none'; });
+      settle(shortEl,{opacity:'1'}); settle(shortBox,{transform:'none'});
+    }
+    shortEl.addEventListener('click', e => { if (e.target === shortEl) toggleShortcuts(false); });
+
+    const MISSION_HUE = { finder:'#1c62c9', terminal:'#3b424c', 'sumit-ai':'#6a3ec0', code:'#4e5a6e', contact:'#1c7a6d', settings:'#4c545f', resume:'#c33026', trash:'#5b6068',
+      'project-lazarus':'#2b8743','project-ai-video':'#1c62c9','project-pm25':'#cf9611','project-sar':'#cd6212','project-multi-agent':'#6a3ec0','project-airbnb':'#c33026' };
+    function toggleMission(force){
+      const open = missEl.style.display === 'flex';
+      if (open || force === false){ missEl.style.opacity='0'; setTimeout(()=>{ missEl.style.display='none'; },260); return; }
+      const ids = Object.keys(S.apps);
+      $('#mission-grid').innerHTML = ids.length ? ids.map(id=>`<div data-act="mission:${id}" style="padding:14px;border-radius:14px;background:var(--s-pop);border:1px solid var(--s-line);box-shadow:var(--s-shadow-rest);cursor:default;display:flex;align-items:center;gap:12px;min-height:74px">
+          <span style="width:34px;height:34px;flex:none;border-radius:9px;background:${MISSION_HUE[id]||'#4c545f'};box-shadow:inset 0 1px 0 rgba(255,255,255,.28)"></span>
+          <span style="min-width:0"><span style="display:block;font-size:13px;font-weight:600;color:var(--s-text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${TITLES[id]||id}</span><span style="display:block;font-size:11.5px;color:var(--s-dim);margin-top:2px">${S.apps[id].min?'Minimised':(S.active===id?'Front window':'Open')}</span></span>
+        </div>`).join('') : '<div style="color:rgba(255,255,255,.6);font-size:13px;padding:8px 2px">No windows open. Launch something from the dock.</div>';
+      missEl.style.display='flex';
+      nextFrame(()=>{ missEl.style.opacity='1'; });
+      settle(missEl,{opacity:'1'});
+    }
+    missEl.addEventListener('click', e => { if (!e.target.closest('[data-act]')) toggleMission(false); });
+
+    const hintEl = $('#dock-hint');
+    function dismissHint(){ if (!hintEl) return; hintEl.style.opacity='0'; hintEl.style.transform='translateX(-50%) translateY(8px)'; setTimeout(()=>{ hintEl.style.display='none'; },460); PREFS.hintSeen = true; savePrefs(); }
+    if (!PREFS.hintSeen && window.innerWidth >= 768) setTimeout(()=>{
+      if (PREFS.hintSeen || !hintEl) return;
+      hintEl.style.display='flex';
+      nextFrame(()=>{ hintEl.style.opacity='1'; hintEl.style.transform='translateX(-50%)'; });
+      settle(hintEl,{opacity:'1'});
+      setTimeout(()=>{ if (!PREFS.hintSeen) dismissHint(); }, 14000);
+    }, 3400);
+    spotIn.addEventListener('input', () => {
+      const q = spotIn.value.toLowerCase().trim(); S.spotIdx = -1;
+      if (!q){ spotRes.innerHTML=''; S.spotRes=[]; return; }
+      S.spotRes = searchAll(q);
+      drawSpot();
+    });
+    function runAct(a){
+      const [k, ...rest] = String(a || '').split(':'); const v = rest.join(':');
+      if (k === 'open') openApp(v);
+      else if (k === 'theme') setTheme(v);
+      else if (k === 'dlresume'){
+        const l = document.createElement('a');
+        l.href = './Sumit_Jadhav_Resume.pdf'; l.download = 'Sumit_Jadhav_Resume.pdf';
+        document.body.appendChild(l); l.click(); l.remove();
+        notify('Resume', 'Download started');
+      }
+    }
+    function drawSpot(){
+      spotRes.innerHTML = S.spotRes.length ? S.spotRes.map((r,i)=>`<div data-act="${r.act}" data-spot="${i}" style="padding:11px 18px;display:flex;align-items:center;gap:12px;font-size:14px;cursor:default;background:${i===S.spotIdx?'var(--s-fill-3)':'transparent'}"><span style="width:18px;height:18px;border-radius:4px;background:var(--s-fill-2);box-shadow:inset 0 0 0 1px var(--s-line);flex:none"></span><span style="flex:1">${r.title}</span><span style="font-size:11.5px;color:var(--s-faint)">${r.kind}</span></div>`).join('')
+        : `<div style="padding:16px 18px;color:${T.faint}">No results</div>`;
+    }
+    spotIn.addEventListener('keydown', e => {
+      if (!S.spotRes.length) return;
+      if (e.key==='ArrowDown'){ e.preventDefault(); S.spotIdx=(S.spotIdx+1)%S.spotRes.length; drawSpot(); }
+      else if (e.key==='ArrowUp'){ e.preventDefault(); S.spotIdx=(S.spotIdx-1+S.spotRes.length)%S.spotRes.length; drawSpot(); }
+      else if (e.key==='Enter'){ e.preventDefault(); const r=S.spotRes[Math.max(0,S.spotIdx)]; if(r){ runAct(r.act); toggleSpot(false); } }
+    });
+
+    // ---------- terminal ----------
+    const TERM = {
+      help:'Commands: about, projects, project &lt;name&gt;, skills, education, experience, resume, contact, links, whoami, neofetch, open &lt;app&gt;, clear',
+      about:'Sumit Jadhav — third-year B.Tech, AI &amp; Data Science, JNEC / MGM University. Focus: generative AI, RAG, applied deep learning.',
+      projects:'lazarus-sentinel · ai-video · pm25 · sar · multi-agent · airbnb  → try: project sar',
+      links:'github.com/sumitjadhav1703 · kaggle.com/sumit1703 · huggingface.co/sumit1703 · linkedin.com/in/sumit-jadhav-1703s',
+      whoami:'sumit — AI/ML engineering intern candidate.',
+      neofetch:'<div style="display:flex;gap:18px;align-items:flex-start"><pre style="margin:0;color:var(--s-dim);line-height:1.25">  ____  _ \n / ___|| |\n \\___ \\| |\n  ___) | |\n |____/|_|</pre><div><div><span style="color:var(--s-ok)">sumit</span>@<span style="color:var(--s-ok)">portfolio</span></div><div>OS: Sumit\'s Portfolio OS</div><div>Focus: AI / ML</div><div>Primary language: Python</div><div>Direction: Generative AI</div><div>Projects: 6</div><div>Status: Ready</div></div></div>',
+      coffee:'Dependency missing: coffee',
+      'sudo make-me-an-ai-engineer':'Permission denied: keep learning.'
+    };
+    const PROJ_ALIAS = { 'lazarus-sentinel':'project-lazarus', lazarus:'project-lazarus', 'ai-video':'project-ai-video', pm25:'project-pm25', 'pm2.5':'project-pm25', sar:'project-sar', 'multi-agent':'project-multi-agent', airbnb:'project-airbnb' };
+    function termRun(raw){
+      const out = document.getElementById('term-out'); if (!out) return;
+      const cmd = raw.trim(); const low = cmd.toLowerCase();
+      out.innerHTML += `<div style="color:var(--s-faint)">sumit@portfolio ~ % <span style="color:var(--s-ok)">${cmd.replace(/</g,'&lt;')}</span></div>`;
+      let res = '';
+      if (!cmd){ }
+      else if (low==='clear'){ out.innerHTML=''; return; }
+      else if (TERM[low]) res = TERM[low];
+      else if (low.startsWith('project ')){ const k = PROJ_ALIAS[low.slice(8).trim()]; if (k){ openApp(k); res = 'Opening ' + TITLES[k] + '…'; } else res = 'Unknown project. Try: ' + Object.keys(PROJ_ALIAS).join(', '); }
+      else if (low.startsWith('open ')){ const k = low.slice(5).trim(); if (TITLES[k]){ openApp(k); res='Opening '+TITLES[k]+'…'; } else res='No such app: '+k; }
+      else if (['skills','education','experience','resume','contact','settings'].includes(low)){ openApp(low); res='Opening '+TITLES[low]+'…'; }
+      else res = `command not found: ${low.replace(/</g,'&lt;')} — type help`;
+      if (res) out.innerHTML += `<div style="color:var(--s-text);margin-bottom:8px">${res}</div>`;
+      out.scrollTop = out.scrollHeight;
+    }
+
+    // ---------- Sumit AI ----------
+    const KB = [
+      [['stack','tech','tools','language','python'],"Python first: PyTorch, TensorFlow, Scikit-learn, OpenCV. For generative AI it's LangChain, Mistral AI, RAG pipelines and pgvector, served with FastAPI and Docker. Application work is Electron, React and Vitest."],
+      [['lazarus','sentinel','ssh','electron'],"Lazarus Sentinel is a desktop SSH safety terminal in Electron and React — 278 commits, GitHub Actions CI, a Vitest suite and a live deployment. It's the strongest engineering record in the portfolio."],
+      [['ai video','video assistant','video'],"The AI Video Assistant is a RAG and multi-modal pipeline on LangChain, Mistral AI, FastAPI, Docker and PostgreSQL with pgvector, deployed on Render plus Streamlit Community Cloud. The demo is live; the code is private."],
+      [['pm2.5','pm25','pollution','forecast'],"PM2.5 Forecasting pairs ConvLSTM with a Fourier Neural Operator for grid pollution forecasting. Built for ANRF AISEHack Phase 2 at IIT Delhi with Team MGM, and the demo is public on Hugging Face Spaces."],
+      [['sar','crop','gujarat','capella','satellite'],"SAR Crop Mapping estimated crop areas — rice, cotton, maize, bajra, groundnut — for 29 Gujarat villages from Capella Space X-band SAR imagery, using unsupervised MSE optimisation. 26+ documented experiments took MSE from about 3568 down to a best of 1348.108."],
+      [['multi-agent','multi agent','agent','research system'],"The Multi-Agent Research System is a four-agent LangChain pipeline — Search, Reader, Writer, Critic. Sumit rates it 5/10 himself and presents it as a learning project rather than a finished product. Code is private, nothing deployed."],
+      [['airbnb','nyc','classification','classifier'],"NYC Airbnb Room Type Classification is a Scikit-learn model served through FastAPI with Pandas for the data work. The repository is public on GitHub."],
+      [['education','college','study','degree','jnec','university'],"Third-year B.Tech in AI & Data Science at MGM's Jawaharlal Nehru Engineering College, MGM University, Chhatrapati Sambhajinagar — entered by lateral transfer from a Diploma in Computer Engineering."],
+      [['experience','intern','internship','hire','job','work'],"Sumit is targeting an AI/ML engineering internship. The track record is competition and independent work: two ANRF AISEHack entries (PM2.5 and SAR crop mapping), applied RAG systems, and Lazarus Sentinel as the main engineering build."],
+      [['contact','email','reach','linkedin','github','kaggle'],"Email jadhavsumit534@gmail.com. Also on GitHub (sumitjadhav1703), Kaggle and Hugging Face (sumit1703), and LinkedIn (sumit-jadhav-1703s)."],
+      [['code','source','how is this built','this site','desktop'],"This desktop is hand-written HTML, CSS and vanilla JavaScript — no framework. The Code app shows real excerpts: the Gaussian dock magnification, the theme engine, the window minimise animation and the shell parser."],
+      [['resume','cv','download'],"The resume is a PDF. Grab it from the Resume button in the menu bar, the Resume app, or ask the Shell for 'resume'."],
+      [['project','portfolio','what have you built','show me'],"Six projects: Lazarus Sentinel, AI Video Assistant, PM2.5 Forecasting, SAR Crop Mapping, Multi-Agent Research System, and NYC Airbnb Room Type Classification. Ask about any one of them."]
+    ];
+    function aiAnswer(q){
+      const l = q.toLowerCase();
+      for (const [keys,ans] of KB) if (keys.some(k => l.includes(k))) return ans;
+      return "I only know Sumit's portfolio. Try asking about Lazarus Sentinel, the AI Video Assistant, PM2.5 forecasting, SAR crop mapping, the multi-agent system, the Airbnb classifier, his stack, education or contact details.";
+    }
+    function ask(q){
+      const scroll = document.getElementById('ai-scroll'); if (!scroll || !q.trim()) return;
+      const me = document.createElement('div');
+      me.style.cssText = 'align-self:flex-end;max-width:82%;padding:11px 14px;border-radius:16px 16px 5px 16px;background:var(--s-line);border:1px solid var(--s-fill-3);font-size:13px;line-height:1.6';
+      me.textContent = q; scroll.appendChild(me);
+      const bot = document.createElement('div');
+      bot.style.cssText = 'align-self:flex-start;max-width:82%;padding:11px 14px;border-radius:16px 16px 16px 5px;background:var(--s-bubble);border:1px solid var(--s-fill-2);font-size:13px;line-height:1.6;min-height:20px';
+      scroll.appendChild(bot); scroll.scrollTop = scroll.scrollHeight;
+      const words = aiAnswer(q).split(' ');
+      if (S.reduced){ bot.textContent = words.join(' '); return; }
+      let i = 0;
+      const tick = () => {
+        bot.textContent = words.slice(0, ++i).join(' ');
+        scroll.scrollTop = scroll.scrollHeight;
+        if (i < words.length) setTimeout(tick, 26 + Math.random()*34);
+      };
+      setTimeout(tick, 220);
+    }
+
+    function wireSettings(){
+      const b = document.getElementById('set-bright');
+      if (b) b.oninput = e => { PREFS.bright = +e.target.value; applyBright(); savePrefs(); };
+    }
+    function applyBright(){
+      const w = $('#wallpaper'); if (w) w.style.filter = 'brightness('+((PREFS.bright||100)/100)+')';
+    }
+
+
+    // ---------- global actions ----------
+    document.addEventListener('click', e => {
+      const act = e.target.closest('[data-act]');
+      const inMenu = e.target.closest('[data-menu]');
+      const inCC = e.target.closest('#control-center');
+      if (!inMenu) closeMenus();
+      if (!inCC && !e.target.closest('[data-act="controlcenter"]') && cc.style.display==='block') toggleCC(false);
+      if (!act) return;
+      const [k, ...rest] = act.dataset.act.split(':');
+      const v = rest.join(':');
+      if (k==='open'){ openApp(v); toggleSpot(false); closeMenus(); }
+      else if (k==='launch'){ openApp(v); }
+      else if (k==='menu'){ toggleMenu(v); }
+      else if (k==='controlcenter'){ closeMenus(); toggleCC(); }
+      else if (k==='spotlight'){ toggleSpot(); }
+      else if (k==='close'){ closeApp(v); }
+      else if (k==='min'){ minimizeApp(v); }
+      else if (k==='max'){ toggleMax(v); }
+      else if (k==='nav'){ S.finderPath = v; render('finder'); }
+      else if (k==='ask'){ ask(v); }
+      else if (k==='settab'){ S.setTab = v; render('settings'); }
+      else if (k==='codefile'){ S.codeFile = v; render('code'); }
+      else if (k==='copycode'){
+        const files = Object.keys(CODE); const cur = files.includes(S.codeFile) ? S.codeFile : files[0];
+        if (navigator.clipboard) navigator.clipboard.writeText(CODE[cur]);
+        notify('Code', cur + ' copied to clipboard');
+      }
+      else if (k==='sendmail'){ sendMail(); }
+      else if (k==='dlresume'){ busy('Preparing resume','Idle'); notify('Resume','Download started'); }
+      else if (k==='resetprefs'){
+        try { localStorage.removeItem(LS); } catch(err){}
+        Object.assign(PREFS, { theme:'system', pack:'graphite', dockStyle:'glass', folderTint:{}, hintSeen:false, dockLabels:true, reduceMotion:null, opaque:false, contrast:false, lowPower:false, bright:100, showStatus:true, showActivity:true, wins:{} });
+        S.reduced = rm.matches; savePrefs(); applyTheme(); applyBright(); render('settings');
+        notify('System','Preferences reset');
+      }
+      else if (k==='mgo'){ mobileGo(v); }
+      else if (k==='mopen'){ mobileToggle(v); }
+      else if (k==='aisend'){ const i=document.getElementById('ai-in'); if(i&&i.value.trim()){ ask(i.value); i.value=''; } }
+      else if (k==='focusterm'){ const i=document.getElementById('term-in'); if(i) i.focus(); }
+      else if (k==='copy'){ navigator.clipboard && navigator.clipboard.writeText(v); }
+      else if (k==='closeall'){ Object.keys(S.apps).forEach(closeApp); }
+      else if (k==='closefront'){ if (S.active) closeApp(S.active); }
+      else if (k==='minall'){ Object.keys(S.apps).forEach(minimizeApp); }
+      else if (k==='pickwall'){ pickWall(v === 'on'); }
+      else if (k==='theme'){ setTheme(v); }
+      else if (k==='statuspop'){ togglePop('status', ()=>drawStatus(true)); }
+      else if (k==='activitypop'){ togglePop('activity'); }
+      else if (k==='calendarpop'){ togglePop('cal', ()=>{ drawCal(); drawNotifs(); }); }
+      else if (k==='toggledock'){ const d=$('#dock'); const off=d.style.opacity==='0'; d.style.opacity=off?'1':'0'; d.style.pointerEvents=off?'auto':'none'; }
+      else if (k==='minfront'){ if (S.active) minimizeApp(S.active); }
+      else if (k==='maxfront'){ if (S.active) toggleMax(S.active); }
+      else if (k==='frontall'){ Object.keys(S.apps).forEach(id=>{ const a=S.apps[id]; if(a.min){ a.min=false; openApp(id); } const el=document.getElementById('win-'+id); if(el) el.style.zIndex=++S.z; }); }
+      else if (k==='hintdismiss'){ dismissHint(); }
+      else if (k==='mission'){ toggleMission(false); openApp(v); }
+      else if (k==='fview'){ S.finderView = v; render('finder'); }
+      else if (k==='pack'){ setPack(v); }
+      else if (k==='dockstyle'){ PREFS.dockStyle = v; savePrefs(); applyTheme(); if (S.apps.settings) render('settings'); }
+      else if (k==='fsel'){ S.finderSel = (S.finderSel === v ? null : v); render('finder'); }
+      else if (k==='ftint'){ if (S.finderSel){ PREFS.folderTint = PREFS.folderTint || {}; PREFS.folderTint[S.finderSel] = v; savePrefs(); render('finder'); } }
+      else if (k==='pref'){
+        const [key,val] = v.split('=');
+        PREFS[key] = val === 'true' ? true : val === 'false' ? false : val;
+        if (key === 'reduceMotion') S.reduced = PREFS.reduceMotion;
+        savePrefs(); applyTheme(); if (S.apps.settings) render('settings');
+      }
+      else if (k==='zoom'){
+        const ob = $('#res-obj'); if (!ob) return;
+        let z = parseFloat(ob.dataset.z || '100');
+        z = v === 'in' ? Math.min(200, z + 25) : v === 'out' ? Math.max(50, z - 25) : 100;
+        ob.dataset.z = z;
+        ob.setAttribute('data', './Sumit_Jadhav_Resume.pdf#' + (v === 'fit' ? 'view=FitH' : 'zoom=' + z));
+        const lbl = $('#res-zoom'); if (lbl) lbl.textContent = v === 'fit' ? 'Fit' : z + '%';
+      }
+      else if (k==='iconsize'){ $('#desktop-grid').style.transform = 'scale('+v+')'; }
+      else if (k==='toggledesktop'){ S.desktopHidden=!S.desktopHidden; $('#desktop-grid').style.opacity = S.desktopHidden?'0':'1'; $('#desktop-grid').style.pointerEvents = S.desktopHidden?'none':'auto'; }
+      else if (k==='sel'){
+        document.querySelectorAll('[data-act="sel"] span').forEach(s=>{ s.style.background='var(--s-onwall-bg)'; s.style.color='var(--s-onwall)'; });
+        const s=act.querySelector('span'); if(s){ s.style.background='var(--s-onwall-sel)'; s.style.color='#fff'; }
+      }
+    });
+    document.addEventListener('dblclick', e => {
+      const tb = e.target.closest('[data-titlebar]');
+      if (tb && !e.target.closest('[data-tl]')){ toggleMax(tb.dataset.titlebar); return; }
+      const t = e.target.closest('[data-dblact]'); if (!t) return;
+      const [k,v] = t.dataset.dblact.split(':');
+      if (k==='open') openApp(v);
+    });
+    document.addEventListener('keydown', e => {
+      const mod = e.metaKey || e.ctrlKey;
+      if (mod && e.key.toLowerCase()==='k'){ e.preventDefault(); toggleSpot(); }
+      else if (mod && e.shiftKey && e.key.toLowerCase()==='f'){ e.preventDefault(); openApp('finder-projects'); }
+      else if (mod && e.key.toLowerCase()==='w'){ if (S.active){ e.preventDefault(); closeApp(S.active); } }
+      else if (mod && e.key.toLowerCase()==='m'){ if (S.active){ e.preventDefault(); minimizeApp(S.active); } }
+      else if (mod && e.key===','){ e.preventDefault(); openApp('settings'); }
+      else if ((mod && e.key==='ArrowUp') || e.key==='F3'){ e.preventDefault(); toggleMission(); }
+      else if (e.key==='?' && !e.target.closest('input,textarea')){ e.preventDefault(); toggleShortcuts(); }
+      if (e.key==='Escape'){ toggleSpot(false); toggleCC(false); toggleShortcuts(false); toggleMission(false); closeMenus(); if (wallPicking) pickWall(false); }
+      if (e.key==='Enter'){
+        if (document.activeElement && document.activeElement.id==='term-in'){ termRun(document.activeElement.value); document.activeElement.value=''; }
+        else if (document.activeElement && document.activeElement.id==='ai-in'){ const i=document.activeElement; if(i.value.trim()){ ask(i.value); i.value=''; } }
+      }
+    });
+
+    // ---------- clock + boot ----------
+    const tick = () => {
+      const d = new Date();
+      const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+      let h=d.getHours(); const ap=h>=12?'PM':'AM'; h=h%12||12;
+      const el=document.getElementById('clock');
+      if (el) el.textContent = `${days[d.getDay()]} ${h}:${String(d.getMinutes()).padStart(2,'0')} ${ap}`;
+    };
+    tick(); setInterval(tick, 10000);
+
+    if (PREFS.reduceMotion !== null) S.reduced = PREFS.reduceMotion;
+    applyTheme(); setStatus('Ready'); setActivity('Ready','Idle'); drawNotifs(); drawCal();
+    document.querySelectorAll('#cc-wifi-dot').forEach(d => { d.style.background = P.accent; });
+    document.querySelectorAll('input[type="range"],input[type="checkbox"]').forEach(i => { i.style.accentColor = P.accent; });
+
+    const wallWrap = $('#wall-slot-wrap'), wallBar = $('#wall-pick-bar'), wallSlot = document.getElementById('desktop-wallpaper');
+    let wallFilled = false, wallPicking = false;
+    function wallImg(){ const r = wallSlot && wallSlot.shadowRoot; return r ? r.querySelector('img[part="image"]') : null; }
+    function syncWall(){
+      const img = wallImg();
+      wallFilled = !!(img && img.getAttribute('src') && img.style.display !== 'none');
+      if (!wallPicking) { wallWrap.style.opacity = wallFilled ? '1' : '0'; wallWrap.style.pointerEvents = 'none'; }
+    }
+    setInterval(syncWall, 900);
+    setTimeout(syncWall, 400);
+    function pickWall(on){
+      wallPicking = on;
+      wallWrap.style.pointerEvents = on ? 'auto' : 'none';
+      wallWrap.style.opacity = on ? '1' : (wallFilled ? '1' : '0');
+      wallBar.style.display = on ? 'flex' : 'none';
+      if (!on) syncWall();
+    }
+
+    // ---------- search index ----------
+    const ACTIONS = [
+      { title:'Download Resume', kind:'Action', act:'dlresume', href:'./Sumit_Jadhav_Resume.pdf' },
+      { title:'Open Workspace', kind:'Action', act:'open:finder' },
+      { title:'Open Projects', kind:'Action', act:'open:finder-projects' },
+      { title:'Open Shell', kind:'Action', act:'open:terminal' },
+      { title:'Open Code', kind:'Action', act:'open:code' },
+      { title:'Open System', kind:'Action', act:'open:settings' },
+      { title:'Contact Sumit', kind:'Action', act:'open:contact' },
+      { title:'Appearance: Light', kind:'Action', act:'theme:light' },
+      { title:'Appearance: Dark', kind:'Action', act:'theme:dark' },
+      { title:'Appearance: System', kind:'Action', act:'theme:system' }
+    ];
+    const SKILL_INDEX = ['Python','C++','Java','SQL','JavaScript','Pandas','NumPy','PyTorch','TensorFlow','Scikit-learn','OpenCV','ConvLSTM','Fourier Neural Operator','Hugging Face','LangChain','RAG architectures','Multi-agent systems','Mistral AI','pgvector','FastAPI','Docker','Streamlit','Git','Electron','React','Vitest','GitHub Actions'];
+    function fuzzy(q, t){
+      const s = t.toLowerCase(); const i = s.indexOf(q);
+      if (i === 0) return 100; if (i > 0) return 70 - i;
+      let qi = 0; for (let c = 0; c < s.length && qi < q.length; c++) if (s[c] === q[qi]) qi++;
+      return qi === q.length ? 30 : -1;
+    }
+    function searchAll(q){
+      const out = [];
+      Object.keys(TITLES).forEach(id => {
+        const kind = id.startsWith('project-') ? 'Project' : ['finder','terminal','sumit-ai','contact','settings','code','trash'].includes(id) ? 'Application' : 'Portfolio';
+        const sc = fuzzy(q, TITLES[id]); if (sc > 0) out.push({ title:TITLES[id], kind, act:'open:'+id, score:sc + (kind==='Project'?4:0) });
+      });
+      ACTIONS.forEach(a => { const sc = fuzzy(q, a.title); if (sc > 0) out.push(Object.assign({ score:sc - 4 }, a)); });
+      PROJECT_DATA.forEach(p => {
+        let best = null;
+        p.stack.forEach(s => { const sc = fuzzy(q, s); if (sc > 0 && (!best || sc > best.score)) best = { tag:s, score:sc }; });
+        if (best) out.push({ title:p.title, kind:'Uses ' + best.tag, act:'open:' + p.id, score:best.score - 3 });
+      });
+      SKILL_INDEX.forEach(s => { const sc = fuzzy(q, s); if (sc > 0) out.push({ title:s, kind:'Skill', act:'open:skills', score:sc - 10 }); });
+      return dedupe(out).sort((a,b)=>b.score-a.score).slice(0, 9);
+    }
+    function dedupe(list){
+      const seen = {};
+      list.forEach(r => { const k = r.act; if (!seen[k] || r.score > seen[k].score) seen[k] = r; });
+      return Object.keys(seen).map(k=>seen[k]);
+    }
+
+    function sendMail(){
+      const n = document.getElementById('rc-name'), m = document.getElementById('rc-mail'), t = document.getElementById('rc-msg');
+      const note = document.getElementById('rc-note'); if (!n) return;
+      if (!t.value.trim()){ if (note){ note.textContent = 'Add a message first.'; note.style.color = 'var(--s-warn)'; } t.focus(); return; }
+      const subject = 'Portfolio enquiry' + (n.value.trim() ? ' from ' + n.value.trim() : '');
+      const bodyTxt = t.value.trim() + (m.value.trim() ? '\n\n— ' + (n.value.trim() || 'Sent') + ' (' + m.value.trim() + ')' : '');
+      window.location.href = 'mailto:jadhavsumit534@gmail.com?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(bodyTxt);
+      if (note){ note.textContent = 'Handed to your mail client.'; note.style.color = 'var(--s-ok)'; }
+      notify('Reach Out', 'Draft opened in your mail client');
+    }
+
+    // ---------- mobile portfolio ----------
+    const mstrip = html => html.replace('padding:30px 34px 36px', 'padding:2px 0 6px');
+    function mSection(id, title, inner){
+      return `<section id="m-${id}" style="padding-top:22px">
+        <div style="font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--s-faint);margin-bottom:10px">${title}</div>
+        ${inner}</section>`;
+    }
+    const mcard = inner => `<div style="padding:16px 18px;border-radius:16px;background:var(--s-win);border:1px solid var(--s-line)">${inner}</div>`;
+    function buildMobile(){
+      const host = document.getElementById('m-sections'); if (!host) return;
+      const projRows = Object.keys(PROJECTS).map(id => `<div style="border-radius:16px;background:var(--s-win);border:1px solid var(--s-line);overflow:hidden;margin-bottom:9px">
+          <div data-mrow="1" data-act="mopen:${id}" style="min-height:56px;display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:default">
+            <span style="width:26px;height:20px;flex:none;border-radius:4px 7px 4px 4px;background:linear-gradient(180deg,#4ea3f5,#1c62c9)"></span>
+            <span style="flex:1;font-weight:600;font-size:14px">${TITLES[id]}</span>
+            <span data-caret="${id}" style="color:var(--s-faint);font-size:15px;transition:transform .25s ease">›</span>
+          </div>
+          <div data-mbody="${id}" style="display:none;padding:0 16px 14px;border-top:1px solid var(--s-line)">${mstrip(PROJECTS[id]())}</div>
+        </div>`).join('');
+      host.innerHTML =
+        mSection('projects','Projects', projRows) +
+        mSection('resume','Resume', mcard(`<div style="font-weight:600;font-size:14px">Sumit_Jadhav_Resume.pdf</div><div style="color:var(--s-dim);font-size:13px;margin-top:4px;line-height:1.55">Full resume as a PDF — education, projects, stack and links.</div><a href="./Sumit_Jadhav_Resume.pdf" download="Sumit_Jadhav_Resume.pdf" style="display:flex;align-items:center;justify-content:center;min-height:44px;margin-top:13px;border-radius:11px;background:var(--s-accent);color:#fff;font-weight:600;font-size:14px;text-decoration:none">Download</a><a href="./Sumit_Jadhav_Resume.pdf" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;min-height:44px;margin-top:8px;border-radius:11px;background:var(--s-fill-2);border:1px solid var(--s-line);color:var(--s-text);font-weight:600;font-size:14px;text-decoration:none">Open in browser</a>`)) +
+        mSection('skills','Skills', mcard(mstrip(contentFor('skills')))) +
+        mSection('experience','Experience', mcard(mstrip(contentFor('experience')))) +
+        mSection('education','Education', mcard(mstrip(contentFor('education')))) +
+        mSection('contact','Contact', mcard(mstrip(contentFor('contact')))) +
+        mSection('about','About', mcard(mstrip(contentFor('about')))) +
+        `<div style="padding:28px 2px 6px;color:var(--s-faint);font-size:12px;line-height:1.6">On a larger screen this portfolio opens as a desktop environment with windows, a dock and a shell.</div>`;
+      hydrateIcons(host);
+      host.querySelectorAll('h2').forEach(h => { h.style.fontSize = '19px'; });
+    }
+    function mobileGo(id){
+      const host = document.getElementById('mobile'), el = document.getElementById('m-'+id);
+      if (!host || !el) return;
+      host.scrollTo({ top: Math.max(0, el.offsetTop - 12), behavior: S.reduced ? 'auto' : 'smooth' });
+    }
+    function mobileToggle(id){
+      const b = document.querySelector(`[data-mbody="${id}"]`); if (!b) return;
+      const open = b.style.display === 'block';
+      b.style.display = open ? 'none' : 'block';
+      const c = document.querySelector(`[data-caret="${id}"]`);
+      if (c) c.style.transform = open ? 'none' : 'rotate(90deg)';
+    }
+    buildMobile();
+    applyBright();
+
+    const bootEl = $('#boot');
+    if (!P.bootSequence || S.reduced){
+      if (bootEl){ bootEl.style.animation='none'; bootEl.style.display='none'; }
+      document.querySelectorAll('#desktop-grid > div, #dock').forEach(el => { el.style.animationDelay='0s'; });
+      if (P.startupApp !== 'none' && window.innerWidth >= 768) openApp(P.startupApp);
+    } else {
+      setTimeout(()=>{ if(bootEl) bootEl.style.display='none'; }, 2200);
+      if (P.startupApp !== 'none' && window.innerWidth >= 768) setTimeout(()=>{ openApp(P.startupApp); }, 2000);
+    }
+  
+})();
+</script>
+</body>
+</html>
