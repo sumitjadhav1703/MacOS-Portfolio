@@ -42,3 +42,18 @@ export function ProjectWindow({ project }: { project: Project }) {
     </Body>
   )
 }
+
+/**
+ * Shown when a window is open for a project that is no longer in the loaded content — the CMS
+ * unpublished or deleted it while the desktop was on screen. Better than a blank window.
+ */
+export function MissingProject() {
+  return (
+    <Body>
+      <PageHead title="Not available" sub="This project is no longer published." />
+      <div style={s('margin-top:18px;color:var(--s-dim);font-size:13px')}>
+        Close this window and pick another from the dock or Launchpad.
+      </div>
+    </Body>
+  )
+}

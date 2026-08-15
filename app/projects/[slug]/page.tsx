@@ -1,19 +1,24 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { PROJECTS, projectBySlug, slugOf, summaryOf } from '../../../src/data/projects'
+import { FALLBACK } from '../../../src/data/content'
+import { findProject, getContent, summaryOf } from '../../../src/data/server'
 import { DesktopRoot } from '../../../src/os/DesktopRoot'
 import type { AppId } from '../../../src/os/types'
 
 type Params = { params: Promise<{ slug: string }> }
 
-/** One route per entry in PROJECTS — a new project needs no other change. */
+/**
+ * The routes prerendered at build time are the projects the site ships with, so the build never
+ * depends on the CMS being reachable. `dynamicParams` (on by default) means a project added
+ * through the admin is rendered on demand instead of 404ing until the next deploy.
+ */
 export function generateStaticParams() {
-  return PROJECTS.map((project) => ({ slug: slugOf(project) }))
+  return FALLBACK.projects.map((project) => ({ slug: project.slug }))
 }
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { slug } = await params
-  const project = projectBySlug(slug)
+  const project = findProject(await getContent(), slug)
   if (!project) return {}
 
   const description = summaryOf(project)
@@ -39,8 +44,11 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 
 export default async function ProjectPage({ params }: Params) {
   const { slug } = await params
-  const project = projectBySlug(slug)
+  const content = await getContent()
+  const project = findProject(content, slug)
   if (!project) notFound()
 
-  return <DesktopRoot initialApp={project.id as AppId} />
+  // The content fetched here is handed to the client tree as its initial value, so the deep
+  // link paints the right project on the first frame rather than after a client fetch.
+  return <DesktopRoot initialApp={project.id as AppId} content={content} />
 }

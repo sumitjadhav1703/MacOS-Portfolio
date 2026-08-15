@@ -1,8 +1,9 @@
-import { SHORTCUTS } from '../../data/os'
+import { useContent } from '../content'
 import { s } from '../css'
 import { useDispatch, useOs } from '../store'
 
 export function Shortcuts() {
+  const rows = useContent().os.shortcuts
   const { shortcuts } = useOs()
   const dispatch = useDispatch()
   if (!shortcuts) return null
@@ -28,7 +29,7 @@ export function Shortcuts() {
           <div style={s('font-size:11.5px;color:var(--s-faint)')}>? or Esc to close</div>
         </div>
         <div id="shortcuts-list" style={s('display:flex;flex-direction:column')}>
-          {SHORTCUTS.map(([keys, what]) => (
+          {rows.map(([keys, what]) => (
             <div
               key={keys}
               style={s('display:flex;justify-content:space-between;gap:14px;font-size:12.5px;padding:5px 0')}

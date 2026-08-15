@@ -10,7 +10,7 @@ import {
   type Dispatch,
   type ReactNode,
 } from 'react'
-import { DEFAULT_SIZE, DOCK_FOR, SIZE, TITLES } from './registry'
+import { DEFAULT_SIZE, DOCK_FOR, SIZE, isAppId, titleOf } from './registry'
 import { PACKS } from './packs'
 import type {
   ActivityState,
@@ -22,6 +22,7 @@ import type {
   PopoverName,
   Prefs,
   SnapZone,
+  StaticAppId,
   WindowState,
 } from './types'
 
@@ -124,7 +125,8 @@ function reducer(state: OsState, action: Action): OsState {
 
     case 'open': {
       const app = action.app
-      if (!TITLES[app]) return state
+      // Shape, not registry: a project the CMS added is openable before its title has loaded.
+      if (!isAppId(app)) return state
       const finderPath = app === 'finder' && action.sub ? action.sub : state.finderPath
       const z = state.z + 1
       const existing = state.wins[app]
@@ -143,7 +145,7 @@ function reducer(state: OsState, action: Action): OsState {
 
       // Cascade new windows the way the original did, clamped to the viewport.
       const n = Object.keys(state.wins).length
-      const [dw, dh] = SIZE[app] ?? DEFAULT_SIZE
+      const [dw, dh] = SIZE[app as StaticAppId] ?? DEFAULT_SIZE
       const saved: Partial<{ x: number; y: number; w: number; h: number }> =
         state.prefs.wins[app] ?? {}
       const w = saved.w ?? dw
@@ -472,8 +474,8 @@ export function useOpenApp() {
           sub: path,
           viewport: { w: window.innerWidth, h: window.innerHeight },
         })
-        dispatch({ type: 'notify', title: TITLES[app] ?? app, msg: 'Opened' })
-        dispatch({ type: 'activity', activity: 'Working', task: `Loading ${TITLES[app] ?? app}` })
+        dispatch({ type: 'notify', title: titleOf(app), msg: 'Opened' })
+        dispatch({ type: 'activity', activity: 'Working', task: `Loading ${titleOf(app)}` })
         window.setTimeout(() => dispatch({ type: 'activity', activity: 'Ready', task: 'Idle' }), 900)
       },
     [dispatch],

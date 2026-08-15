@@ -3,23 +3,17 @@
 import { useState } from 'react'
 import { SPRING } from '../anim'
 import { s } from '../css'
-import { FOLDER_COLORS, FOLDER_TINTS } from '../packs'
+import { FOLDER_TINTS, folderColorFor } from '../packs'
+import { useContent } from '../content'
 import { useDispatch, useOpenApp, useOs } from '../store'
 import { useContextMenu } from './ContextMenu'
 import { useReducedMotion } from '../useTheme'
 import type { AppId, FolderTint } from '../types'
 
-const ITEMS: [AppId, string][] = [
-  ['project-lazarus', 'Lazarus Sentinel'],
-  ['project-ai-video', 'AI Video Assistant'],
-  ['project-pm25', 'PM2.5 Forecasting'],
-  ['project-sar', 'SAR Crop Mapping'],
-  ['project-multi-agent', 'Multi-Agent Research'],
-  ['project-airbnb', 'NYC Airbnb Classifier'],
-]
-
 export function DesktopGrid() {
   const { iconScale, desktopHidden, prefs } = useOs()
+  // The desktop folders are the published projects — no second list to keep in step.
+  const projects = useContent().projects
   const openApp = useOpenApp()
   const dispatch = useDispatch()
   const reduced = useReducedMotion()
@@ -50,9 +44,11 @@ export function DesktopGrid() {
         transform: `scale(${iconScale})`,
       }}
     >
-      {ITEMS.map(([id, label], i) => {
+      {projects.map((project, i) => {
+        const id = project.id as AppId
+        const label = project.desktopLabel
         const tint = prefs.folderTint[id]
-        const [c1, c2] = tint ? FOLDER_TINTS[tint] : (FOLDER_COLORS[id] ?? ['#4ea3f5', '#1c62c9'])
+        const [c1, c2] = tint ? FOLDER_TINTS[tint] : folderColorFor(id, i)
         return (
           <div
             key={id}

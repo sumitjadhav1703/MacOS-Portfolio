@@ -1,19 +1,20 @@
 import { ImageResponse } from 'next/og'
-import { PROJECTS, projectBySlug, slugOf } from '../../../src/data/projects'
+import { FALLBACK } from '../../../src/data/content'
+import { findProject, getContent } from '../../../src/data/server'
 import { OG_SIZE, OgCard } from '../../../src/og/card'
 
 export const alt = 'Project card'
 export const size = OG_SIZE
 export const contentType = 'image/png'
 
-/** Statically generated at build: one PNG per project, same list as the routes. */
+/** Prerendered for the shipped projects; CMS-added ones render on first request. */
 export function generateStaticParams() {
-  return PROJECTS.map((project) => ({ slug: slugOf(project) }))
+  return FALLBACK.projects.map((project) => ({ slug: project.slug }))
 }
 
 export default async function Image({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const project = projectBySlug(slug)
+  const project = findProject(await getContent(), slug)
 
   if (!project) {
     return new ImageResponse(

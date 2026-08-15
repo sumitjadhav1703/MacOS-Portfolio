@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { AI_SUGGESTIONS, aiAnswer } from '../../data/os'
+import { answerFrom } from '../../data/content'
+import { useContent } from '../content'
 import { EASE } from '../anim'
 import { s } from '../css'
 import { useReducedMotion, useTheme } from '../useTheme'
@@ -10,6 +11,7 @@ const OPENING =
   "Ask me about Sumit's projects, stack, education or how to reach him. I answer from his portfolio only."
 
 export function SumitAI() {
+  const content = useContent()
   const reduced = useReducedMotion()
   const { accent } = useTheme()
   const [msgs, setMsgs] = useState<Msg[]>([{ from: 'them', text: OPENING }])
@@ -29,7 +31,7 @@ export function SumitAI() {
     const q = question.trim()
     if (!q) return
     setMsgs((prev) => [...prev, { from: 'me', text: q }])
-    const answer = aiAnswer(q)
+    const answer = answerFrom(content, q)
 
     if (reduced) {
       setMsgs((prev) => [...prev, { from: 'them', text: answer }])
@@ -78,7 +80,7 @@ export function SumitAI() {
         {typing !== null ? <div style={bubble('them')}>{typing}</div> : null}
         {msgs.length === 1 ? (
           <div style={s('display:flex;flex-wrap:wrap;gap:7px;margin-top:2px')}>
-            {AI_SUGGESTIONS.map((q) => (
+            {content.os.aiSuggestions.map((q) => (
               <div
                 key={q}
                 data-chipbtn="1"

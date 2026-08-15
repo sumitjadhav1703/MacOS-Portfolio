@@ -39,7 +39,10 @@ export const PROJ_ALIAS: Record<string, AppId> = {
   airbnb: 'project-airbnb',
 }
 
-/** Ask Sumit's knowledge base: keyword list → answer. First match wins. */
+/**
+ * Ask Sumit's knowledge base: keyword list → answer. First match wins.
+ * Seeds the CMS; the live matcher is `answerFrom` in src/data/content.ts.
+ */
 export const KB: [string[], string][] = [
   [
     ['stack', 'tech', 'tools', 'language', 'python'],
@@ -117,40 +120,4 @@ export const SHORTCUTS: [string, string][] = [
   ['⌘M', 'Minimise the front window'],
   ['Esc', 'Close overlays and menus'],
   ['Double-click', 'Open a folder, or zoom a title bar'],
-]
-
-export function aiAnswer(question: string): string {
-  const q = question.toLowerCase()
-  for (const [keys, answer] of KB) if (keys.some((k) => q.includes(k))) return answer
-  return AI_FALLBACK
-}
-
-export const SKILL_INDEX = [
-  'Python',
-  'C++',
-  'Java',
-  'SQL',
-  'JavaScript',
-  'Pandas',
-  'NumPy',
-  'PyTorch',
-  'TensorFlow',
-  'Scikit-learn',
-  'OpenCV',
-  'ConvLSTM',
-  'Fourier Neural Operator',
-  'Hugging Face',
-  'LangChain',
-  'RAG architectures',
-  'Multi-agent systems',
-  'Mistral AI',
-  'pgvector',
-  'FastAPI',
-  'Docker',
-  'Streamlit',
-  'Git',
-  'Electron',
-  'React',
-  'Vitest',
-  'GitHub Actions',
 ]

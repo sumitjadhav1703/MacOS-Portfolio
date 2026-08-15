@@ -211,12 +211,18 @@ export function OgCard({
             </div>
             Sumit Jadhav · AI &amp; Data Science
             <div style={{ display: 'flex', flex: 1 }} />
-            <div style={{ display: 'flex', color: INK.accent }}>sumitjadhav.dev</div>
+            <div style={{ display: 'flex', color: INK.accent }}>{SITE_HOST}</div>
           </div>
         </div>
       </div>
     </div>
   )
 }
+
+/** Same source as metadataBase in app/layout.tsx, so the card never advertises a stale host. */
+const SITE_HOST = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://sumitjadhav.vercel.app').replace(
+  /^https?:\/\//,
+  '',
+)
 
 export const OG_SIZE = { width: 1200, height: 630 }

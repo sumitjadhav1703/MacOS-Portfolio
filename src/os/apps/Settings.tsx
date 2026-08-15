@@ -1,6 +1,5 @@
 import { useState, type ReactNode } from 'react'
-import { RESUME_FILE } from '../../data/sections'
-import { SHORTCUTS } from '../../data/os'
+import { useContent } from '../content'
 import { EASE } from '../anim'
 import { s } from '../css'
 import { PACKS } from '../packs'
@@ -131,6 +130,7 @@ function Segmented<T extends string>({
 }
 
 export function Settings() {
+  const content = useContent()
   const { prefs, status, activity, wins } = useOs()
   const dispatch = useDispatch()
   const openApp = useOpenApp()
@@ -180,7 +180,7 @@ export function Settings() {
           />
           <div style={s('display:flex;gap:8px;flex-wrap:wrap')}>
             <a
-              href={RESUME_FILE}
+              href={content.site.resumeUrl}
               download="Sumit_Jadhav_Resume.pdf"
               data-btn="1"
               style={{
@@ -422,7 +422,7 @@ export function Settings() {
           />
           <div style={s(CARD)}>
             <div style={s('font-weight:600;margin-bottom:8px')}>Keyboard</div>
-            {SHORTCUTS.map(([keys, what]) => (
+            {content.os.shortcuts.map(([keys, what]) => (
               <div
                 key={keys}
                 style={s('display:flex;justify-content:space-between;gap:14px;font-size:12.5px;padding:3px 0')}

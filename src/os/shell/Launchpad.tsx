@@ -2,15 +2,16 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { s } from '../css'
-import { TITLES } from '../registry'
+import { titleOf } from '../registry'
 import { fuzzy } from '../search/Spotlight'
+import { useContent } from '../content'
 import { useDispatch, useOpenApp, useOs } from '../store'
 import { useReducedMotion } from '../useTheme'
 import { AppIcon, ICONS, iconFor } from './AppIcon'
 import type { AppId } from '../types'
 
 /** Everything launchable, in the order macOS would lay it out: apps first, then documents. */
-const ORDER: AppId[] = [
+const APPS: AppId[] = [
   'finder',
   'safari',
   'terminal',
@@ -24,13 +25,6 @@ const ORDER: AppId[] = [
   'experience',
   'education',
   'certificates',
-  'project-lazarus',
-  'project-ai-video',
-  'project-pm25',
-  'project-sar',
-  'project-multi-agent',
-  'project-airbnb',
-  'trash',
 ]
 
 const FALLBACK = ICONS[0]
@@ -41,6 +35,8 @@ export function Launchpad() {
   const openApp = useOpenApp()
   const reduced = useReducedMotion()
   const [query, setQuery] = useState('')
+  // Projects sit between the apps and Trash, exactly where the hardcoded list used to put them.
+  const projects = useContent().projects
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -54,7 +50,8 @@ export function Launchpad() {
   if (!launchpad) return null
 
   const q = query.trim().toLowerCase()
-  const items = ORDER.filter((id) => !q || fuzzy(q, TITLES[id]) > 0)
+  const order: AppId[] = [...APPS, ...projects.map((p) => p.id as AppId), 'trash']
+  const items = order.filter((id) => !q || fuzzy(q, titleOf(id)) > 0)
 
   const launch = (id: AppId) => {
     openApp(id)
@@ -97,7 +94,7 @@ export function Launchpad() {
           const spec = iconFor(id) ?? {
             ...FALLBACK,
             id,
-            tip: TITLES[id],
+            tip: titleOf(id),
             grad: 'linear-gradient(180deg,#6b7686,#39404a)',
             inks: [],
           }
@@ -114,7 +111,7 @@ export function Launchpad() {
               <AppIcon
                 spec={spec}
                 size={68}
-                initial={TITLES[id]
+                initial={titleOf(id)
                   .split(' ')
                   .map((word) => word[0])
                   .join('')
@@ -126,7 +123,7 @@ export function Launchpad() {
                   'font-size:12px;text-align:center;line-height:1.3;color:var(--s-onwall);text-shadow:var(--s-onwall-shadow);max-width:126px',
                 )}
               >
-                {TITLES[id]}
+                {titleOf(id)}
               </span>
             </div>
           )

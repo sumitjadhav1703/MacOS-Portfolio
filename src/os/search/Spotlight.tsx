@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { PROJECTS } from '../../data/projects'
-import { SKILL_INDEX } from '../../data/os'
-import { RESUME_FILE } from '../../data/sections'
+import { skillIndex } from '../../data/content'
+import { useContent } from '../content'
 import { s } from '../css'
-import { TITLES } from '../registry'
+import { TITLES, titleOf } from '../registry'
 import { useDispatch, useOpenApp, useOs } from '../store'
 import { useTheme } from '../useTheme'
 import type { AppId, Theme } from '../types'
@@ -30,6 +29,7 @@ export function fuzzy(query: string, text: string): number {
 
 export function Spotlight() {
   const { spotlight } = useOs()
+  const content = useContent()
   const dispatch = useDispatch()
   const openApp = useOpenApp()
   const { accent } = useTheme()
@@ -55,7 +55,7 @@ export function Spotlight() {
         kind: 'Action',
         run: () => {
           const a = document.createElement('a')
-          a.href = RESUME_FILE
+          a.href = content.site.resumeUrl
           a.download = 'Sumit_Jadhav_Resume.pdf'
           a.click()
         },
@@ -86,11 +86,11 @@ export function Spotlight() {
         : APPLICATIONS.includes(id)
           ? 'Application'
           : 'Portfolio'
-      const score = fuzzy(q, TITLES[id])
+      const score = fuzzy(q, titleOf(id))
       if (score > 0) {
         out.push({
           key: `open:${id}`,
-          title: TITLES[id],
+          title: titleOf(id),
           kind,
           score: score + (kind === 'Project' ? 4 : 0),
           run: () => openApp(id),
@@ -103,7 +103,7 @@ export function Spotlight() {
       if (score > 0) out.push({ ...action, key: `action:${action.title}`, score: score - 4 })
     }
 
-    for (const project of PROJECTS) {
+    for (const project of content.projects) {
       let best: { tag: string; score: number } | null = null
       for (const tag of project.stack) {
         const score = fuzzy(q, tag)
@@ -120,7 +120,7 @@ export function Spotlight() {
       }
     }
 
-    for (const skill of SKILL_INDEX) {
+    for (const skill of skillIndex(content)) {
       const score = fuzzy(q, skill)
       if (score > 0) {
         out.push({
@@ -140,7 +140,7 @@ export function Spotlight() {
       if (!seen || r.score > seen.score) best.set(r.key, r)
     }
     return [...best.values()].sort((a, b) => b.score - a.score).slice(0, 9)
-  }, [query, actions, openApp])
+  }, [query, actions, openApp, content])
 
   useEffect(() => setIndex(0), [query])
 

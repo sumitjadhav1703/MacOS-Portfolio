@@ -1,7 +1,5 @@
 import { useState, type ReactNode } from 'react'
-import { PROJECTS } from '../../data/projects'
-import { EMAIL } from '../../data/profile'
-import { RESUME_FILE } from '../../data/sections'
+import { useContent } from '../content'
 import { s } from '../css'
 import { ProjectWindow } from '../apps/ProjectWindow'
 import { About, Certificates, Education, Experience, Skills } from '../apps/simple'
@@ -44,6 +42,7 @@ function Card({ children }: { children: ReactNode }) {
  * renders as a stacked, scrollable page — exactly as the original did.
  */
 export function MobileShell() {
+  const { site, projects } = useContent()
   const [open, setOpen] = useState<string | null>(null)
 
   const go = (id: string) => {
@@ -79,7 +78,7 @@ export function MobileShell() {
         </div>
         <div style={s('display:flex;gap:8px;margin-top:16px')}>
           <a
-            href={RESUME_FILE}
+            href={site.resumeUrl}
             download="Sumit_Jadhav_Resume.pdf"
             style={s(
               'flex:1;min-height:44px;display:flex;align-items:center;justify-content:center;border-radius:11px;background:var(--s-accent);color:#fff;font-weight:600;font-size:14px;text-decoration:none',
@@ -88,7 +87,7 @@ export function MobileShell() {
             Resume
           </a>
           <a
-            href={`mailto:${EMAIL}`}
+            href={`mailto:${site.email}`}
             style={s(
               'flex:1;min-height:44px;display:flex;align-items:center;justify-content:center;gap:8px;border-radius:11px;background:var(--s-fill-2);border:1px solid var(--s-line);color:var(--s-text);font-weight:600;font-size:14px;text-decoration:none',
             )}
@@ -116,7 +115,7 @@ export function MobileShell() {
 
       <div id="m-sections" style={s('padding:8px 20px 46px')}>
         <Section id="projects" title="Projects">
-          {PROJECTS.map((project) => (
+          {projects.map((project) => (
             <div
               key={project.id}
               style={s(
@@ -162,7 +161,7 @@ export function MobileShell() {
               Download the full document, or read the sections below.
             </div>
             <a
-              href={RESUME_FILE}
+              href={site.resumeUrl}
               download="Sumit_Jadhav_Resume.pdf"
               style={s(
                 'display:inline-flex;margin-top:12px;min-height:44px;align-items:center;padding:0 18px;border-radius:11px;background:var(--s-accent);color:#fff;font-weight:600;font-size:14px;text-decoration:none',

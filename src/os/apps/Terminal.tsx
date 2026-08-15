@@ -1,23 +1,30 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { NEOFETCH_ART, NEOFETCH_ROWS, PROJ_ALIAS, TERM } from '../../data/os'
+import { projectAliases } from '../../data/content'
+import { useContent } from '../content'
 import { s } from '../css'
-import { TITLES, isAppId } from '../registry'
+import { isAppId, titleOf } from '../registry'
 import { useOpenApp } from '../store'
+import type { AppId } from '../types'
 
 type Line = { kind: 'cmd' | 'out'; content: ReactNode }
 
 const OPENABLE = ['skills', 'education', 'experience', 'resume', 'contact', 'settings'] as const
 
 function Neofetch() {
+  const { os, projects } = useContent()
+  // A row labelled "Projects" reports the live count rather than a number typed into the CMS.
+  const rows = os.neofetchRows.map(
+    ([label, value]) => [label, label === 'Projects' ? String(projects.length) : value] as const,
+  )
   return (
     <div style={s('display:flex;gap:18px;align-items:flex-start')}>
-      <pre style={s('margin:0;color:var(--s-dim);line-height:1.25')}>{NEOFETCH_ART}</pre>
+      <pre style={s('margin:0;color:var(--s-dim);line-height:1.25')}>{os.neofetchArt}</pre>
       <div>
         <div>
           <span style={s('color:var(--s-ok)')}>sumit</span>@
           <span style={s('color:var(--s-ok)')}>portfolio</span>
         </div>
-        {NEOFETCH_ROWS.map(([label, value]) => (
+        {rows.map(([label, value]) => (
           <div key={label}>
             {label}: {value}
           </div>
@@ -29,6 +36,7 @@ function Neofetch() {
 
 export function Terminal() {
   const openApp = useOpenApp()
+  const content = useContent()
   const [lines, setLines] = useState<Line[]>([
     {
       kind: 'out',
@@ -75,13 +83,13 @@ export function Terminal() {
       // A bare Enter just echoes the prompt, as in the original.
     } else if (low === 'neofetch') {
       result = <Neofetch />
-    } else if (TERM[low]) {
-      result = TERM[low]
+    } else if (content.os.term[low]) {
+      result = content.os.term[low]
     } else if (low.startsWith('project ')) {
-      const key = PROJ_ALIAS[low.slice(8).trim()]
+      const key = projectAliases(content)[low.slice(8).trim()] as AppId | undefined
       if (key) {
         openApp(key)
-        result = `Opening ${TITLES[key]}…`
+        result = `Opening ${titleOf(key)}…`
       } else {
         result = 'Unknown project. Try: projects'
       }
@@ -89,14 +97,14 @@ export function Terminal() {
       const key = low.slice(5).trim()
       if (isAppId(key)) {
         openApp(key)
-        result = `Opening ${TITLES[key]}…`
+        result = `Opening ${titleOf(key)}…`
       } else {
         result = 'No such app.'
       }
     } else if ((OPENABLE as readonly string[]).includes(low)) {
       const key = low as (typeof OPENABLE)[number]
       openApp(key)
-      result = `Opening ${TITLES[key]}…`
+      result = `Opening ${titleOf(key)}…`
     } else {
       result = `command not found: ${low} — type help`
     }

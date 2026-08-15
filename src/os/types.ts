@@ -1,4 +1,5 @@
-export type AppId =
+/** The fixed apps. Every one of these has its own component in src/os/apps. */
+export type StaticAppId =
   | 'finder'
   | 'terminal'
   | 'safari'
@@ -13,12 +14,16 @@ export type AppId =
   | 'education'
   | 'experience'
   | 'certificates'
-  | 'project-ai-video'
-  | 'project-multi-agent'
-  | 'project-pm25'
-  | 'project-airbnb'
-  | 'project-sar'
-  | 'project-lazarus'
+
+/**
+ * Project windows are not enumerable at compile time — the CMS can add one at any moment — so a
+ * project's id is any `project-<slug>`. Everything that looks an id up must tolerate one it has
+ * never seen; `isAppId` in registry.ts is the guard, and unknown projects fall back to the
+ * default window size and their own title.
+ */
+export type ProjectAppId = `project-${string}`
+
+export type AppId = StaticAppId | ProjectAppId
 
 export type WindowState = {
   x: number

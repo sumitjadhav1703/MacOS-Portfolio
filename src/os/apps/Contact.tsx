@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Body, PageHead } from '../../components/primitives'
-import { EMAIL } from '../../data/profile'
+import { useContent } from '../content'
 import { s } from '../css'
 import { useDispatch } from '../store'
 import { ProfileCards } from './simple'
@@ -10,6 +10,7 @@ const FIELD =
 
 /** The page never sends anything: the draft is handed to the visitor's own mail client. */
 export function Contact() {
+  const email = useContent().site.email
   const dispatch = useDispatch()
   const [name, setName] = useState('')
   const [mail, setMail] = useState('')
@@ -26,18 +27,18 @@ export function Contact() {
     }
     const subject = 'Portfolio enquiry' + (name.trim() ? ' from ' + name.trim() : '')
     const body = msg.trim() + (mail.trim() ? `\n\n— ${name.trim() || 'Sent'} (${mail.trim()})` : '')
-    window.location.href = `mailto:${EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+    window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
     setNote({ text: 'Handed to your mail client.', color: 'var(--s-ok)' })
     dispatch({ type: 'notify', title: 'Reach Out', msg: 'Draft opened in your mail client' })
   }
 
   async function copyAddress() {
     try {
-      await navigator.clipboard.writeText(EMAIL)
+      await navigator.clipboard.writeText(email)
       dispatch({ type: 'notify', title: 'Reach Out', msg: 'Address copied' })
     } catch {
       // Clipboard blocked — the address is spelled out in the Elsewhere grid below.
-      setNote({ text: EMAIL, color: 'var(--s-dim)' })
+      setNote({ text: email, color: 'var(--s-dim)' })
     }
   }
 

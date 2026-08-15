@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { RESUME_FILE } from '../../data/sections'
+import { useContent } from '../content'
 import { s } from '../css'
 
 const STEP = 'width:24px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:6px;font-size:14px;cursor:default'
 const TOOL = 'padding:6px 12px;border-radius:8px;background:var(--s-fill-2);border:1px solid var(--s-line);font-size:12px;text-decoration:none;color:var(--s-text);cursor:default'
 
 export function Resume() {
+  const resumeUrl = useContent().site.resumeUrl
   // null = fit width; a number is a percentage zoom, both passed to the PDF viewer.
   const [zoom, setZoom] = useState<number | null>(null)
   const fragment = zoom === null ? 'view=FitH' : `zoom=${zoom}`
@@ -68,10 +69,10 @@ export function Resume() {
           Fit width
         </span>
         <span style={s('width:1px;height:20px;background:var(--s-line);margin:0 2px')} />
-        <a href={RESUME_FILE} target="_blank" rel="noopener noreferrer" data-side="1" style={s(TOOL)}>
+        <a href={resumeUrl} target="_blank" rel="noopener noreferrer" data-side="1" style={s(TOOL)}>
           Open in new tab
         </a>
-        <a href={RESUME_FILE} download="Sumit_Jadhav_Resume.pdf" data-side="1" style={s(TOOL)}>
+        <a href={resumeUrl} download="Sumit_Jadhav_Resume.pdf" data-side="1" style={s(TOOL)}>
           Download
         </a>
       </div>
@@ -79,7 +80,7 @@ export function Resume() {
       <div style={s('flex:1;position:relative;background:var(--s-paper-desk)')}>
         <object
           key={fragment}
-          data={`${RESUME_FILE}#${fragment}`}
+          data={`${resumeUrl}#${fragment}`}
           type="application/pdf"
           style={s('position:absolute;inset:0;width:100%;height:100%;border:0')}
         >

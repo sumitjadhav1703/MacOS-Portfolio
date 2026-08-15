@@ -1,24 +1,24 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { PROJECTS } from '../../data/projects'
-import { PROFILE_LINKS } from '../../data/profile'
+import { useContent } from '../content'
+import type { Content } from '../../data/content'
 import { s } from '../css'
 import { useTheme } from '../useTheme'
 
 type Site = { label: string; url: string; from: string }
 
-/** Everything worth visiting, gathered from the same data the windows render. */
-const SITES: Site[] = [
-  ...PROJECTS.flatMap((project) =>
-    project.links.map((link) => ({ label: link.label, url: link.url, from: project.title })),
-  ),
-  ...PROFILE_LINKS.filter((link) => link.pill).map((link) => ({
-    label: link.label,
-    url: link.url,
-    from: 'Profile',
-  })),
-]
+/** Everything worth visiting, gathered from the same content the windows render. */
+function sitesFrom(content: Content): Site[] {
+  return [
+    ...content.projects.flatMap((project) =>
+      project.links.map((link) => ({ label: link.label, url: link.url, from: project.title })),
+    ),
+    ...content.socialLinks
+      .filter((link) => link.pill)
+      .map((link) => ({ label: link.label, url: link.url, from: 'Profile' })),
+  ]
+}
 
 const CHROME =
   'flex:none;display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--s-line);background:var(--s-chrome)'
@@ -27,6 +27,7 @@ const NAV_BTN =
 
 export function Safari() {
   const { accent } = useTheme()
+  const SITES = sitesFrom(useContent())
   const [history, setHistory] = useState<(string | null)[]>([null])
   const [at, setAt] = useState(0)
   // Sites that refuse to be framed never fire `load`; a timer decides they are blocked.

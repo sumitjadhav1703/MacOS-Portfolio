@@ -1,0 +1,42 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "sumitos-api",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-08-01",
+
+  // Plain variable, not a secret — it is the public origin the portfolio is served from and is
+  // used for CORS and for resolving the packaged resume URL.
+  // The one real secret, ADMIN_PASSWORD_HASH, is set with `wrangler secret put` and never lives
+  // in this file.
+  "vars": {
+    "SITE_ORIGIN": "https://sumitjadhav.vercel.app"
+  },
+
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "sumitos",
+      // Replace after `wrangler d1 create sumitos` — the command prints it.
+      "database_id": "REPLACE_WITH_D1_DATABASE_ID",
+      "migrations_dir": "migrations"
+    }
+  ],
+
+  "r2_buckets": [
+    {
+      "binding": "BUCKET",
+      "bucket_name": "sumitos-assets"
+    }
+  ],
+
+  // The admin SPA. `run_worker_first` keeps the API paths out of the static-asset handler;
+  // everything else falls through to the built files, with SPA routing for /admin/*.
+  "assets": {
+    "binding": "ASSETS",
+    "directory": "worker/assets",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/", "/api/*", "/admin/api/*", "/files/*"]
+  },
+
+  "observability": { "enabled": true }
+}

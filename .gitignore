@@ -8,3 +8,6 @@ src/generated
 .dev.vars
 worker/assets
 .env*.local
+
+.playwright-mcp
+tsconfig.tsbuildinfo

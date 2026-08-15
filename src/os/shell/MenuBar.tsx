@@ -1,10 +1,9 @@
 'use client'
 
 import { useEffect, useState, type ReactNode } from 'react'
-import { EMAIL } from '../../data/profile'
-import { RESUME_FILE } from '../../data/sections'
+import { useContent } from '../content'
 import { s } from '../css'
-import { TITLES } from '../registry'
+import { titleOf } from '../registry'
 import { useDispatch, useOpenApp, useOs } from '../store'
 import { useTheme } from '../useTheme'
 import { Popovers } from './Popovers'
@@ -85,6 +84,7 @@ function Clock() {
 }
 
 export function MenuBar() {
+  const site = useContent().site
   const { active, wins, prefs, status, activity } = useOs()
   const dispatch = useDispatch()
   const openApp = useOpenApp()
@@ -133,7 +133,7 @@ export function MenuBar() {
         </Menu>
 
         <div id="menu-app-name" style={s('font-weight:700;padding:2px 8px;cursor:default')}>
-          {front ? TITLES[front].split(' — ')[0] : 'Workspace'}
+          {front ? titleOf(front).split(' — ')[0] : 'Workspace'}
         </div>
 
         <Menu name="file" label="File" width={200}>
@@ -148,7 +148,7 @@ export function MenuBar() {
         </Menu>
 
         <Menu name="edit" label="Edit" width={200}>
-          <Item label="Copy Email Address" onPick={() => copy(EMAIL, 'Email address')} />
+          <Item label="Copy Email Address" onPick={() => copy(site.email, 'Email address')} />
           <Item
             label="Copy GitHub URL"
             onPick={() => copy('https://github.com/sumitjadhav1703', 'GitHub URL')}
@@ -198,7 +198,7 @@ export function MenuBar() {
               (Object.keys(wins) as AppId[]).map((id) => (
                 <Item
                   key={id}
-                  label={`${active === id ? '✓ ' : '   '}${TITLES[id]}`}
+                  label={`${active === id ? '✓ ' : '   '}${titleOf(id)}`}
                   onPick={() => openApp(id)}
                 />
               ))
@@ -222,7 +222,7 @@ export function MenuBar() {
 
       <div style={s('display:flex;align-items:center;gap:13px')}>
         <a
-          href={RESUME_FILE}
+          href={site.resumeUrl}
           download="Sumit_Jadhav_Resume.pdf"
           data-focusable="1"
           style={s(

@@ -3,7 +3,7 @@
 import { useRef, useState } from 'react'
 import { EASE, SPRING_B } from '../anim'
 import { s } from '../css'
-import { TITLES } from '../registry'
+import { titleOf } from '../registry'
 import { useDispatch, useOpenApp, useOs } from '../store'
 import { useReducedMotion } from '../useTheme'
 import { AppIcon, ICONS, type IconSpec } from './AppIcon'
@@ -139,7 +139,7 @@ export function Dock() {
     const id = spec.id as AppId
     const open = Boolean(wins[id])
     return contextMenu([
-      { label: `Open ${TITLES[id]}`, onPick: () => openApp(id) },
+      { label: `Open ${titleOf(id)}`, onPick: () => openApp(id) },
       { label: 'Show in Workspace', onPick: () => openApp('finder-projects') },
       { divider: true },
       {

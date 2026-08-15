@@ -1,7 +1,7 @@
 'use client'
 
 import { s } from '../css'
-import { TITLES } from '../registry'
+import { titleOf } from '../registry'
 import { useDispatch, useOpenApp, useOs } from '../store'
 import type { AppId } from '../types'
 
@@ -118,7 +118,7 @@ export function Mission() {
                       'display:block;font-size:13px;font-weight:600;color:var(--s-text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap',
                     )}
                   >
-                    {TITLES[id]}
+                    {titleOf(id)}
                   </span>
                   <span style={s('display:block;font-size:11.5px;color:var(--s-dim)')}>
                     {wins[id]?.min ? 'Minimised' : 'Open'}

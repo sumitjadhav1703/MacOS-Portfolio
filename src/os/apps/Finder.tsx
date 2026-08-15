@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { s } from '../css'
 import { EASE } from '../anim'
-import { FOLDER_COLORS, FOLDER_TINTS } from '../packs'
+import { FOLDER_TINTS, folderColorFor } from '../packs'
+import { useContent } from '../content'
 import { useDispatch, useOpenApp, useOs } from '../store'
 import { useTheme } from '../useTheme'
 import type { AppId, FolderTint } from '../types'
@@ -13,15 +14,6 @@ const SIDE_ITEMS: [AppId, string, string][] = [
   ['experience', 'Experience', 'linear-gradient(180deg,#5cc36a,#2b8743)'],
   ['resume', 'Resume', 'linear-gradient(180deg,#f26a63,#c33026)'],
   ['about', 'About', 'linear-gradient(180deg,#8e97a6,#4c545f)'],
-]
-
-const PROJECT_FOLDERS: [AppId, string][] = [
-  ['project-lazarus', 'Lazarus Sentinel'],
-  ['project-ai-video', 'AI Video Assistant'],
-  ['project-pm25', 'PM2.5 Forecasting'],
-  ['project-sar', 'SAR Crop Mapping'],
-  ['project-multi-agent', 'Multi-Agent Research'],
-  ['project-airbnb', 'NYC Airbnb Classifier'],
 ]
 
 function Folder({
@@ -96,9 +88,13 @@ export function Finder() {
   const openApp = useOpenApp()
   const [selected, setSelected] = useState<AppId | 'finder-projects' | null>(null)
 
-  const tintOf = (id: AppId): [string, string] => {
+  // The Projects folder lists whatever is published; the six original tints are preserved by
+  // folderColorFor, and a CMS-added project picks up the next colour in the palette.
+  const projects = useContent().projects
+
+  const tintOf = (id: AppId, index: number): [string, string] => {
     const tint = prefs.folderTint[id]
-    return tint ? FOLDER_TINTS[tint] : (FOLDER_COLORS[id] ?? ['#4ea3f5', '#1c62c9'])
+    return tint ? FOLDER_TINTS[tint] : folderColorFor(id, index)
   }
 
   return (
@@ -194,17 +190,20 @@ export function Finder() {
 
         <div style={s('display:flex;flex-wrap:wrap;gap:22px 14px')}>
           {finderPath === 'projects' ? (
-            PROJECT_FOLDERS.map(([id, label]) => (
+            projects.map((project, index) => {
+              const id = project.id as AppId
+              return (
               <Folder
                 key={id}
                 id={id}
-                label={label}
-                colors={tintOf(id)}
+                label={project.desktopLabel}
+                colors={tintOf(id, index)}
                 selected={selected === id}
                 onSelect={() => setSelected(id)}
                 onOpen={() => openApp(id)}
               />
-            ))
+              )
+            })
           ) : (
             <Folder
               id="finder-projects"

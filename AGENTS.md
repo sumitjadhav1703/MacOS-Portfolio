@@ -14,7 +14,8 @@ Spaces, Mission Control and a Notification Center. Each project is a window; eac
 also has a shareable URL with a generated link-preview image.
 
 Stack: **Next.js 16 (App Router) · React 19 · TypeScript · Vitest**. No CSS framework, no
-UI library, no state library. Deploy target is **Vercel**.
+UI library, no state library. The site deploys to **Vercel**; content comes from a
+**Cloudflare Worker** (D1 + R2) that also serves the private admin CMS at `/admin`.
 
 ## Run it
 
@@ -25,7 +26,14 @@ npm run build   # next build — prerenders every route and OG image
 npm start       # serve the build
 npm test        # vitest
 npm run lint    # oxlint
+
+npm run worker:check          # tsc over worker/ and worker/admin-ui/
+npm run worker:migrate:local  # apply migrations to a local D1
+npm run worker:dev            # wrangler dev on :8787, admin UI included
 ```
+
+The site runs standalone: without `NEXT_PUBLIC_API_URL` it serves the content compiled into
+`src/data/`. Start the Worker only when working on the CMS.
 
 `predev` / `prebuild` run `scripts/gen-sources.mjs`, which writes `src/generated/sources.ts`
 (the files the in-app Code viewer displays). That file is gitignored and regenerated.
@@ -42,9 +50,14 @@ app/                          routes only — thin server components
     opengraph-image.tsx       per-project card via next/og ImageResponse
   favicon.ico
 src/
-  data/                       ALL content: projects.ts, profile.ts, sections.ts, os.ts
+  data/                       projects.ts, profile.ts, sections.ts, os.ts — now the SEED and
+                              the offline fallback, not the live source
+    content.ts                the Content shape, FALLBACK, and the pure helpers that used to
+                              be hardcoded lists (aliases, skill index, Ask Sumit matching)
+    server.ts                 getContent() for server components — revalidated, never fatal
   og/card.tsx                 the card both OG images render
   os/
+    content.tsx               ContentProvider + useContent — FALLBACK first, API after mount
     store.tsx                 single reducer: windows, Spaces, prefs, overlays
     types.ts registry.ts packs.ts anim.ts css.ts
     useTheme.ts useMedia.ts useHotkeys.ts
@@ -57,8 +70,10 @@ src/
     mobile/MobileShell.tsx    stacked page below 768px
   styles/os.css               chrome stylesheet
   components/primitives.tsx   Body, PageHead, Chips, StatusPill, FlowDiagram, MetricGrid…
+worker/                       Cloudflare Worker: public read API, admin API, admin SPA
+migrations/                   versioned D1 migrations (0002 is generated, do not hand-edit)
 legacy/                       the original single-file build — reference only, not shipped
-scripts/gen-sources.mjs
+scripts/gen-sources.mjs scripts/seed-d1.mjs scripts/hash-password.mjs
 ```
 
 ## Conventions that are load-bearing
@@ -81,10 +96,17 @@ component; the exception is `src/og/card.tsx`, because Satori has no CSS variabl
 **One store.** `src/os/store.tsx` is a `useReducer` + context. Add an action to the union,
 handle it in the reducer, dispatch it from a component. No side effects in the reducer.
 
-**Content lives in `src/data/`.** Components render it; they never own copy. Adding a
-project to `PROJECTS` in `src/data/projects.ts` gives you a desktop folder, a Finder entry,
-a window, a Spotlight hit, an Ask Sumit answer target, a `/projects/<slug>` route and an OG
-image — with no other edit. That property is deliberate; keep it true.
+**Content comes from `useContent()`.** Components render it; they never own copy and they no
+longer import `src/data/*` directly. A published project yields a desktop folder, a Finder
+entry, a Launchpad tile, a window, a Spotlight hit, a Shell alias, an Ask Sumit answer, a
+`/projects/<slug>` route and an OG image — with no code change at all. That property is
+deliberate; keep it true. Before this it was only half true: six separate hardcoded lists had
+to agree, and they have been deleted. Do not reintroduce one.
+
+**Project ids are not a closed set.** `AppId` is `StaticAppId | \`project-${string}\``, so
+anything that looks up an id must tolerate one it has never seen. Use `isAppId` to validate
+and `titleOf` to read a title; `TITLES` is a mutable registry that `ContentProvider` refreshes
+during render.
 
 ## Rules that will bite you
 
@@ -101,7 +123,10 @@ image — with no other edit. That property is deliberate; keep it true.
    shortcuts must test `e.ctrlKey` / `e.metaKey` explicitly. This was a real bug once.
 5. **Opacity-zero plus `backdrop-filter` still paints in Chromium.** Dock tooltips also
    toggle `visibility`. Watch for it on any new blurred, hidden surface.
-6. **`legacy/portfolio-os.html` is the source of truth for behaviour questions.** If you
+6. **The public API is read-only and the admin API is guarded server-side.** Route guards in
+   the admin SPA are convenience only; `worker/index.ts` is what actually rejects anonymous
+   requests. Never add a mutation path outside `/admin/api/*`.
+7. **`legacy/portfolio-os.html` is the source of truth for behaviour questions.** If you
    are unsure how something used to move, read it there rather than inventing.
 
 ## How it got here
@@ -120,7 +145,10 @@ React sources rather than the old single file.
 ## Checks before you call something done
 
 - `npm run build` (type-checks and prerenders — the routes list should show six
-  `/projects/<slug>` pages and six matching `opengraph-image` entries)
-- `npm test`
+  `/projects/<slug>` pages and six matching `opengraph-image` entries; those six come from
+  `FALLBACK`, so the build never needs the Worker)
+- `npm test` and `npm run worker:check`
+- If the Worker changed: `npm run worker:dev`, then confirm anonymous `POST`/`PATCH`/`DELETE`
+  against `/admin/api/*` all return 401
 - Drive the actual desktop in a browser at 1440×900: boot, dock, drag, resize, ⌘K, F4,
   right-click, ⌃→, and once at 390×844 for the mobile stack. Console must be clean.

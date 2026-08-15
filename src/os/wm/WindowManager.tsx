@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { APP_CONTENT } from '../apps'
+import { appContentFor } from '../apps'
+import { useContent } from '../content'
 import { s } from '../css'
 import { useOs } from '../store'
 import type { AppId, SnapZone } from '../types'
@@ -33,6 +34,7 @@ function zoneBox(zone: SnapZone) {
 
 export function WindowManager() {
   const { wins, active, activeSpace } = useOs()
+  const content = useContent()
   const [zone, setZone] = useState<SnapZone | null>(null)
   const ids = (Object.keys(wins) as AppId[]).filter((id) => wins[id]!.space === activeSpace)
 
@@ -51,7 +53,7 @@ export function WindowManager() {
       ) : null}
 
       {ids.map((id) => {
-        const Content = APP_CONTENT[id]
+        const Content = appContentFor(id, content)
         return (
           <Window key={id} id={id} win={wins[id]!} active={active === id} onZone={setZone}>
             <Content />

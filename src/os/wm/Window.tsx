@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
 import { WIN_T } from '../anim'
 import { s } from '../css'
-import { TITLES } from '../registry'
+import { titleOf } from '../registry'
 import { useDispatch, useOs } from '../store'
 import { useReducedMotion } from '../useTheme'
 import { useContextMenu } from '../shell/ContextMenu'
@@ -193,7 +193,7 @@ export function Window({
       ? { left: 0, top: MENUBAR_H, width: '100%', height: 'calc(100% - 96px)', borderRadius: 0 }
       : { left: win.x, top: win.y, width: win.w, height: win.h, borderRadius: 13 }
 
-  const title = TITLES[id] + (id === 'finder' && finderPath !== '/' ? ' — Projects' : '')
+  const title = titleOf(id) + (id === 'finder' && finderPath !== '/' ? ' — Projects' : '')
 
   return (
     <div
@@ -261,19 +261,19 @@ export function Window({
           <TrafficLight
             color="#d0655b"
             glyph="✕"
-            label={`Close ${TITLES[id]}`}
+            label={`Close ${titleOf(id)}`}
             onClick={() => dispatch({ type: 'close', app: id })}
           />
           <TrafficLight
             color="#cfa04a"
             glyph="−"
-            label={`Minimise ${TITLES[id]}`}
+            label={`Minimise ${titleOf(id)}`}
             onClick={() => dispatch({ type: 'minimize', app: id })}
           />
           <TrafficLight
             color="#5c9c63"
             glyph="⤡"
-            label={`Zoom ${TITLES[id]}`}
+            label={`Zoom ${titleOf(id)}`}
             onClick={() => dispatch({ type: 'toggleMax', app: id })}
           />
         </div>
