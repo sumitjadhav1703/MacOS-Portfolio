@@ -30,6 +30,10 @@ npm run lint    # oxlint
 npm run worker:check          # tsc over worker/ and worker/admin-ui/
 npm run worker:migrate:local  # apply migrations to a local D1
 npm run worker:dev            # wrangler dev on :8787, admin UI included
+
+npm run ai:test               # pytest over ai/ — pure Python, no runtime needed
+npm run ai:dev                # pywrangler dev (needs uv >= 0.12.3)
+npm run ai:deploy             # deploy sumitos-ai before sumitos-api, not after
 ```
 
 The site runs standalone: without `NEXT_PUBLIC_API_URL` it serves the content compiled into
@@ -75,6 +79,11 @@ src/
   styles/os.css               chrome stylesheet
   components/primitives.tsx   Body, PageHead, Chips, StatusPill, FlowDiagram, MetricGrid…
 worker/                       Cloudflare Worker: public read API, admin API, admin SPA
+  ask.ts                      POST /api/ask — rate limit, origin, then hand off to sumitos-ai
+ai/                           second Worker, in Python: Ask Sumit's retrieval + prompt + model
+  src/retrieval.py            bundle → the few records that answer one question, no embeddings
+  src/prompting.py            the grounding rules and the quoted-data context block
+  src/safety.py               what is allowed in, and what is allowed back out
 migrations/                   versioned D1 migrations (0002 is generated, do not hand-edit)
 legacy/                       the original single-file build — reference only, not shipped
 scripts/gen-sources.mjs scripts/gen-icons.mjs scripts/seed-d1.mjs scripts/hash-password.mjs
@@ -117,6 +126,15 @@ artwork as a mask over `currentColor`. A tag with no mark renders as a plain chi
 correct outcome, not a gap to fill by hand. Simple Icons carries no LinkedIn mark; it falls back
 to the generic ring rather than to a hand-drawn trademark.
 
+**The assistant is handed content; it never reads it.** `ai/` is a second Worker, in Python,
+with an `AI` binding and nothing else — no D1, no R2, no route. `worker/ask.ts` passes it the
+same `cachedContent()` bundle every public endpoint is a slice of. That is the privacy design,
+not a convenience: `readContent` already applied `published = 1` in SQL, so a draft is not
+withheld from the assistant by a rule someone has to remember — it is never in the process that
+answers, and there is no second query to get wrong. It is also why publishing in `/admin` makes
+a project answerable within the 60-second cache TTL, with no knowledge file and no redeploy.
+Give that Worker a database binding and both properties are gone at once.
+
 **Project ids are not a closed set.** `AppId` is `StaticAppId | \`project-${string}\``, so
 anything that looks up an id must tolerate one it has never seen. Use `isAppId` to validate
 and `titleOf` to read a title; `TITLES` is a mutable registry that `ContentProvider` refreshes
@@ -139,13 +157,23 @@ during render.
    toggle `visibility`. Watch for it on any new blurred, hidden surface.
 6. **The public API is read-only and the admin API is guarded server-side.** Route guards in
    the admin SPA are convenience only; `worker/index.ts` is what actually rejects anonymous
-   requests. Never add a mutation path outside `/admin/api/*`.
+   requests. Never add a mutation path outside `/admin/api/*`. `POST /api/ask` is the single
+   exception and stays one: it writes nothing, and it is matched *before* the read-only guard
+   because that guard would otherwise 405 it. A JSON POST preflights, so `corsHeaders` has to
+   name both `POST` and `Content-Type` — dropping either breaks Ask Sumit from Vercel only,
+   which local development will not show you.
 7. **A refused iframe cannot be detected.** Safari frames third-party sites, and a host that
    sends `frame-ancestors 'none'` is indistinguishable from one that loaded: both fire `load`,
    both report a null `contentDocument`, both throw on `contentWindow.location`. Measured, not
    assumed. Detecting it inside `onLoad` is how every code host became a blank white pane once.
    The app frames optimistically and offers a way out instead.
-8. **`legacy/portfolio-os.html` is the source of truth for behaviour questions.** If you
+8. **An uncaught exception in a Python Worker is returned to the caller as its traceback.**
+   Body and all, with `/session/metadata/*.py` paths in it. `ai/src/entry.py` therefore wraps
+   the whole handler and emits one fixed sentence instead. Measured against `pywrangler dev`,
+   not assumed — reading an absent binding is enough to trigger it, which is why
+   `providers/workers_ai.py` looks up `env.AI` at the moment it uses it rather than in its
+   constructor.
+9. **`legacy/portfolio-os.html` is the source of truth for behaviour questions.** If you
    are unsure how something used to move, read it there rather than inventing.
 
 ## How it got here
@@ -156,6 +184,11 @@ during render.
 3. Ported feature-for-feature to React + TypeScript components (Vite at the time).
 4. Migrated to Next.js for `generateMetadata()` and `next/og`, then given Launchpad,
    context menus, window snapping, Spaces, Safari and Notification Center.
+5. Content moved out of `src/data/` and behind a Cloudflare Worker (D1 + R2) with a private
+   admin CMS; those modules stayed on as the seed and the offline fallback.
+6. Ask Sumit stopped matching keywords. `answerFrom` and `os.kb` are still there and still
+   run — they are what answers with no Worker configured and what answers when the assistant
+   is unreachable — but a configured site now asks a model grounded in the published bundle.
 
 Deliberate substitutions from the original: the wallpaper picker stores the image as a data
 URL in `localStorage` instead of the Claude Design sidecar, and the Code app shows the real
@@ -166,8 +199,13 @@ React sources rather than the old single file.
 - `npm run build` (type-checks and prerenders — the routes list should show six
   `/projects/<slug>` pages and six matching `opengraph-image` entries; those six come from
   `FALLBACK`, so the build never needs the Worker)
-- `npm test` and `npm run worker:check`
+- `npm test`, `npm run ai:test` and `npm run worker:check`
 - If the Worker changed: `npm run worker:dev`, then confirm anonymous `POST`/`PATCH`/`DELETE`
   against `/admin/api/*` all return 401
+- If `ai/` changed: `npm run ai:dev` and send one grounded ask. Workers AI has no local
+  emulation, so this needs `wrangler login` and opens a remote session — a 502 there means the
+  payload conversion in `providers/workers_ai.py` stopped matching what the binding accepts,
+  which no unit test can see. Also try one question the portfolio does not cover: it must come
+  back as the fallback line without the model being called at all.
 - Drive the actual desktop in a browser at 1440×900: boot, dock, drag, resize, ⌘K, F4,
   right-click, ⌃→, and once at 390×844 for the mobile stack. Console must be clean.
