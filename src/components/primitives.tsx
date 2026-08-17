@@ -1,7 +1,7 @@
 import { Fragment, type ReactNode } from 'react'
 import { EASE } from '../os/anim'
 import { s } from '../os/css'
-import { Icon, hasIcon, tagSlug } from '../lib/icons'
+import { Icon, PlatformIcon, hasIcon, hostLabel, tagSlug } from '../lib/icons'
 import type { FlowStep, Metric, ProjectSection } from '../data/projects'
 
 /** Window body: scrolls, with the design's reading measure. */
@@ -209,22 +209,32 @@ export function Caveat({ children }: { children: ReactNode }) {
   )
 }
 
+/**
+ * Attributes that send a link to a new tab — every external link in the app goes through this,
+ * so the `mailto:` exception is stated once.
+ */
+export function externalAttrs(url: string) {
+  return url.startsWith('mailto:') ? {} : { target: '_blank', rel: 'noopener noreferrer' }
+}
+
 export function LinkButton({ label, url }: { label: string; url: string }) {
-  const external = !url.startsWith('mailto:')
+  const host = hostLabel(url)
   return (
     <a
       href={url}
       data-btn="1"
-      {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+      {...externalAttrs(url)}
       style={{
         ...s(
-          'display:inline-block;padding:9px 16px;border-radius:10px;color:#fff;font-weight:600;font-size:12.5px;text-decoration:none',
+          'display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:10px;color:#fff;font-weight:600;font-size:12.5px;text-decoration:none',
         ),
         background: 'var(--s-accent)',
         transition: `filter .28s ${EASE}`,
       }}
     >
+      <PlatformIcon url={url} size={14} />
       {label}
+      {host ? <span style={s('font-weight:500;opacity:.72')}>{host}</span> : null}
     </a>
   )
 }

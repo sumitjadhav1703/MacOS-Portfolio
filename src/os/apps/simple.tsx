@@ -1,10 +1,14 @@
-import { Body, Chips, PageHead, Sec } from '../../components/primitives'
-import { Icon } from '../../lib/icons'
+import { Body, Chips, PageHead, Sec, externalAttrs } from '../../components/primitives'
+import { Icon, PlatformIcon, platformSlug } from '../../lib/icons'
+import type { ProfileLink } from '../../data/profile'
 import { useContent } from '../content'
 import { s } from '../css'
 
-const ext = (url: string) =>
-  url.startsWith('mailto:') ? {} : { target: '_blank', rel: 'noopener noreferrer' }
+/**
+ * The URL decides the mark. The stored `slug` is only a fallback for a host the resolver does
+ * not know — so editing a link in the CMS changes its icon with no further edit.
+ */
+const linkSlug = (link: ProfileLink) => platformSlug(link.url) ?? link.slug
 
 export function ProfilePills() {
   const links = useContent().socialLinks
@@ -14,12 +18,12 @@ export function ProfilePills() {
         <a
           key={l.url}
           href={l.url}
-          {...ext(l.url)}
+          {...externalAttrs(l.url)}
           style={s(
             'display:inline-flex;align-items:center;gap:8px;padding:7px 13px;border-radius:9px;background:var(--s-fill-2);border:1px solid var(--s-line);font-size:12.5px;text-decoration:none;color:var(--s-text)',
           )}
         >
-          <Icon slug={l.slug} size={14} />
+          <Icon slug={linkSlug(l)} size={14} />
           {l.label}
         </a>
       ))}
@@ -35,13 +39,13 @@ export function ProfileCards() {
         <a
           key={l.url}
           href={l.url}
-          {...ext(l.url)}
+          {...externalAttrs(l.url)}
           style={s(
             'display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:13px;background:var(--s-fill);border:1px solid var(--s-line);text-decoration:none;color:var(--s-text)',
           )}
         >
           <span style={s('color:var(--s-dim);display:flex;flex:none')}>
-            <Icon slug={l.slug} size={18} />
+            <Icon slug={linkSlug(l)} size={18} />
           </span>
           <span style={s('min-width:0')}>
             <span style={s('display:block;font-weight:600;font-size:13px')}>{l.label}</span>
@@ -179,16 +183,22 @@ export function Certificates() {
           {certificate.fileUrl || certificate.credentialUrl ? (
             <div style={s('display:flex;gap:8px;flex-wrap:wrap;margin-top:10px')}>
               {certificate.fileUrl ? (
-                <a href={certificate.fileUrl} {...ext(certificate.fileUrl)} style={s('font-size:12.5px')}>
+                <a
+                  href={certificate.fileUrl}
+                  {...externalAttrs(certificate.fileUrl)}
+                  style={s('display:inline-flex;align-items:center;gap:6px;font-size:12.5px')}
+                >
+                  <PlatformIcon url={certificate.fileUrl} size={13} />
                   Open certificate
                 </a>
               ) : null}
               {certificate.credentialUrl ? (
                 <a
                   href={certificate.credentialUrl}
-                  {...ext(certificate.credentialUrl)}
-                  style={s('font-size:12.5px')}
+                  {...externalAttrs(certificate.credentialUrl)}
+                  style={s('display:inline-flex;align-items:center;gap:6px;font-size:12.5px')}
                 >
+                  <PlatformIcon url={certificate.credentialUrl} size={13} />
                   Verify credential
                 </a>
               ) : null}

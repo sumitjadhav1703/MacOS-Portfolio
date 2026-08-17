@@ -9,11 +9,24 @@ import {
   StatusPill,
 } from '../../components/primitives'
 import { s } from '../css'
-import type { Project } from '../../data/projects'
+import type { Project as BaseProject } from '../../data/projects'
+import type { Project } from '../../data/content'
 
-export function ProjectWindow({ project }: { project: Project }) {
+export function ProjectWindow({ project }: { project: BaseProject | Project }) {
+  const coverUrl = 'coverUrl' in project ? project.coverUrl : undefined
   return (
     <Body>
+      {coverUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element -- the CMS serves this from R2,
+        // outside the loader's configured domains.
+        <img
+          src={coverUrl}
+          alt=""
+          style={s(
+            'display:block;width:100%;max-height:220px;object-fit:cover;border-radius:14px;border:1px solid var(--s-line);margin-bottom:18px',
+          )}
+        />
+      ) : null}
       <PageHead title={project.title} sub={project.tagline} />
       <div style={s('display:flex;gap:8px;flex-wrap:wrap;margin-top:14px')}>
         <StatusPill label={project.status.label} ok={project.status.ok} />

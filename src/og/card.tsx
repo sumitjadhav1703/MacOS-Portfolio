@@ -1,4 +1,6 @@
 import type { ReactElement } from 'react'
+import * as simpleIcons from 'simple-icons'
+import { tagSlug } from '../lib/icons'
 
 /**
  * The 1200×630 preview card, shaped like one of the desktop's windows: chrome bar with
@@ -21,6 +23,22 @@ const INK = {
   desk: 'linear-gradient(178deg,#1c222b 0%,#141a22 48%,#0c1016 100%)',
 }
 
+/**
+ * Stack chips carry the same marks the desktop shows — but Satori has no CSS masks and no
+ * external stylesheet, so the glyph is inlined as a data URI with the ink colour baked in.
+ * The slug comes from the same `tagSlug` resolver the app uses, so a chip that is marked in a
+ * window is marked on the card too.
+ */
+const BY_SLUG = new Map(Object.values(simpleIcons).map((icon) => [icon.slug, icon]))
+
+function markFor(tag: string): string | null {
+  const slug = tagSlug(tag)
+  const icon = slug ? BY_SLUG.get(slug) : undefined
+  if (!icon) return null
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${INK.text}"><path d="${icon.path}"/></svg>`
+  return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`
+}
+
 export type CardProps = {
   title: string
   tagline: string
@@ -28,6 +46,10 @@ export type CardProps = {
   status?: { label: string; ok: boolean }
   /** Window title bar caption — the app name a visitor would see on the desktop. */
   windowTitle?: string
+  /** Hostnames of the project's own links — where the work actually lives. */
+  hosts?: string[]
+  /** R2-backed cover image, when the CMS has one. */
+  coverUrl?: string
 }
 
 export function OgCard({
@@ -36,6 +58,8 @@ export function OgCard({
   stack = [],
   status,
   windowTitle = 'Portfolio OS',
+  hosts = [],
+  coverUrl,
 }: CardProps): ReactElement {
   return (
     <div
@@ -107,6 +131,8 @@ export function OgCard({
             paddingBottom: 44,
           }}
         >
+          <div style={{ display: 'flex', flex: 1, gap: 44 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
           {status ? (
             <div
               style={{
@@ -160,12 +186,16 @@ export function OgCard({
 
           {stack.length ? (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
-              {stack.slice(0, 6).map((tag) => (
+              {stack.slice(0, 6).map((tag) => {
+                const mark = markFor(tag)
+                return (
                 <div
                   key={tag}
                   style={{
                     display: 'flex',
-                    paddingLeft: 18,
+                    alignItems: 'center',
+                    gap: 10,
+                    paddingLeft: mark ? 15 : 18,
                     paddingRight: 18,
                     paddingTop: 9,
                     paddingBottom: 9,
@@ -176,11 +206,30 @@ export function OgCard({
                     border: `1px solid ${INK.line}`,
                   }}
                 >
+                  {mark ? <img src={mark} width={20} height={20} alt="" /> : null}
                   {tag}
                 </div>
-              ))}
+                )
+              })}
             </div>
           ) : null}
+            </div>
+
+            {coverUrl ? (
+              <div
+                style={{
+                  display: 'flex',
+                  width: 372,
+                  borderRadius: 16,
+                  border: `1px solid ${INK.line}`,
+                  backgroundColor: INK.fill2,
+                  overflow: 'hidden',
+                }}
+              >
+                <img src={coverUrl} width={372} height={330} style={{ objectFit: 'cover' }} alt="" />
+              </div>
+            ) : null}
+          </div>
 
           <div
             style={{
@@ -211,6 +260,11 @@ export function OgCard({
             </div>
             Sumit Jadhav · AI &amp; Data Science
             <div style={{ display: 'flex', flex: 1 }} />
+            {hosts.slice(0, 2).map((host) => (
+              <div key={host} style={{ display: 'flex', color: INK.dim }}>
+                {host}
+              </div>
+            ))}
             <div style={{ display: 'flex', color: INK.accent }}>{SITE_HOST}</div>
           </div>
         </div>
