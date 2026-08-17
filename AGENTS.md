@@ -35,8 +35,10 @@ npm run worker:dev            # wrangler dev on :8787, admin UI included
 The site runs standalone: without `NEXT_PUBLIC_API_URL` it serves the content compiled into
 `src/data/`. Start the Worker only when working on the CMS.
 
-`predev` / `prebuild` run `scripts/gen-sources.mjs`, which writes `src/generated/sources.ts`
-(the files the in-app Code viewer displays). That file is gitignored and regenerated.
+`predev` / `prebuild` / `pretest` run `npm run gen`: `scripts/gen-sources.mjs` writes
+`src/generated/sources.ts` (the files the in-app Code viewer displays) and
+`scripts/gen-icons.mjs` writes `src/generated/icon-slugs.ts` (the Simple Icons slug names).
+Both are gitignored and regenerated — anything that runs before them sees neither.
 
 ## Where things live
 
@@ -48,6 +50,7 @@ app/                          routes only — thin server components
   projects/[slug]/
     page.tsx                  generateStaticParams + generateMetadata + deep link
     opengraph-image.tsx       per-project card via next/og ImageResponse
+  icons/[slug]/route.ts       one Simple Icons SVG per slug, immutable — never bundled
   favicon.ico
 src/
   data/                       projects.ts, profile.ts, sections.ts, os.ts — now the SEED and
@@ -56,6 +59,7 @@ src/
                               be hardcoded lists (aliases, skill index, Ask Sumit matching)
     server.ts                 getContent() for server components — revalidated, never fatal
   og/card.tsx                 the card both OG images render
+  lib/icons.tsx               tagSlug + platformSlug + Icon/PlatformIcon — the only resolvers
   os/
     content.tsx               ContentProvider + useContent — FALLBACK first, API after mount
     store.tsx                 single reducer: windows, Spaces, prefs, overlays
@@ -73,7 +77,7 @@ src/
 worker/                       Cloudflare Worker: public read API, admin API, admin SPA
 migrations/                   versioned D1 migrations (0002 is generated, do not hand-edit)
 legacy/                       the original single-file build — reference only, not shipped
-scripts/gen-sources.mjs scripts/seed-d1.mjs scripts/hash-password.mjs
+scripts/gen-sources.mjs scripts/gen-icons.mjs scripts/seed-d1.mjs scripts/hash-password.mjs
 ```
 
 ## Conventions that are load-bearing
@@ -103,6 +107,16 @@ entry, a Launchpad tile, a window, a Spotlight hit, a Shell alias, an Ask Sumit 
 deliberate; keep it true. Before this it was only half true: six separate hardcoded lists had
 to agree, and they have been deleted. Do not reintroduce one.
 
+**Icons are derived, never stored.** `src/lib/icons.tsx` holds both resolvers: `tagSlug()` for a
+free-text tag ("PyTorch", "C++") and `platformSlug()` for an external URL's host. The database
+stores the readable name and the URL; nothing writes an icon id, and no component names one —
+`<PlatformIcon url={…} />` works it out. Change a link in the CMS and its mark follows. Add a
+second detection table and that stops being true. Marks come from Simple Icons: the slug names
+are baked in so `hasIcon()` can answer during render, and `app/icons/[slug]/route.ts` serves the
+artwork as a mask over `currentColor`. A tag with no mark renders as a plain chip — that is the
+correct outcome, not a gap to fill by hand. Simple Icons carries no LinkedIn mark; it falls back
+to the generic ring rather than to a hand-drawn trademark.
+
 **Project ids are not a closed set.** `AppId` is `StaticAppId | \`project-${string}\``, so
 anything that looks up an id must tolerate one it has never seen. Use `isAppId` to validate
 and `titleOf` to read a title; `TITLES` is a mutable registry that `ContentProvider` refreshes
@@ -126,7 +140,12 @@ during render.
 6. **The public API is read-only and the admin API is guarded server-side.** Route guards in
    the admin SPA are convenience only; `worker/index.ts` is what actually rejects anonymous
    requests. Never add a mutation path outside `/admin/api/*`.
-7. **`legacy/portfolio-os.html` is the source of truth for behaviour questions.** If you
+7. **A refused iframe cannot be detected.** Safari frames third-party sites, and a host that
+   sends `frame-ancestors 'none'` is indistinguishable from one that loaded: both fire `load`,
+   both report a null `contentDocument`, both throw on `contentWindow.location`. Measured, not
+   assumed. Detecting it inside `onLoad` is how every code host became a blank white pane once.
+   The app frames optimistically and offers a way out instead.
+8. **`legacy/portfolio-os.html` is the source of truth for behaviour questions.** If you
    are unsure how something used to move, read it there rather than inventing.
 
 ## How it got here

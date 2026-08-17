@@ -1,29 +1,22 @@
-// Shared brand/tech icon lookup, ported from legacy/icons.js.
+// Icon resolution, in one place.
 //
-// Every entry's `path` is exact path data copied from Simple Icons
-// (simpleicons.org, CC0-1.0), on the standard 24x24 viewBox. Nothing here is
-// traced or redrawn by hand — a wrong logo is worse than no logo, so a slug we
-// cannot source verbatim is listed in PENDING and falls through to the generic
-// glyph instead.
+// Two questions get answered here and nowhere else:
+//
+//   a free-text tag  ("PyTorch", "C++")          → tagSlug()      → a Simple Icons slug
+//   an external URL  ("https://github.com/…")    → platformSlug() → a Simple Icons slug
+//
+// Both answers are derived from the human-readable content the CMS stores, so a project or a
+// skill added through /admin gets its mark with no source change. Nothing writes an icon id
+// into the database.
+//
+// The marks themselves come from Simple Icons (simpleicons.org, CC0-1.0). Only the slug list
+// is baked into the bundle (src/generated/icon-slugs.ts); each glyph is fetched from
+// app/icons/[slug]/route.ts and painted as a CSS mask, which is what keeps it the colour of
+// the text beside it in every theme.
+import { ICON_SLUGS } from '../generated/icon-slugs'
+import { s } from '../os/css'
 
 type IconDef = { title: string; path: string }
-
-const ICONS: Record<string, IconDef> = {
-  github: {
-    title: 'GitHub',
-    path: 'M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12',
-  },
-}
-
-// Slugs the portfolio will want, still to be sourced verbatim from Simple Icons.
-// They resolve to the generic glyph until their exact path data is added above.
-export const PENDING = [
-  'linkedin', 'kaggle', 'huggingface',
-  'python', 'cplusplus', 'openjdk', 'javascript', 'mysql',
-  'pytorch', 'tensorflow', 'scikitlearn', 'pandas', 'numpy', 'opencv',
-  'langchain', 'mistralai', 'fastapi', 'docker', 'streamlit', 'postgresql',
-  'react', 'electron', 'vitest', 'githubactions', 'git',
-]
 
 // Original fallback mark — a plain ring with a core. Deliberately not brand-like,
 // so an unsourced slug reads as "no logo" rather than "wrong logo".
@@ -32,7 +25,8 @@ const GENERIC: IconDef = {
   path: 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 1.8a8.2 8.2 0 1 1 0 16.4 8.2 8.2 0 0 1 0-16.4zm0 4.6a3.6 3.6 0 1 0 0 7.2 3.6 3.6 0 0 0 0-7.2z',
 }
 
-// Original, non-brand glyphs. These are ours, so they are safe to draw by hand.
+// Original, non-brand glyphs. These are ours, so they are safe to draw by hand — and Simple
+// Icons has no mark for a generic mailbox.
 const LOCAL: Record<string, IconDef> = {
   email: {
     title: 'Email',
@@ -43,16 +37,32 @@ const LOCAL: Record<string, IconDef> = {
 /** True when a real mark exists for this slug (brand or local glyph). */
 export function hasIcon(slug: string): boolean {
   const key = slug.toLowerCase()
-  return key in ICONS || key in LOCAL
+  return key in LOCAL || ICON_SLUGS.has(key)
 }
 
+// Tags whose slug cannot be guessed by stripping punctuation, plus the ones that are a
+// concept rather than a product and must stay bare.
 const TAG_SLUG: Record<string, string | null> = {
   'hugging face spaces': 'huggingface',
   'hugging face': 'huggingface',
   'postgresql / pgvector': 'postgresql',
+  postgres: 'postgresql',
   'c++': 'cplusplus',
+  'c#': 'dotnet',
   java: 'openjdk',
   sql: 'mysql',
+  py: 'python',
+  ts: 'typescript',
+  js: 'javascript',
+  node: 'nodedotjs',
+  'node.js': 'nodedotjs',
+  'react.js': 'react',
+  'vue.js': 'vuedotjs',
+  'next.js': 'nextdotjs',
+  sklearn: 'scikitlearn',
+  'scikit-learn': 'scikitlearn',
+  k8s: 'kubernetes',
+  'github actions': 'githubactions',
   'capella space x-band sar': null,
   'search / reader / writer / critic': null,
 }
@@ -64,17 +74,108 @@ export function tagSlug(tag: string): string | null {
   return key.replace(/[^a-z0-9]/g, '') || null
 }
 
+// Hostname → slug, for the platforms whose domain does not spell their slug. Anything not
+// listed falls through to the bare second-level label, which already covers github.com,
+// kaggle.com, vercel.com, gitlab.com, render.com and most of the rest.
+const HOST_SLUG: Record<string, string> = {
+  'huggingface.co': 'huggingface',
+  'x.com': 'x',
+  'twitter.com': 'x',
+  'npmjs.com': 'npm',
+  'pypi.org': 'pypi',
+  'colab.research.google.com': 'googlecolab',
+  'colab.google.com': 'googlecolab',
+  'hub.docker.com': 'docker',
+  'docker.com': 'docker',
+  'notion.so': 'notion',
+  'stackoverflow.com': 'stackoverflow',
+  'youtu.be': 'youtube',
+  'dev.to': 'devdotto',
+  'read.cv': 'readdotcv',
+  'streamlit.app': 'streamlit',
+  'streamlit.io': 'streamlit',
+  'netlify.app': 'netlify',
+  'vercel.app': 'vercel',
+  'github.io': 'github',
+  'pages.dev': 'cloudflare',
+  'workers.dev': 'cloudflare',
+  'onrender.com': 'render',
+}
+
+/**
+ * Icon slug for an external URL, derived from its host — or null when nothing sensible
+ * matches. Never throws: a malformed URL is a content problem, not a render problem.
+ */
+export function platformSlug(url: string): string | null {
+  const raw = url.trim()
+  if (raw.toLowerCase().startsWith('mailto:')) return 'email'
+
+  let host: string
+  try {
+    host = new URL(raw).hostname.toLowerCase()
+  } catch {
+    return null
+  }
+  if (!host) return null
+  host = host.replace(/^www\./, '')
+
+  if (host in HOST_SLUG) return HOST_SLUG[host]
+
+  // Match the longest registrable-looking suffix first, so `sumit.github.io` and
+  // `demo.streamlit.app` resolve the same way their bare domains do.
+  const parts = host.split('.')
+  for (let i = 1; i < parts.length - 1; i++) {
+    const suffix = parts.slice(i).join('.')
+    if (suffix in HOST_SLUG) return HOST_SLUG[suffix]
+  }
+
+  // Fall back to the second-level label: github.com → github, kaggle.com → kaggle.
+  const label = parts.length > 1 ? parts[parts.length - 2] : parts[0]
+  const slug = label.replace(/[^a-z0-9]/g, '')
+  return slug && hasIcon(slug) ? slug : null
+}
+
+/** Hostname for display beside a link, or an empty string when the URL is not a web address. */
+export function hostLabel(url: string): string {
+  try {
+    return new URL(url.trim()).hostname.toLowerCase().replace(/^www\./, '')
+  } catch {
+    return ''
+  }
+}
+
 type IconProps = {
-  slug: string
+  /** Null renders the generic mark — the honest answer when nothing matched. */
+  slug: string | null
   size?: number
   /** Pass a label to expose the icon to assistive tech; omit to mark it decorative. */
   label?: string
 }
 
 export function Icon({ slug, size = 16, label }: IconProps) {
-  const key = slug.toLowerCase()
-  const def = ICONS[key] ?? LOCAL[key] ?? GENERIC
+  const key = (slug ?? '').toLowerCase()
   const decorative = label === undefined
+  const a11y = decorative
+    ? ({ 'aria-hidden': true, focusable: false } as const)
+    : ({ role: 'img', 'aria-label': label } as const)
+
+  // Brand marks are painted as a mask so they inherit the surrounding text colour. The glyph
+  // is one immutable, long-cached request; no path data ships in the bundle.
+  if (!(key in LOCAL) && ICON_SLUGS.has(key)) {
+    const mask = `url(/icons/${key}.svg) center / contain no-repeat`
+    return (
+      <span
+        {...a11y}
+        style={{
+          ...s(`display:block;flex:none;width:${size}px;height:${size}px;background:currentColor`),
+          WebkitMask: mask,
+          mask,
+        }}
+      />
+    )
+  }
+
+  const def = LOCAL[key] ?? GENERIC
   return (
     <svg
       viewBox="0 0 24 24"
@@ -82,11 +183,17 @@ export function Icon({ slug, size = 16, label }: IconProps) {
       height={size}
       fill="currentColor"
       style={{ display: 'block', flex: 'none' }}
-      {...(decorative
-        ? { 'aria-hidden': true, focusable: false }
-        : { role: 'img', 'aria-label': label })}
+      {...a11y}
     >
       <path d={def.path} />
     </svg>
   )
+}
+
+/**
+ * The mark for a link, chosen from its URL alone. Callers never name an icon — change the URL
+ * in the CMS and the icon follows.
+ */
+export function PlatformIcon({ url, size = 14, label }: { url: string; size?: number; label?: string }) {
+  return <Icon slug={platformSlug(url)} size={size} label={label} />
 }
