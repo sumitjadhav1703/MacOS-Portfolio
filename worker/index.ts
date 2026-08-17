@@ -4,6 +4,7 @@ import { TTL_SECONDS, cachedContent } from './content'
 import { serveFile } from './files'
 import { currentSession, handleLogin, handleLogout, originAllowed } from './auth'
 import { handleAdminApi } from './admin'
+import { askOriginAllowed, handleAsk } from './ask'
 
 const MUTATIONS = ['POST', 'PUT', 'PATCH', 'DELETE']
 
@@ -72,6 +73,20 @@ export default {
       if (path.startsWith('/files/')) {
         if (request.method !== 'GET') return fail(405, 'Method not allowed.')
         return serveFile(env, decodeURIComponent(path.slice('/files/'.length)))
+      }
+
+      // ---- public: Ask Sumit -----------------------------------------------------------
+      // The one POST outside /admin/api/*. It is allowed there because it writes nothing: it
+      // reads the same published bundle every other public endpoint serves and returns prose
+      // about it. It must be matched before the read-only guard below, which would 405 it.
+      if (path === '/api/ask') {
+        if (request.method !== 'POST') return fail(405, 'Method not allowed.')
+        if (!askOriginAllowed(request, env)) return fail(403, 'Blocked.')
+        const answered = await handleAsk(request, env, origin, ctx)
+        const headers = new Headers(answered.headers)
+        for (const [k, v] of Object.entries(corsHeaders(request, env))) headers.set(k, v)
+        headers.set('Cache-Control', 'no-store')
+        return new Response(answered.body, { status: answered.status, headers })
       }
 
       // ---- public: read-only content -------------------------------------------------

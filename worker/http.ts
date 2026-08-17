@@ -6,13 +6,23 @@ import type { Env } from './env'
  * malicious page from riding the admin cookie. The admin API is same-origin and sends none of
  * these headers at all.
  */
+/**
+ * The origins allowed to call the public API. One list, read by both the CORS headers and the
+ * `/api/ask` origin check — a second copy is how the two quietly stop agreeing.
+ */
+export function allowedOrigins(env: Env): string[] {
+  return [env.SITE_ORIGIN, 'http://localhost:3000'].filter(Boolean)
+}
+
 export function corsHeaders(request: Request, env: Env): Record<string, string> {
-  const allowed = [env.SITE_ORIGIN, 'http://localhost:3000'].filter(Boolean)
   const origin = request.headers.get('Origin')
   const headers: Record<string, string> = { Vary: 'Origin' }
-  if (origin && allowed.includes(origin)) {
+  if (origin && allowedOrigins(env).includes(origin)) {
     headers['Access-Control-Allow-Origin'] = origin
-    headers['Access-Control-Allow-Methods'] = 'GET, OPTIONS'
+    // POST is here for `/api/ask` alone, which reads and answers but writes nothing. A JSON
+    // body makes that request preflight, so it also needs Content-Type allowed by name.
+    headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+    headers['Access-Control-Allow-Headers'] = 'Content-Type'
     headers['Access-Control-Max-Age'] = '86400'
   }
   return headers

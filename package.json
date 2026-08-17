@@ -19,7 +19,10 @@
     "worker:dev": "npm run admin:build && wrangler dev",
     "worker:migrate:local": "wrangler d1 migrations apply sumitos --local",
     "worker:migrate": "wrangler d1 migrations apply sumitos --remote",
-    "worker:deploy": "npm run admin:build && wrangler deploy"
+    "worker:deploy": "npm run admin:build && wrangler deploy",
+    "ai:test": "uv run --directory ai pytest",
+    "ai:dev": "uv run --directory ai pywrangler dev",
+    "ai:deploy": "uv run --directory ai pywrangler deploy"
   },
   "dependencies": {
     "next": "^16.3.1",

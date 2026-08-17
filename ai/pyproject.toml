@@ -1,0 +1,22 @@
+[project]
+name = "sumitos-ai"
+version = "0.1.0"
+description = "Ask Sumit — the grounded AI layer behind the SumitOS portfolio."
+requires-python = ">=3.12"
+
+# No runtime dependencies. Retrieval, prompting and safety are stdlib; the model call goes
+# through the Workers AI binding, and the published portfolio arrives in the request body.
+# Anything added here has to exist in Pyodide, so keep the list empty unless it earns a place.
+dependencies = []
+
+[dependency-groups]
+dev = [
+  "pytest>=8.0",
+  "pytest-asyncio>=0.24",
+  "workers-py",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+asyncio_mode = "auto"
