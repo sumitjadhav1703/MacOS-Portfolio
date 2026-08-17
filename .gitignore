@@ -11,3 +11,10 @@ worker/assets
 
 .playwright-mcp
 tsconfig.tsbuildinfo
+
+# ai/ — uv's own venv, the one pywrangler builds for the Worker, and the vendored packages
+ai/.venv
+ai/.venv-workers
+ai/python_modules
+__pycache__
+.pytest_cache

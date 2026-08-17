@@ -101,11 +101,20 @@ export const KB: [string[], string][] = [
 export const AI_FALLBACK =
   "I only know Sumit's portfolio. Try asking about Lazarus Sentinel, the AI Video Assistant, PM2.5 forecasting, SAR crop mapping, the multi-agent system, his stack, education or how to reach him."
 
+/**
+ * The chips shown before the first question. Seed values only — the live list comes from
+ * `os.aiSuggestions` in D1 and is editable in /admin, so these are what a standalone build
+ * ships with, not a list to keep in step with the projects.
+ *
+ * Written for the person actually reading: a recruiter deciding in thirty seconds whether the
+ * portfolio is worth more of their time.
+ */
 export const AI_SUGGESTIONS = [
-  'What is your tech stack?',
+  "What are Sumit's strongest AI projects?",
+  'What ML technologies does Sumit use?',
   'Tell me about SAR Crop Mapping',
-  'What is Lazarus Sentinel?',
-  'How do I contact you?',
+  "What is Sumit's education?",
+  'How do I contact him?',
 ]
 
 export const SHORTCUTS: [string, string][] = [

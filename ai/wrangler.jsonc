@@ -1,0 +1,22 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "sumitos-ai",
+  "main": "src/entry.py",
+  "compatibility_date": "2026-08-01",
+  "compatibility_flags": ["python_workers"],
+
+  // No route and no workers.dev subdomain: the only way in is the ASK_AI service binding on
+  // sumitos-api, so there is one public surface, one CORS policy and one rate limiter for the
+  // whole feature.
+  "workers_dev": false,
+
+  // The only binding. Deliberately no D1 and no R2 — this Worker is handed the already
+  // published content by its caller and has no way to read anything else.
+  "ai": { "binding": "AI" },
+
+  // Optional override for src/config.py's default. Set it to try a different Workers AI model
+  // without a source change.
+  // "vars": { "AI_MODEL": "@cf/meta/llama-3.3-70b-instruct-fp8-fast" },
+
+  "observability": { "enabled": true }
+}
