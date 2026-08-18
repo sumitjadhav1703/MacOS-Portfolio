@@ -14,7 +14,7 @@ type Result = {
   run: () => void
 }
 
-const APPLICATIONS: AppId[] = ['finder', 'terminal', 'sumit-ai', 'contact', 'settings', 'code', 'trash']
+const APPLICATIONS: AppId[] = ['finder', 'terminal', 'sumit-ai', 'contact', 'settings', 'monitor', 'code', 'trash']
 
 /** Prefix beats substring beats subsequence; anything else is not a match. */
 export function fuzzy(query: string, text: string): number {

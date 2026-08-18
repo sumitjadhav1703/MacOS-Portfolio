@@ -18,6 +18,7 @@ const APPS: AppId[] = [
   'sumit-ai',
   'code',
   'settings',
+  'monitor',
   'contact',
   'about',
   'resume',

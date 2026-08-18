@@ -115,3 +115,18 @@
   overflow: visible !important;
   padding: 2px 0 6px !important;
 }
+
+/* Desk grain. A single tiled turbulence tile over the wallpaper — it is what stops a large
+   flat gradient from banding on a wide display, and it is the cheapest way to give the desk
+   a surface. Dropped entirely under Reduce Transparency and Low Power, which already strip
+   every other decorative layer. */
+#wallpaper::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: .045;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+}
+[data-root][data-opaque="1"] #wallpaper::after,
+[data-root][data-lowpower="1"] #wallpaper::after { display: none }

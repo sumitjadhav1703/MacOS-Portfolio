@@ -110,6 +110,16 @@ export const EXTRA_ICONS: IconSpec[] = [
   { id: 'experience', tip: 'Experience', grad: 'linear-gradient(180deg,#5cc36a,#2b8743)', inks: [] },
   { id: 'education', tip: 'Education', grad: 'linear-gradient(180deg,#4ea3f5,#1c62c9)', inks: [] },
   { id: 'certificates', tip: 'Certificates', grad: 'linear-gradient(180deg,#f79a3e,#cd6212)', inks: [] },
+  {
+    id: 'monitor',
+    tip: 'System Monitor',
+    grad: 'linear-gradient(180deg,#4bc0c8,#1a7f8c)',
+    inks: [
+      ['left:14px;top:32px;width:6px;height:9px;border-radius:2px;background:rgba(255,255,255,.94)', 'ink'],
+      ['left:24px;top:24px;width:6px;height:17px;border-radius:2px;background:rgba(255,255,255,.94)', 'ink'],
+      ['left:34px;top:16px;width:6px;height:25px;border-radius:2px;background:rgba(255,255,255,.94)', 'ink'],
+    ],
+  },
 ]
 
 export const iconFor = (id: string): IconSpec | undefined =>

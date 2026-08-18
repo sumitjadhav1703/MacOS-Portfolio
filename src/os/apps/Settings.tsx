@@ -6,6 +6,7 @@ import { PACKS } from '../packs'
 import { useDispatch, useOpenApp, useOs } from '../store'
 import { useReducedMotion, useTheme } from '../useTheme'
 import { pickWallpaper } from '../shell/Wallpaper'
+import { useAppCommand } from '../cmd'
 import type { PackId, Prefs, Theme } from '../types'
 
 const TABS = [
@@ -137,6 +138,12 @@ export function Settings() {
   const reduced = useReducedMotion()
   const { theme, accent } = useTheme()
   const [tab, setTab] = useState<Tab>('overview')
+
+  // The View menu selects a pane by name, the same values the sidebar rows carry.
+  useAppCommand('settings', (cmd) => {
+    const [prefix, pane] = cmd.split(':')
+    if (prefix === 'pane' && TABS.some(([value]) => value === pane)) setTab(pane as Tab)
+  })
 
   const setPref = (patch: Partial<Prefs>) => dispatch({ type: 'prefs', patch })
 

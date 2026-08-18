@@ -66,12 +66,15 @@ src/
   lib/icons.tsx               tagSlug + platformSlug + Icon/PlatformIcon — the only resolvers
   os/
     content.tsx               ContentProvider + useContent — FALLBACK first, API after mount
-    store.tsx                 single reducer: windows, Spaces, prefs, overlays
+    store.tsx                 single reducer: windows, Spaces, prefs, overlays, power state
+    cmd.ts                    the menu bar's one channel to the focused window
     types.ts registry.ts packs.ts anim.ts css.ts
     useTheme.ts useMedia.ts useHotkeys.ts
     DesktopRoot.tsx           the 'use client' boundary the routes render
     shell/                    menu bar, dock, Launchpad, context menus, wallpaper,
-                              Notification Center, Control Center, toasts, boot, grid
+                              Notification Center, Control Center, toasts, grid
+      appMenus.tsx            which menus the focused app puts in the bar
+      Boot.tsx                the startup curtain, and Sleep / Restart / Shut Down
     wm/                       Window (drag/resize/snap), WindowManager, Mission Control
     apps/                     one component per window; index.tsx maps AppId → component
     search/                   Spotlight (⌘K), shortcut sheet (?)
@@ -105,6 +108,16 @@ the elements that carry them, or the chrome quietly loses its glass.
 **Colour comes from CSS custom properties** (`--s-win`, `--s-dim`, `--s-accent`, …) defined
 per theme in `os.css`, plus the theme packs in `src/os/packs.ts`. Never hardcode a hex in a
 component; the exception is `src/og/card.tsx`, because Satori has no CSS variables.
+
+**The menu bar is a table, not markup.** `src/os/shell/appMenus.tsx` maps the focused `AppId` to
+its menus; `MenuBar.tsx` renders whatever comes back. Adding a command means adding a `MenuEntry`
+there, never a new `<Menu>` in the bar. Almost every entry is a store action. The three or four
+that act on state inside one component — clear the Shell, copy the open file, retry the last
+question — go through `src/os/cmd.ts`, a single `os:cmd` window event, the same trick
+`pickWallpaper` has always used. Do not grow that into a command registry: an item that needs
+more than a name belongs in the reducer instead. Every entry must do something, and one whose
+target is closed is `disabled` rather than absent — a menu that only looks like a menu teaches
+the visitor that the chrome is a picture.
 
 **One store.** `src/os/store.tsx` is a `useReducer` + context. Add an action to the union,
 handle it in the reducer, dispatch it from a component. No side effects in the reducer.
@@ -186,13 +199,18 @@ during render.
    context menus, window snapping, Spaces, Safari and Notification Center.
 5. Content moved out of `src/data/` and behind a Cloudflare Worker (D1 + R2) with a private
    admin CMS; those modules stayed on as the seed and the offline fallback.
-6. Ask Sumit stopped matching keywords. `answerFrom` and `os.kb` are still there and still
+6. The bar became app-aware (`appMenus.tsx`), the desk got a System Monitor and Sleep / Restart /
+   Shut Down, and the packaged wallpaper photograph gave way to the theme packs' own layered
+   gradients — it sat on top of all three and made them invisible.
+7. Ask Sumit stopped matching keywords. `answerFrom` and `os.kb` are still there and still
    run — they are what answers with no Worker configured and what answers when the assistant
    is unreachable — but a configured site now asks a model grounded in the published bundle.
 
 Deliberate substitutions from the original: the wallpaper picker stores the image as a data
-URL in `localStorage` instead of the Claude Design sidecar, and the Code app shows the real
-React sources rather than the old single file.
+URL in `localStorage` instead of the Claude Design sidecar, the desk defaults to the active
+pack's gradient rather than to `/wallpaper.png` (`DEFAULT_WALLPAPER` is `null`, and Reset in the
+picker returns to it), and the Code app shows the real React sources rather than the old single
+file.
 
 ## Checks before you call something done
 

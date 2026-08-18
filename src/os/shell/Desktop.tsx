@@ -12,7 +12,7 @@ import { useHotkeys } from '../useHotkeys'
 import { useTheme } from '../useTheme'
 import { Mission } from '../wm/Mission'
 import { WindowManager } from '../wm/WindowManager'
-import { Boot } from './Boot'
+import { Boot, PowerOverlay } from './Boot'
 import { ContextMenu, useContextMenu } from './ContextMenu'
 import { ControlCenter } from './ControlCenter'
 import { Launchpad } from './Launchpad'
@@ -118,6 +118,7 @@ export function Desktop({ initialApp }: { initialApp?: AppId }) {
       <Dock />
       <MobileShell />
       <Boot />
+      <PowerOverlay />
     </div>
   )
 }

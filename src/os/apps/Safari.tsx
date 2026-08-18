@@ -6,6 +6,7 @@ import { useContent } from '../content'
 import type { Content } from '../../data/content'
 import { s } from '../css'
 import { useTheme } from '../useTheme'
+import { useAppCommand } from '../cmd'
 
 type Site = { label: string; url: string; from: string }
 
@@ -57,6 +58,14 @@ export function Safari() {
     setHistory([...trimmed, next])
     setAt(trimmed.length)
   }
+
+  // The Go menu drives the same three controls the toolbar has, and is greyed out at the ends
+  // of the history for the same reason they are.
+  useAppCommand('safari', (cmd) => {
+    if (cmd === 'back' && at > 0) setAt(at - 1)
+    if (cmd === 'forward' && at < history.length - 1) setAt(at + 1)
+    if (cmd === 'home') go(null)
+  })
 
   return (
     <div style={s('height:100%;display:flex;flex-direction:column;background:var(--s-win)')}>
