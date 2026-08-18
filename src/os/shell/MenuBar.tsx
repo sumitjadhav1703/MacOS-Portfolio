@@ -2,33 +2,17 @@
 
 import { useEffect, useState, type ReactNode } from 'react'
 import { useContent } from '../content'
+import { platformSlug } from '../../lib/icons'
 import { s } from '../css'
 import { titleOf } from '../registry'
 import { useDispatch, useOpenApp, useOs } from '../store'
 import { useTheme } from '../useTheme'
 import { Popovers } from './Popovers'
-import type { AppId, MenuName } from '../types'
+import { menusFor, type MenuCtx } from './appMenus'
+import { MENU_SURFACE, MenuEntries } from './menu'
+import type { MenuEntry, MenuName } from '../types'
 
-const MENU_ITEM = 'padding:5px 10px;border-radius:6px;cursor:default;white-space:nowrap'
-const DROPDOWN =
-  'position:absolute;top:26px;left:0;padding:5px;border-radius:11px;background:var(--s-pop);backdrop-filter:var(--s-blur);-webkit-backdrop-filter:var(--s-blur);border:1px solid var(--s-line);box-shadow:var(--s-shadow-pop);color:var(--s-text);text-shadow:none;z-index:10'
-
-function Item({ label, onPick }: { label: ReactNode; onPick: () => void }) {
-  return (
-    <div
-      data-mi="1"
-      style={s(MENU_ITEM)}
-      onClick={(e) => {
-        e.stopPropagation()
-        onPick()
-      }}
-    >
-      {label}
-    </div>
-  )
-}
-
-const Divider = () => <div style={s('height:1px;background:var(--s-line);margin:5px 8px')} />
+const DROPDOWN = `position:absolute;top:26px;left:0;z-index:10;${MENU_SURFACE}`
 
 function Menu({
   name,
@@ -83,9 +67,17 @@ function Clock() {
   )
 }
 
+/** Where "Copy GitHub URL" points when the CMS lists no GitHub link. */
+const GITHUB_FALLBACK = 'https://github.com/sumitjadhav1703'
+
 export function MenuBar() {
-  const site = useContent().site
-  const { active, wins, prefs, status, activity } = useOs()
+  const content = useContent()
+  const site = content.site
+  // The link the CMS holds, matched by the same host resolver that picks its icon — so
+  // changing it in /admin changes the menu item with it.
+  const githubUrl =
+    content.socialLinks.find((link) => platformSlug(link.url) === 'github')?.url ?? GITHUB_FALLBACK
+  const { active, wins, prefs, status, activity, finderPath } = useOs()
   const dispatch = useDispatch()
   const openApp = useOpenApp()
   const { accent } = useTheme()
@@ -108,6 +100,37 @@ export function MenuBar() {
     })
   }
 
+  const ctx: MenuCtx = {
+    dispatch,
+    openApp,
+    front,
+    wins,
+    finderPath,
+    email: site.email,
+    resumeUrl: site.resumeUrl,
+    githubUrl,
+    copy,
+  }
+
+  // The one menu that never changes: it is the system's, not the focused app's.
+  const appleEntries: MenuEntry[] = [
+    { label: "About Sumit's Portfolio OS", onPick: () => openApp('about') },
+    { divider: true },
+    { label: 'System Settings…', onPick: () => openApp('settings') },
+    { label: 'System Monitor', onPick: () => openApp('monitor') },
+    { label: 'Control Center', onPick: () => dispatch({ type: 'overlay', name: 'controlCenter', on: true }) },
+    { divider: true },
+    { label: 'Appearance: Light', onPick: () => setTheme('light') },
+    { label: 'Appearance: Dark', onPick: () => setTheme('dark') },
+    { label: 'Appearance: System', onPick: () => setTheme('system') },
+    { divider: true },
+    { label: 'Sleep', onPick: () => dispatch({ type: 'power', state: 'sleep' }) },
+    { label: 'Restart…', onPick: () => dispatch({ type: 'power', state: 'restart' }) },
+    { label: 'Shut Down…', onPick: () => dispatch({ type: 'power', state: 'shutdown' }) },
+  ]
+
+  const closeMenu = () => dispatch({ type: 'menu', name: null })
+
   return (
     <div
       id="menubar"
@@ -118,106 +141,21 @@ export function MenuBar() {
       <div style={s('display:flex;align-items:center;gap:2px')}>
         <Menu
           name="apple"
-          width={210}
+          width={220}
           label={<div style={s('font-size:11.5px;font-weight:700;letter-spacing:.06em')}>SJ</div>}
         >
-          <Item label="About Sumit's Portfolio OS" onPick={() => openApp('about')} />
-          <Divider />
-          <Item label="System Settings…" onPick={() => openApp('settings')} />
-          <Item
-            label="Control Center"
-            onPick={() => dispatch({ type: 'overlay', name: 'controlCenter', on: true })}
-          />
-          <Divider />
-          <Item label="Close All Windows" onPick={() => dispatch({ type: 'closeAll' })} />
+          <MenuEntries entries={appleEntries} onDone={closeMenu} />
         </Menu>
 
         <div id="menu-app-name" style={s('font-weight:700;padding:2px 8px;cursor:default')}>
           {front ? titleOf(front).split(' — ')[0] : 'Workspace'}
         </div>
 
-        <Menu name="file" label="File" width={200}>
-          <Item label="New Workspace Window" onPick={() => openApp('finder')} />
-          <Item label="New Shell" onPick={() => openApp('terminal')} />
-          <Item label="Open Resume" onPick={() => openApp('resume')} />
-          <Divider />
-          <Item
-            label="Close Window"
-            onPick={() => front && dispatch({ type: 'close', app: front })}
-          />
-        </Menu>
-
-        <Menu name="edit" label="Edit" width={200}>
-          <Item label="Copy Email Address" onPick={() => copy(site.email, 'Email address')} />
-          <Item
-            label="Copy GitHub URL"
-            onPick={() => copy('https://github.com/sumitjadhav1703', 'GitHub URL')}
-          />
-          <Divider />
-          <Item
-            label="Find…"
-            onPick={() => dispatch({ type: 'overlay', name: 'spotlight', on: true })}
-          />
-        </Menu>
-
-        <Menu name="view" label="View" width={200}>
-          <Item label="Small Icons" onPick={() => dispatch({ type: 'iconScale', scale: 0.85 })} />
-          <Item label="Medium Icons" onPick={() => dispatch({ type: 'iconScale', scale: 1 })} />
-          <Item label="Large Icons" onPick={() => dispatch({ type: 'iconScale', scale: 1.25 })} />
-          <Divider />
-          <Item label="Show / Hide Desktop Items" onPick={() => dispatch({ type: 'toggleDesktop' })} />
-          <Item label="Show / Hide Dock" onPick={() => dispatch({ type: 'toggleDock' })} />
-          <Divider />
-          <Item label="Appearance: Light" onPick={() => setTheme('light')} />
-          <Item label="Appearance: Dark" onPick={() => setTheme('dark')} />
-          <Item label="Appearance: System" onPick={() => setTheme('system')} />
-        </Menu>
-
-        <Menu name="go" label="Go" width={200}>
-          <Item label="Projects" onPick={() => openApp('finder-projects')} />
-          <Item label="Skills" onPick={() => openApp('skills')} />
-          <Item label="Experience" onPick={() => openApp('experience')} />
-          <Item label="Education" onPick={() => openApp('education')} />
-          <Item label="Certificates" onPick={() => openApp('certificates')} />
-          <Divider />
-          <Item label="Reach Out" onPick={() => openApp('contact')} />
-        </Menu>
-
-        <Menu name="window" label="Window" width={230}>
-          <Item
-            label="Minimize"
-            onPick={() => front && dispatch({ type: 'minimize', app: front })}
-          />
-          <Item label="Zoom" onPick={() => front && dispatch({ type: 'toggleMax', app: front })} />
-          <Item label="Bring All to Front" onPick={() => dispatch({ type: 'frontAll' })} />
-          <Divider />
-          <Item label="Minimize All" onPick={() => dispatch({ type: 'minimizeAll' })} />
-          <Divider />
-          <div id="window-list" style={s('max-height:260px;overflow:auto')}>
-            {(Object.keys(wins) as AppId[]).length ? (
-              (Object.keys(wins) as AppId[]).map((id) => (
-                <Item
-                  key={id}
-                  label={`${active === id ? '✓ ' : '   '}${titleOf(id)}`}
-                  onPick={() => openApp(id)}
-                />
-              ))
-            ) : (
-              <div style={s('padding:5px 10px;color:var(--s-faint)')}>No open windows</div>
-            )}
-          </div>
-        </Menu>
-
-        <div
-          data-menu="help"
-          style={s('padding:2px 9px;border-radius:5px;cursor:default')}
-          onClick={(e) => {
-            e.stopPropagation()
-            openApp('about')
-          }}
-        >
-          Help
-        </div>
+        {menusFor(front, ctx).map((menu) => (
+          <Menu key={menu.name} name={menu.name} label={menu.label} width={menu.width}>
+            <MenuEntries entries={menu.entries} onDone={closeMenu} />
+          </Menu>
+        ))}
       </div>
 
       <div style={s('display:flex;align-items:center;gap:13px')}>

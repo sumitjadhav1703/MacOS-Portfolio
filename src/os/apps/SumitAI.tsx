@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { answerFrom } from '../../data/content'
 import { useContent } from '../content'
+import { useAppCommand } from '../cmd'
 import { EASE } from '../anim'
 import { s } from '../css'
 import { useReducedMotion, useTheme } from '../useTheme'
@@ -129,6 +130,13 @@ export function SumitAI() {
     setRetry(null)
     setPending(false)
   }
+
+  // The Chat menu drives the same two buttons the window already has; `retry` is offered only
+  // when there is a question to retry, which is exactly when the inline chip is offered.
+  useAppCommand('sumit-ai', (cmd) => {
+    if (cmd === 'clear') clear()
+    if (cmd === 'retry' && retry) ask(retry)
+  })
 
   const bubble = (from: Msg['from']) =>
     from === 'me'

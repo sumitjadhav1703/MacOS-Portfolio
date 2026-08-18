@@ -3,6 +3,7 @@
 import { Fragment, useState } from 'react'
 import { s } from '../css'
 import { useDispatch } from '../store'
+import { useAppCommand } from '../cmd'
 
 import { SOURCES } from '../../generated/sources'
 
@@ -39,6 +40,22 @@ export function CodeViewer() {
   const [file, setFile] = useState(FILES[0][0])
   const src = FILES.find(([name]) => name === file)?.[1] ?? ''
   const lines = src.split('\n')
+
+  const copy = () => {
+    navigator.clipboard?.writeText(src)
+    dispatch({ type: 'notify', title: 'Code', msg: `${file} copied to clipboard` })
+  }
+
+  const step = (by: number) => {
+    const at = FILES.findIndex(([name]) => name === file)
+    setFile(FILES[(at + by + FILES.length) % FILES.length][0])
+  }
+
+  useAppCommand('code', (cmd) => {
+    if (cmd === 'copy') copy()
+    if (cmd === 'next') step(1)
+    if (cmd === 'prev') step(-1)
+  })
 
   return (
     <div
@@ -101,10 +118,7 @@ export function CodeViewer() {
             tabIndex={0}
             data-focusable="1"
             role="button"
-            onClick={() => {
-              navigator.clipboard?.writeText(src)
-              dispatch({ type: 'notify', title: 'Code', msg: `${file} copied to clipboard` })
-            }}
+            onClick={copy}
             style={s(
               'padding:5px 12px;border-radius:7px;background:var(--s-fill-2);border:1px solid var(--s-line);font-size:12px;cursor:default',
             )}

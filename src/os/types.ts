@@ -14,6 +14,7 @@ export type StaticAppId =
   | 'education'
   | 'experience'
   | 'certificates'
+  | 'monitor'
 
 /**
  * Project windows are not enumerable at compile time — the CMS can add one at any moment — so a
@@ -43,6 +44,9 @@ export type WindowState = {
 
 /** Tiling targets, in the order macOS offers them at the screen edges. */
 export type SnapZone = 'left' | 'right' | 'top' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
+
+/** Power state of the machine. `on` is the desktop; the rest are overlays over it. */
+export type PowerState = 'on' | 'sleep' | 'restart' | 'shutdown'
 
 export type Theme = 'system' | 'light' | 'dark'
 export type PackId = 'graphite' | 'latent' | 'daylight'
@@ -104,6 +108,7 @@ export type OsState = {
   popover: PopoverName
   menu: MenuName
   booted: boolean
+  power: PowerState
   /** Data URL of a wallpaper the visitor supplied, or null for the packaged one. */
   wallpaper: string | null
   /** View-menu toggles. */

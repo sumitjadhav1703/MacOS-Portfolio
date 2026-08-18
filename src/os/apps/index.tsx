@@ -9,6 +9,7 @@ import { Resume } from './Resume'
 import { Safari } from './Safari'
 import { Settings } from './Settings'
 import { SumitAI } from './SumitAI'
+import { SystemMonitor } from './SystemMonitor'
 import { Terminal } from './Terminal'
 import { About, Certificates, Education, Experience, Skills, Trash } from './simple'
 
@@ -27,6 +28,7 @@ export const APP_CONTENT: Record<StaticAppId, ComponentType> = {
   education: Education,
   experience: Experience,
   certificates: Certificates,
+  monitor: SystemMonitor,
 }
 
 /**

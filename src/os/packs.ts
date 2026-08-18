@@ -20,8 +20,8 @@ export const PACKS: Record<PackId, Pack> = {
     icons: 'tinted',
     prefers: 'dark',
     wall: {
-      dark: 'linear-gradient(178deg,#1c222b 0%,#141a22 48%,#0c1016 100%)',
-      light: 'linear-gradient(178deg,#eaeef3 0%,#dde4ec 48%,#cbd4df 100%)',
+      dark: 'radial-gradient(74% 54% at 78% 6%,rgba(93,141,246,.17) 0%,rgba(93,141,246,0) 62%),radial-gradient(58% 48% at 10% 90%,rgba(126,182,222,.09) 0%,rgba(126,182,222,0) 68%),linear-gradient(178deg,#1c222b 0%,#141a22 48%,#0c1016 100%)',
+      light: 'radial-gradient(74% 54% at 78% 4%,rgba(255,255,255,.75) 0%,rgba(255,255,255,0) 60%),radial-gradient(60% 50% at 8% 94%,rgba(93,141,246,.11) 0%,rgba(93,141,246,0) 68%),linear-gradient(178deg,#eaeef3 0%,#dde4ec 48%,#cbd4df 100%)',
     },
     dock: { dark: 'rgba(18,21,27,.72)', light: 'rgba(250,251,252,.7)' },
     glass: {
@@ -37,8 +37,8 @@ export const PACKS: Record<PackId, Pack> = {
     icons: 'tinted',
     prefers: 'dark',
     wall: {
-      dark: 'radial-gradient(120% 92% at 24% 10%,#2c2456 0%,#181640 44%,#0a0b1c 100%)',
-      light: 'radial-gradient(120% 92% at 24% 10%,#eae5fb 0%,#dcdcf3 46%,#c9cee9 100%)',
+      dark: 'radial-gradient(54% 42% at 84% 76%,rgba(123,92,240,.22) 0%,rgba(123,92,240,0) 68%),radial-gradient(46% 38% at 6% 32%,rgba(72,190,220,.10) 0%,rgba(72,190,220,0) 70%),radial-gradient(120% 92% at 24% 10%,#2c2456 0%,#181640 44%,#0a0b1c 100%)',
+      light: 'radial-gradient(54% 42% at 84% 78%,rgba(123,92,240,.13) 0%,rgba(123,92,240,0) 70%),radial-gradient(52% 44% at 4% 26%,rgba(255,255,255,.7) 0%,rgba(255,255,255,0) 64%),radial-gradient(120% 92% at 24% 10%,#eae5fb 0%,#dcdcf3 46%,#c9cee9 100%)',
     },
     dock: { dark: 'rgba(24,20,46,.7)', light: 'rgba(250,249,255,.72)' },
     glass: {
@@ -54,8 +54,8 @@ export const PACKS: Record<PackId, Pack> = {
     icons: 'clear',
     prefers: 'light',
     wall: {
-      light: 'linear-gradient(168deg,#f6f2ea 0%,#eae5da 46%,#d9d6cb 100%)',
-      dark: 'linear-gradient(168deg,#282520 0%,#1c1a16 48%,#131210 100%)',
+      light: 'radial-gradient(70% 52% at 84% 6%,rgba(255,243,219,.9) 0%,rgba(255,243,219,0) 62%),radial-gradient(56% 46% at 4% 96%,rgba(180,85,45,.10) 0%,rgba(180,85,45,0) 66%),linear-gradient(168deg,#f6f2ea 0%,#eae5da 46%,#d9d6cb 100%)',
+      dark: 'radial-gradient(70% 52% at 84% 6%,rgba(255,206,140,.13) 0%,rgba(255,206,140,0) 62%),radial-gradient(56% 46% at 4% 96%,rgba(180,85,45,.12) 0%,rgba(180,85,45,0) 68%),linear-gradient(168deg,#282520 0%,#1c1a16 48%,#131210 100%)',
     },
     dock: { light: 'rgba(252,250,246,.7)', dark: 'rgba(30,27,23,.72)' },
     glass: {

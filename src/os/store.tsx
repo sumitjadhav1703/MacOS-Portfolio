@@ -20,6 +20,7 @@ import type {
   MenuName,
   OsState,
   PopoverName,
+  PowerState,
   Prefs,
   SnapZone,
   StaticAppId,
@@ -58,10 +59,15 @@ function loadPrefs(): Prefs {
   }
 }
 
-/** Shipped with the site; the visitor can replace it from the desktop picker. */
-export const DEFAULT_WALLPAPER = '/wallpaper.png'
+/**
+ * No image by default: the desk is the active theme pack's own gradient, so switching pack or
+ * appearance actually changes the desktop. A packaged photograph sat on top of all three packs
+ * and made them invisible. The visitor can still drop one in from the desktop picker, and Reset
+ * puts the pack back.
+ */
+export const DEFAULT_WALLPAPER: string | null = null
 
-function loadWallpaper(): string {
+function loadWallpaper(): string | null {
   try {
     return localStorage.getItem(WALLPAPER_KEY) ?? DEFAULT_WALLPAPER
   } catch {
@@ -70,7 +76,7 @@ function loadWallpaper(): string {
 }
 
 export type Action =
-  | { type: 'hydrate'; prefs: Prefs; wallpaper: string }
+  | { type: 'hydrate'; prefs: Prefs; wallpaper: string | null }
   | { type: 'open'; app: AppId; sub?: OsState['finderPath']; viewport?: { w: number; h: number } }
   | { type: 'focus'; app: AppId }
   | { type: 'close'; app: AppId }
@@ -97,6 +103,7 @@ export type Action =
   | { type: 'popover'; name: PopoverName }
   | { type: 'menu'; name: MenuName }
   | { type: 'booted' }
+  | { type: 'power'; state: PowerState }
   | { type: 'wallpaper'; url: string | null }
   | { type: 'closeTransient' }
   | { type: 'iconScale'; scale: number }
@@ -118,7 +125,7 @@ function topmost(wins: OsState['wins'], skipMinimised: boolean): AppId | null {
   return open.reduce((a, b) => ((wins[a]?.z ?? 0) > (wins[b]?.z ?? 0) ? a : b))
 }
 
-function reducer(state: OsState, action: Action): OsState {
+export function reducer(state: OsState, action: Action): OsState {
   switch (action.type) {
     case 'hydrate':
       return { ...state, prefs: action.prefs, wallpaper: action.wallpaper }
@@ -281,6 +288,11 @@ function reducer(state: OsState, action: Action): OsState {
     case 'booted':
       return { ...state, booted: true }
 
+    // Power is a curtain over the desktop, not a teardown of it: windows, Spaces and
+    // preferences survive a sleep or a restart exactly as they were.
+    case 'power':
+      return { ...state, power: action.state, menu: null, popover: null }
+
     case 'wallpaper':
       return { ...state, wallpaper: action.url }
 
@@ -379,7 +391,7 @@ function reducer(state: OsState, action: Action): OsState {
   }
 }
 
-function initialState(): OsState {
+export function initialState(): OsState {
   return {
     wins: {},
     z: 100,
@@ -402,6 +414,7 @@ function initialState(): OsState {
     popover: null,
     menu: null,
     booted: false,
+    power: 'on',
     wallpaper: DEFAULT_WALLPAPER,
     iconScale: 1,
     desktopHidden: false,

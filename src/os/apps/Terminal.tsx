@@ -4,6 +4,7 @@ import { useContent } from '../content'
 import { s } from '../css'
 import { isAppId, titleOf } from '../registry'
 import { useOpenApp } from '../store'
+import { useAppCommand } from '../cmd'
 import type { AppId } from '../types'
 
 type Line = { kind: 'cmd' | 'out'; content: ReactNode }
@@ -59,6 +60,13 @@ export function Terminal() {
     const out = outRef.current
     if (out) out.scrollTop = out.scrollHeight
   }, [lines])
+
+  // The Shell menu types for you: the same `run` a keypress goes through, so a menu item can
+  // never do something the prompt cannot.
+  useAppCommand('terminal', (cmd) => {
+    run(cmd)
+    inputRef.current?.focus()
+  })
 
   function run(raw: string) {
     const cmd = raw.trim()
