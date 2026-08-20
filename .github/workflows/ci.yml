@@ -1,0 +1,135 @@
+name: CI
+
+# Every job below is a required check. A change that breaks the app, the types, the security
+# model or the release shape should not be mergeable, which is the whole point of the file.
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+  # Called by release.yml, so a tag runs exactly these checks rather than a second copy of them
+  # that can drift.
+  workflow_call:
+
+# Read-only by default. No job here needs to write to the repository; the one that does live in
+# release.yml, and asks for it there.
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: lint, tests, types, secrets, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          # scan-secrets reads what git tracks; a shallow clone is enough for that and for the
+          # build. Nothing here needs history.
+          fetch-depth: 1
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      # The same command a developer runs. If these ever diverge, a green terminal and a green
+      # workflow stop meaning the same thing.
+      - run: npm run ci
+
+  ai:
+    name: python assistant
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      # ai/ has no runtime dependencies and must stay that way — it runs on Pyodide.
+      - run: npm run ai:test
+
+  e2e:
+    name: browser suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      # Chromium only. The suite exists to catch a desktop that will not boot, not to prove
+      # cross-browser parity, and a second engine would double the download for almost nothing.
+      - run: npx playwright install --with-deps chromium
+
+      - run: npm run e2e
+
+      # Failure evidence only. Spec §10 asks for the artifacts that explain a failure, and warns
+      # against uploading the workspace — a trace per passing test is megabytes nobody opens.
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
+  e2e-admin:
+    name: cms suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - run: npx playwright install --with-deps chromium
+
+      # scripts/e2e-admin.mjs migrates a local D1, generates a password for this run alone and
+      # starts `wrangler dev --local`. No credential is stored in this repository or in this
+      # workflow, and nothing here can reach the production database: --local is the only mode
+      # used, and no Cloudflare API token exists in this job's environment to authenticate with.
+      - run: npm run e2e:admin
+
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-admin
+          path: playwright-report/
+          retention-days: 7
+
+  migrations:
+    name: d1 migrations
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      # Ordering and immutability, then a real apply against a throwaway local database to prove
+      # the SQL is valid. `--local` writes to .wrangler on the runner and is discarded with it.
+      - run: npm run check:migrations
+      - run: npm run worker:migrate:local
