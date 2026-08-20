@@ -17,6 +17,23 @@ const emptyRows: ContentRows = {
 }
 
 describe('mapProject', () => {
+  it('never carries a pending draft into the public bundle', () => {
+    const project = mapProject(
+      {
+        id: 'project-demo',
+        slug: 'demo',
+        title: 'Published title',
+        draft: JSON.stringify({ title: 'Secret rewrite' }),
+      },
+      ORIGIN,
+    )
+
+    expect(project.title).toBe('Published title')
+    expect(JSON.stringify(project)).not.toContain('Secret rewrite')
+    expect(project).not.toHaveProperty('draft')
+  })
+
+
   it('parses the JSON columns back into the shapes the desktop renders', () => {
     const project = mapProject(
       {

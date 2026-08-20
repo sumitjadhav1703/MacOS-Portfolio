@@ -75,6 +75,31 @@ export default {
         return serveFile(env, decodeURIComponent(path.slice('/files/'.length)))
       }
 
+      // ---- brand marks ------------------------------------------------------------------
+      // The glyphs are Next's (app/icons/[slug]/route.ts). The admin runs on this origin and
+      // renders the public site's own components in its preview, so the same relative URL has to
+      // resolve here too.
+      //
+      // Passed through rather than redirected, because these are painted as CSS masks and a mask
+      // image must be same-origin — a cross-origin one is silently dropped and the icon simply
+      // never appears. The bytes are immutable and long-cached, so this is one subrequest per
+      // glyph per colo, not per page view.
+      if (path.startsWith('/icons/')) {
+        if (request.method !== 'GET') return fail(405, 'Method not allowed.')
+        const slug = path.slice('/icons/'.length)
+        if (!/^[a-z0-9.-]{1,60}\.svg$/.test(slug)) return fail(404, 'Not found.')
+        const glyph = await fetch(`${env.SITE_ORIGIN}/icons/${slug}`, {
+          cf: { cacheEverything: true, cacheTtl: 86_400 },
+        } as RequestInit)
+        if (!glyph.ok) return fail(404, 'Not found.')
+        return new Response(glyph.body, {
+          headers: {
+            'Content-Type': 'image/svg+xml',
+            'Cache-Control': 'public, max-age=86400',
+          },
+        })
+      }
+
       // ---- public: Ask Sumit -----------------------------------------------------------
       // The one POST outside /admin/api/*. It is allowed there because it writes nothing: it
       // reads the same published bundle every other public endpoint serves and returns prose

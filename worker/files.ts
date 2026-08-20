@@ -71,16 +71,55 @@ export async function handleUpload(request: Request, env: Env): Promise<Response
   return json({ key, contentType: type.mime, size: bytes.length, filename, kind }, { status: 201 })
 }
 
-/** Every column across every table that can hold an R2 key. */
-function keyColumns(): { table: string; column: string }[] {
-  const out: { table: string; column: string }[] = []
+/**
+ * Every column across every table that can hold an R2 key, derived from the specs rather than
+ * listed — a new file column on a new content type is covered the moment it is declared.
+ *
+ * `label` is the column that names a row, or null for a singleton, whose `name` is fixed because
+ * there is only ever one of it.
+ */
+function keyColumns(): { table: string; column: string; label: string | null; name: string }[] {
+  const out: { table: string; column: string; label: string | null; name: string }[] = []
   for (const spec of Object.values(SPECS)) {
-    for (const column of spec.fileColumns) out.push({ table: spec.table, column })
+    for (const column of spec.fileColumns) {
+      out.push({ table: spec.table, column, label: spec.label, name: spec.table })
+    }
   }
   for (const single of Object.values(SINGLETONS)) {
-    for (const column of single.fileColumns) out.push({ table: single.table, column })
+    for (const column of single.fileColumns) {
+      out.push({ table: single.table, column, label: null, name: single.label })
+    }
   }
   return out
+}
+
+/**
+ * Which rows point at which key, for the whole bucket, in one batch.
+ *
+ * The Assets screen needs this for every file at once, so asking `referencesTo` per file would be
+ * one batch per row. This is the same question turned inside out: read the keys the content
+ * holds, and index them by key.
+ */
+export async function usageMap(env: Env): Promise<Record<string, string[]>> {
+  const columns = keyColumns()
+  const results = await env.DB.batch(
+    columns.map(({ table, column, label }) =>
+      env.DB.prepare(
+        `SELECT ${column} AS k${label ? `, ${label} AS name` : ''} FROM ${table} ` +
+          `WHERE ${column} IS NOT NULL AND ${column} != ''`,
+      ),
+    ),
+  )
+
+  const used: Record<string, string[]> = {}
+  columns.forEach(({ label, name }, i) => {
+    for (const row of (results[i]?.results ?? []) as { k: string; name?: string }[]) {
+      const who = (label ? row.name : name) || name
+      const list = (used[row.k] ??= [])
+      if (!list.includes(who)) list.push(who)
+    }
+  })
+  return used
 }
 
 /** Which rows still point at this key. An asset in use is never deleted. */
@@ -98,9 +137,13 @@ export async function referencesTo(env: Env, key: string): Promise<string[]> {
 
 export async function handleDeleteFile(env: Env, key: string): Promise<Response> {
   if (!isOwnKey(key)) return fail(400, 'Not a valid asset key.')
-  const used = await referencesTo(env, key)
+  // Names rather than column paths: the answer to "why can I not delete this?" is the thing
+  // still using it, not the schema (spec §34).
+  const used = (await usageMap(env))[key] ?? []
   if (used.length) {
-    return fail(409, 'This file is still in use. Detach it first.', { usedBy: used })
+    return fail(409, `This file is still used by ${used.join(', ')}. Detach it there first.`, {
+      usedBy: used,
+    })
   }
   await env.BUCKET.delete(key)
   await env.DB.prepare('DELETE FROM assets WHERE key = ?').bind(key).run()
