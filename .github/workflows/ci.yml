@@ -82,7 +82,7 @@ jobs:
       # Failure evidence only. Spec §10 asks for the artifacts that explain a failure, and warns
       # against uploading the workspace — a trace per passing test is megabytes nobody opens.
       - if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-report
           path: playwright-report/
@@ -111,7 +111,7 @@ jobs:
       - run: npm run e2e:admin
 
       - if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-report-admin
           path: playwright-report/
