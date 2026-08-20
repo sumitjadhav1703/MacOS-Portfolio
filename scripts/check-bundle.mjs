@@ -8,18 +8,13 @@
 // Build output that never reaches a browser is not this script's business.
 
 import { gzipSync } from 'node:zlib'
-import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs'
+import { readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 const CHUNKS = '.next/static/chunks'
 const BUDGET = 'perf-budget.json'
 const WARN = 1.05
 const FAIL = 1.1
-
-if (!existsSync(CHUNKS)) {
-  console.error(`check-bundle: ${CHUNKS} not found — run \`npm run build\` first.`)
-  process.exit(1)
-}
 
 function walk(dir) {
   const out = []
@@ -31,7 +26,16 @@ function walk(dir) {
   return out
 }
 
-const files = walk(CHUNKS)
+// Attempted rather than checked for first: an `existsSync` before the read is a race, and the
+// failure it guards against is the same one the read itself reports.
+let files
+try {
+  files = walk(CHUNKS)
+} catch {
+  console.error(`check-bundle: ${CHUNKS} not found — run \`npm run build\` first.`)
+  process.exit(1)
+}
+
 let gzipped = 0
 let raw = 0
 for (const file of files) {
@@ -43,7 +47,14 @@ for (const file of files) {
 const kb = (n) => `${(n / 1024).toFixed(1)} kB`
 const measured = { gzipBytes: gzipped, rawBytes: raw, files: files.length }
 
-if (!existsSync(BUDGET)) {
+let budget = null
+try {
+  budget = JSON.parse(readFileSync(BUDGET, 'utf8'))
+} catch {
+  // No baseline yet — measure and record one.
+}
+
+if (!budget) {
   writeFileSync(
     BUDGET,
     `${JSON.stringify(
@@ -63,7 +74,6 @@ if (!existsSync(BUDGET)) {
   process.exit(0)
 }
 
-const budget = JSON.parse(readFileSync(BUDGET, 'utf8'))
 const ratio = gzipped / budget.gzipBytes
 const delta = ((ratio - 1) * 100).toFixed(1)
 const summary =

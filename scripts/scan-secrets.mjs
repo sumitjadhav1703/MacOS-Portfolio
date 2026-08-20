@@ -9,7 +9,7 @@
 // Exits 1 on any finding. Wired into `npm run ci`, so it runs locally and in CI alike.
 
 import { execFileSync } from 'node:child_process'
-import { readFileSync, statSync, existsSync } from 'node:fs'
+import { readFileSync } from 'node:fs'
 import { extname } from 'node:path'
 
 const MAX_FILE_BYTES = 2 * 1024 * 1024
@@ -90,29 +90,29 @@ function tracked() {
   return out.split('\0').filter(Boolean)
 }
 
-function extras() {
-  // Generated but shipped, so worth reading even though git ignores them.
-  return ['src/generated/sources.ts', 'src/generated/icon-slugs.ts'].filter((p) => existsSync(p))
-}
+// Generated but shipped, so worth reading even though git ignores them. Whether they exist is
+// not asked here — the read below answers it, and asking twice is a race.
+const EXTRAS = ['src/generated/sources.ts', 'src/generated/icon-slugs.ts']
 
 const findings = []
-const files = [...tracked(), ...extras()]
+const files = [...tracked(), ...EXTRAS]
 
 for (const file of files) {
   if (SKIP_EXTENSIONS.has(extname(file).toLowerCase())) continue
 
-  let size = 0
+  let bytes
   try {
-    size = statSync(file).size
+    bytes = readFileSync(file)
   } catch {
-    continue // listed by git but deleted in the working tree
+    continue // listed by git but not in the working tree, or generated and not built yet
   }
-  if (size > MAX_FILE_BYTES) {
-    findings.push({ file, line: 0, rule: 'large tracked file', text: `${(size / 1024 / 1024).toFixed(1)} MB` })
+  if (bytes.length > MAX_FILE_BYTES) {
+    const mb = (bytes.length / 1024 / 1024).toFixed(1)
+    findings.push({ file, line: 0, rule: 'large tracked file', text: `${mb} MB` })
     continue
   }
 
-  const text = readFileSync(file, 'utf8')
+  const text = bytes.toString('utf8')
   if (text.includes('\0')) continue
 
   const lines = text.split('\n')

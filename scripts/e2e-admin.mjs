@@ -9,7 +9,7 @@
 
 import { spawn, spawnSync } from 'node:child_process'
 import { pbkdf2Sync, randomBytes } from 'node:crypto'
-import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { readFileSync, rmSync, writeFileSync } from 'node:fs'
 
 const PORT = Number(process.env.E2E_ADMIN_PORT ?? 8788)
 const BASE = `http://localhost:${PORT}`
@@ -23,7 +23,13 @@ const salt = randomBytes(16)
 const derived = pbkdf2Sync(password, salt, ITERATIONS, 32, 'sha256')
 const hash = `pbkdf2$${ITERATIONS}$${salt.toString('base64')}$${derived.toString('base64')}`
 
-const saved = existsSync(DEV_VARS) ? readFileSync(DEV_VARS, 'utf8') : null
+// Read, rather than ask whether it exists and then read: the two answers can disagree.
+let saved = null
+try {
+  saved = readFileSync(DEV_VARS, 'utf8')
+} catch {
+  // there was no local .dev.vars; stop() will remove the one this script writes
+}
 let worker = null
 
 function stop() {

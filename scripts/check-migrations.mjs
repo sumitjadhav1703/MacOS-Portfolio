@@ -13,7 +13,7 @@
 // is already listed fails, and the fix is a new migration, never an edit.
 
 import { createHash } from 'node:crypto'
-import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
+import { readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 const DIR = 'migrations'
@@ -58,13 +58,22 @@ for (const { n, name } of numbers) {
 const sha = (name) => createHash('sha256').update(readFileSync(join(DIR, name))).digest('hex')
 const current = Object.fromEntries(files.map((name) => [name, sha(name)]))
 
-if (!existsSync(LOCK)) {
+// Read first and handle its absence, rather than asking whether it exists and then reading: the
+// gap between the two questions is a race, and the answer to the second covers both.
+let lock = null
+try {
+  lock = readFileSync(LOCK, 'utf8')
+} catch {
+  // no checksum file yet
+}
+
+if (lock === null) {
   if (!write) {
     problems.push(`${LOCK} does not exist — create it with: node scripts/check-migrations.mjs --write`)
   }
 } else {
   const recorded = Object.fromEntries(
-    readFileSync(LOCK, 'utf8')
+    lock
       .split('\n')
       .filter((line) => line.trim() && !line.startsWith('#'))
       .map((line) => line.trim().split(/\s+/))

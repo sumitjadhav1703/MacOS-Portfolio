@@ -50,7 +50,9 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - uses: astral-sh/setup-uv@v6
+      # Pinned to a commit, not a tag: this is the one action here that is not first-party
+      # GitHub, and a tag can be moved to point at different code. Bump it deliberately.
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
         with:
           enable-cache: true
 
