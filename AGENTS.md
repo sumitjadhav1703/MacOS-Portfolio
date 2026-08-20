@@ -83,6 +83,15 @@ src/
   components/primitives.tsx   Body, PageHead, Chips, StatusPill, FlowDiagram, MetricGrid…
 worker/                       Cloudflare Worker: public read API, admin API, admin SPA
   ask.ts                      POST /api/ask — rate limit, origin, then hand off to sumitos-ai
+  tables.ts                   the declarative SPECS/SINGLETONS one CRUD handler is driven by
+  map.ts                      D1 row → public bundle, pure — the admin's Preview imports it too
+  drafts.ts                   merge/promote a project draft, and duplicate one. Pure, tested
+  admin-ui/                   the admin SPA (Vite + React 19, no router, no state library)
+    router.ts store.tsx       hash routing; one cache of every list, refreshed after a write
+    schema.ts Fields.tsx      which fields exist and how each one is edited
+    List.tsx Collection.tsx   the list screen and the editor around it
+    Preview.tsx               the real ProjectWindow, fed by the real mapProject
+    Resume.tsx Assets.tsx Search.tsx
 ai/                           second Worker, in Python: Ask Sumit's retrieval + prompt + model
   src/retrieval.py            bundle → the few records that answer one question, no embeddings
   src/prompting.py            the grounding rules and the quoted-data context block
@@ -139,6 +148,15 @@ artwork as a mask over `currentColor`. A tag with no mark renders as a plain chi
 correct outcome, not a gap to fill by hand. Simple Icons carries no LinkedIn mark; it falls back
 to the generic ring rather than to a hand-drawn trademark.
 
+**A project is edited as a draft; everything else saves live.** `projects.draft` holds pending
+edits as JSON and is admin-only — `mapProject` reads named columns, so it cannot reach the public
+bundle, and `worker/content.test.ts` asserts that. Editing a published project writes the draft
+and fires no `invalidate()`; Publish merges it through the same `validate(fields, merged, false)`
+a hand-typed project goes through, clears the draft and invalidates. Every other content type
+PATCHes the live row, and its save bar says so in those words rather than implying a staging step
+that does not exist. Do not add a `draft` column to a second table to make the UI symmetric —
+the asymmetry is the honest part.
+
 **The assistant is handed content; it never reads it.** `ai/` is a second Worker, in Python,
 with an `AI` binding and nothing else — no D1, no R2, no route. `worker/ask.ts` passes it the
 same `cachedContent()` bundle every public endpoint is a slice of. That is the privacy design,
@@ -188,6 +206,19 @@ during render.
    constructor.
 9. **`legacy/portfolio-os.html` is the source of truth for behaviour questions.** If you
    are unsure how something used to move, read it there rather than inventing.
+10. **A CSS mask image must be same-origin.** The admin paints brand marks the same way the
+   desktop does — as a mask over `currentColor` — but it is served from the Worker, where Next's
+   `/icons/<slug>.svg` does not exist. `worker/index.ts` therefore *proxies* those bytes rather
+   than redirecting to `SITE_ORIGIN`: a cross-origin mask is dropped silently, so the element
+   keeps its size and simply paints nothing. Typecheck, tests and `curl` all pass while it is
+   broken; only a browser shows it. `run_worker_first` in `wrangler.jsonc` must keep listing
+   `/icons/*`, or the static-asset handler answers first and 404s.
+11. **The admin build needs `npm run gen` first.** `src/lib/icons.tsx` imports the gitignored
+   `src/generated/icon-slugs.ts`, so `package.json` carries a `preadmin:build` that generates it;
+   `worker/admin-ui/tsconfig.json` has to `include` both that file and `icons.tsx` the same way it
+   already whitelists `src/os/css.ts`. And import shared mapping from `worker/map.ts`, never from
+   `worker/content.ts` — the latter names `D1Database`, `R2Bucket` and `caches.default`, which the
+   admin's DOM tsconfig cannot see.
 
 ## How it got here
 
@@ -205,6 +236,9 @@ during render.
 7. Ask Sumit stopped matching keywords. `answerFrom` and `os.kb` are still there and still
    run — they are what answers with no Worker configured and what answers when the assistant
    is unreachable — but a configured site now asks a model grounded in the published bundle.
+8. `/admin` stopped being a database editor. Every ` :: `-delimited textarea became a real
+   editor, projects gained a draft that publishing promotes, the editor previews the actual
+   window it will produce, and the list learned search, filters, quick edit and duplicate.
 
 Deliberate substitutions from the original: the wallpaper picker stores the image as a data
 URL in `localStorage` instead of the Claude Design sidecar, the desk defaults to the active
@@ -225,5 +259,8 @@ file.
   payload conversion in `providers/workers_ai.py` stopped matching what the binding accepts,
   which no unit test can see. Also try one question the portfolio does not cover: it must come
   back as the fallback line without the model being called at all.
+- If `worker/admin-ui/` changed: `npm run admin:build`, then drive `/admin` in a browser at
+  1440×900 and 390×844 — editors, save bar, publish, preview, ⌘K, uploads. The admin has no DOM
+  tests by design, so the browser is the only place several of these can fail
 - Drive the actual desktop in a browser at 1440×900: boot, dock, drag, resize, ⌘K, F4,
   right-click, ⌃→, and once at 390×844 for the mobile stack. Console must be clean.

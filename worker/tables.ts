@@ -19,6 +19,8 @@ export type Spec = {
   id: (body: Record<string, unknown>) => string
   /** R2 key columns, consulted before an asset is deleted. */
   fileColumns: string[]
+  /** The column that names a row, for messages about it — "used by AI Video Assistant". */
+  label: string
 }
 
 const uuid = () => crypto.randomUUID()
@@ -31,6 +33,7 @@ const ORDERING: Record<string, Field> = {
 export const SPECS: Record<string, Spec> = {
   projects: {
     table: 'projects',
+    label: 'title',
     unique: 'slug',
     id: (b) => `project-${String(b.slug)}`,
     fileColumns: ['cover_key'],
@@ -54,6 +57,7 @@ export const SPECS: Record<string, Spec> = {
   },
   certificates: {
     table: 'certificates',
+    label: 'title',
     id: uuid,
     fileColumns: ['file_key', 'image_key'],
     fields: {
@@ -68,6 +72,7 @@ export const SPECS: Record<string, Spec> = {
   },
   experience: {
     table: 'experience',
+    label: 'title',
     id: uuid,
     fileColumns: [],
     fields: {
@@ -79,6 +84,7 @@ export const SPECS: Record<string, Spec> = {
   },
   education: {
     table: 'education',
+    label: 'title',
     id: uuid,
     fileColumns: [],
     fields: {
@@ -90,6 +96,7 @@ export const SPECS: Record<string, Spec> = {
   },
   skills: {
     table: 'skills',
+    label: 'heading',
     id: uuid,
     fileColumns: [],
     fields: {
@@ -100,6 +107,7 @@ export const SPECS: Record<string, Spec> = {
   },
   'social-links': {
     table: 'social_links',
+    label: 'label',
     id: uuid,
     fileColumns: [],
     fields: {
@@ -114,9 +122,14 @@ export const SPECS: Record<string, Spec> = {
 }
 
 /** The two singleton rows, updated in place rather than created and deleted. */
-export const SINGLETONS: Record<string, { table: string; fields: Record<string, Field>; fileColumns: string[] }> = {
+export const SINGLETONS: Record<
+  string,
+  { table: string; fields: Record<string, Field>; fileColumns: string[]; label: string }
+> = {
   site: {
     table: 'site',
+    // There is one row, so it names itself.
+    label: 'Profile',
     fileColumns: ['resume_key'],
     fields: {
       name: { kind: 'text', max: 120 },
@@ -129,6 +142,7 @@ export const SINGLETONS: Record<string, { table: string; fields: Record<string, 
   },
   os: {
     table: 'os_content',
+    label: 'Shell & Ask Sumit',
     fileColumns: [],
     fields: {
       term: { kind: 'json', of: 'any', max: 60 },

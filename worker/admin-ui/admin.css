@@ -23,3 +23,52 @@ textarea {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 12px;
 }
+
+/* Visible focus, everywhere, from the browser's own :focus-visible. os.css has a focus rule but
+   it is scoped to [data-contrast="1"], which the admin never sets — so the admin states its own
+   rather than shipping an attribute that does nothing. */
+:where(a, button, input, textarea, select, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--s-accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Long words in a tagline or a URL wrap instead of pushing a row sideways. */
+main {
+  overflow-wrap: anywhere;
+}
+
+/* The admin is a normal page, so it gets a normal narrow layout rather than the desktop's.
+   The declarations below override inline styles, which is what the !important is for — the
+   repo's convention is that layout lives in the style attribute, and a media query cannot
+   otherwise reach it. */
+@media (max-width: 860px) {
+  [data-adminmenu] {
+    display: block !important;
+  }
+
+  /* The sidebar becomes a drawer instead of stealing 214px from a 390px screen. */
+  [data-adminnav] {
+    position: fixed !important;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 35;
+    transform: translateX(-100%);
+    transition: transform 0.18s ease;
+    box-shadow: 0 0 40px rgb(0 0 0 / 45%);
+  }
+
+  [data-adminnav='open'] {
+    transform: none;
+  }
+
+  main {
+    padding: 56px 16px 24px !important;
+  }
+}
+
+/* Nothing in the admin may scroll the page sideways; wide content scrolls inside its own box. */
+body {
+  overflow-x: hidden;
+}
