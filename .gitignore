@@ -18,3 +18,9 @@ ai/.venv-workers
 ai/python_modules
 __pycache__
 .pytest_cache
+
+# Playwright
+test-results
+playwright-report
+blob-report
+.playwright

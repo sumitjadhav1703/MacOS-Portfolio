@@ -29,7 +29,9 @@
     "worker:deploy": "npm run admin:build && wrangler deploy",
     "ai:test": "uv run --directory ai pytest",
     "ai:dev": "uv run --directory ai pywrangler dev",
-    "ai:deploy": "uv run --directory ai pywrangler deploy"
+    "ai:deploy": "uv run --directory ai pywrangler deploy",
+    "e2e": "playwright test",
+    "e2e:admin": "node scripts/e2e-admin.mjs"
   },
   "dependencies": {
     "next": "^16.3.1",
@@ -38,7 +40,9 @@
     "simple-icons": "^16.28.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@cloudflare/workers-types": "^5.20260815.1",
+    "@playwright/test": "^1.62.1",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
