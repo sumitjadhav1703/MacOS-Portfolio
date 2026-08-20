@@ -12,5 +12,11 @@
     "noEmit": true,
     "allowImportingTsExtensions": true
   },
-  "include": ["**/*.ts", "**/*.tsx", "../../src/os/css.ts"]
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "../../src/os/css.ts",
+    "../../src/lib/icons.tsx",
+    "../../src/generated/icon-slugs.ts"
+  ]
 }
