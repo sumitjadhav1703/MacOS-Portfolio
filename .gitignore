@@ -18,3 +18,13 @@ ai/.venv-workers
 ai/python_modules
 __pycache__
 .pytest_cache
+
+# Playwright
+test-results
+playwright-report
+blob-report
+.playwright
+
+# Next regenerates this on every build, with different contents for `next dev` and
+# `next build`, so a tracked copy is dirty half the time. It is generated, not authored.
+next-env.d.ts

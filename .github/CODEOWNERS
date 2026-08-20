@@ -1,0 +1,3 @@
+# One owner, so a pull request always has a reviewer assigned even when it is opened by a bot.
+# Branch protection is what makes review required; this decides who is asked.
+* @sumitjadhav1703

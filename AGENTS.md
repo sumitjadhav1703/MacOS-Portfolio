@@ -24,8 +24,13 @@ npm install
 npm run dev     # http://localhost:3000
 npm run build   # next build — prerenders every route and OG image
 npm start       # serve the build
-npm test        # vitest
-npm run lint    # oxlint
+npm test        # vitest — unit only; e2e/ is Playwright and is excluded in vitest.config.ts
+npm run lint    # oxlint, --max-warnings=0
+npm run ci      # everything CI runs: lint, test, worker:check, secrets, migrations, build, size
+
+npm run e2e                   # desktop + mobile shell, Chromium
+npm run e2e:admin             # the CMS against wrangler dev with a throwaway local D1
+npm run smoke -- <site> [api] # safe against production: GETs, plus four 401s that must stay 401
 
 npm run worker:check          # tsc over worker/ and worker/admin-ui/
 npm run worker:migrate:local  # apply migrations to a local D1
@@ -220,6 +225,41 @@ during render.
    `worker/content.ts` — the latter names `D1Database`, `R2Bucket` and `caches.default`, which the
    admin's DOM tsconfig cannot see.
 
+12. **The checks are a gate now, not a report.** `npm run ci` is what GitHub Actions runs — the
+   same command, so a green terminal and a green workflow mean the same thing. Three of its steps
+   fail on things that used to be nobody's job: `scan-secrets` refuses a credential in anything
+   git tracks, `check-migrations` refuses an edit to a migration that has already been applied
+   (D1 never re-runs one, so editing `0001` changes what a fresh database gets and leaves every
+   existing database behind, permanently), and `check-bundle` fails if the public JavaScript
+   grows more than 10% past the measured baseline in `perf-budget.json`. Raising that ceiling
+   means editing the file in the same commit and saying why.
+13. **Hostile test input lives in one file.** `worker/security-fixtures.ts` holds the XSS
+   strings, the `javascript:` URLs, the traversal paths, the fake MIME bodies and the bad session
+   ids. Import from there. A thirteenth attack string added to that table covers every boundary at
+   once; a copy pasted into one suite covers one.
+14. **Two things about testing this in a browser that cost an afternoon each.** The standalone
+   Playwright `request` fixture has its own cookie jar and never sees the session the browser
+   holds — use `page.request`, or every API assertion is silently anonymous. And `page.goto`
+   resolves on load while the admin is still asking the server whether the cookie is good, so
+   checking "is the login form visible?" straight afterwards answers no because nothing has
+   rendered yet, not because there is a session. Both fail in ways that look like the app is
+   broken.
+15. **`.dev.vars` is parsed as dotenv, and the password hash is full of `$`.** Quote it with
+   single quotes. In double quotes `$210000` expands to nothing, the secret arrives mangled, and
+   the Worker rejects the correct password with no hint as to why.
+
+## Where the process lives
+
+- `CONTRIBUTING.md` — branching, the gate, which test layer a thing belongs in, commit style
+- `SECURITY.md` — how to report something, and how the security model actually works
+- `docs/release-process.md` — versioning, deploy order, and what can and cannot be rolled back
+- `docs/release-checklist.md` — the list to work through before tagging
+- `docs/github-settings.md` — branch protection and code security, which live in GitHub's
+  settings and cannot be configured from this repository
+
+Content changes — a project, a certificate, the resume — are edited in `/admin` and publish
+immediately. They are not a release and never get a tag.
+
 ## How it got here
 
 1. Imported from a Claude Design project (`Portfolio OS.dc.html`) as one 1,900-line HTML
@@ -239,6 +279,12 @@ during render.
 8. `/admin` stopped being a database editor. Every ` :: `-delimited textarea became a real
    editor, projects gained a draft that publishing promotes, the editor previews the actual
    window it will produce, and the list learned search, filters, quick edit and duplicate.
+9. The repository grew the machinery to change all of it safely: GitHub Actions running the same
+   gate a developer runs, CodeQL over the code and the workflows, dependency review, a secret
+   scan, migration and bundle-size guards, and a browser suite that drives both the desktop and
+   the CMS. Two real defects turned up while writing it — a project link's URL was never
+   validated on the server, and a JSON column holding valid JSON of the wrong type reached the
+   public bundle.
 
 Deliberate substitutions from the original: the wallpaper picker stores the image as a data
 URL in `localStorage` instead of the Claude Design sidecar, the desk defaults to the active

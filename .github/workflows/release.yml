@@ -1,0 +1,52 @@
+name: Release
+
+# A tag runs the full quality gate and then drafts a release. It does not deploy.
+#
+# Deployment stays a deliberate human action: `npm run worker:deploy` and `npm run ai:deploy` from
+# a machine that is already authenticated. That keeps every Cloudflare credential out of this
+# repository entirely — there is no token here to leak, and no workflow that could be made to
+# push to production by pushing a tag.
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  # The same jobs a pull request runs, called rather than copied.
+  verify:
+    uses: ./.github/workflows/ci.yml
+
+  draft:
+    name: draft the release
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    permissions:
+      # The only write scope anywhere in this repository, on the one job that needs it, and only
+      # after `verify` has gone green.
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      # A draft, not a publication. Generated notes are a starting point — spec §27 wants a human
+      # to read them before anyone else does, because automated text is happy to describe work
+      # that was not shipped.
+      - name: Create a draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          # Read through the environment, never interpolated into the shell line. A tag is
+          # attacker-controllable text in the general case, and `${{ }}` inside a run block is
+          # how that becomes command execution.
+          TAG: ${{ github.ref_name }}
+        run: |
+          gh release create "$TAG" \
+            --draft \
+            --title "$TAG" \
+            --generate-notes

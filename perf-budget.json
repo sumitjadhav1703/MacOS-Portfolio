@@ -1,0 +1,7 @@
+{
+  "note": "Baseline for scripts/check-bundle.mjs: the gzipped total of .next/static/chunks. Warns above +5%, fails above +10%. Update deliberately, in the same commit as the change that justifies it.",
+  "gzipBytes": 244503,
+  "rawBytes": 808738,
+  "files": 7,
+  "recordedAt": "2026-08-20"
+}

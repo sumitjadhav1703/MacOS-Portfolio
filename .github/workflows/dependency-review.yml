@@ -1,0 +1,34 @@
+name: Dependency review
+
+# Runs on the diff, not on the tree: it answers "does this pull request introduce a known
+# vulnerable or badly licensed dependency", which is a different question from whether the
+# existing lockfile is clean. Dependabot handles the latter, on a schedule.
+
+on: pull_request
+
+permissions:
+  contents: read
+
+jobs:
+  review:
+    name: new dependencies
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    permissions:
+      contents: read
+      # For the summary comment on the pull request.
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/dependency-review-action@v4
+        with:
+          # High and critical block. Moderate and low are reported and left to judgement: a
+          # portfolio that cannot merge a documentation change because a transitive dev
+          # dependency has a moderate advisory is a policy nobody keeps.
+          fail-on-severity: high
+          comment-summary-in-pr: on-failure
+          # Copyleft licences would be a problem for a repository published under MIT.
+          deny-licenses: AGPL-3.0, GPL-3.0

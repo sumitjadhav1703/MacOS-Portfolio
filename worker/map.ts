@@ -13,12 +13,22 @@ export type Row = Record<string, unknown>
 const str = (v: unknown, fallback = ''): string => (typeof v === 'string' ? v : fallback)
 const bool = (v: unknown): boolean => v === 1 || v === true
 
-/** JSON columns are parsed defensively: a corrupt cell degrades to empty, it never throws. */
+/**
+ * JSON columns are parsed defensively: a corrupt cell degrades to the fallback, it never throws.
+ *
+ * The shape is checked as well as the syntax. A cell can hold perfectly valid JSON of the wrong
+ * type — `"a string"`, `42`, `true` — and every caller here maps or spreads the result, so a
+ * non-list where a list belongs breaks the desktop exactly as a syntax error would. The fallback
+ * declares the expected shape, so it is the only thing this needs to compare against.
+ */
 function parse<T>(v: unknown, fallback: T): T {
   if (typeof v !== 'string') return fallback
   try {
     const out = JSON.parse(v)
-    return out === null ? fallback : (out as T)
+    if (out === null) return fallback
+    if (Array.isArray(fallback) !== Array.isArray(out)) return fallback
+    if (typeof fallback === 'object' && typeof out !== 'object') return fallback
+    return out as T
   } catch {
     return fallback
   }

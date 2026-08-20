@@ -1,0 +1,55 @@
+name: Security
+
+# CodeQL over the application code and over the workflows themselves. The second matters here:
+# a workflow that interpolates untrusted text into a shell line is a supply-chain problem that
+# no amount of application testing would find.
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+  schedule:
+    # Weekly, so a newly published query finds an old file. Monday morning UTC.
+    - cron: '17 6 * * 1'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  codeql:
+    name: CodeQL (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    permissions:
+      # Only this job writes, and only to the code-scanning API.
+      security-events: write
+      contents: read
+      actions: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [javascript-typescript, actions]
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: github/codeql-action/init@v3
+        with:
+          language: ${{ matrix.language }}
+          # The default suite, not security-extended. Extended roughly doubles the run and, on a
+          # codebase this size, mostly produces findings that are triaged away — which trains
+          # everyone to skim the alerts. The decision is recorded in SECURITY.md so it can be
+          # revisited rather than rediscovered.
+          queries: security-and-quality
+
+      # The site builds with Turbopack and the Worker with tsc; CodeQL's own extractor reads the
+      # sources directly and needs neither, so there is no build step to keep in sync here.
+      - uses: github/codeql-action/analyze@v3
+        with:
+          category: /language:${{ matrix.language }}
