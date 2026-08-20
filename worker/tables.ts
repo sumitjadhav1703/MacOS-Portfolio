@@ -8,7 +8,7 @@ export type Field =
   | { kind: 'url'; required?: boolean }
   | { kind: 'bool' }
   | { kind: 'int'; min?: number; max?: number }
-  | { kind: 'json'; of: 'strings' | 'any'; max: number }
+  | { kind: 'json'; of: 'strings' | 'any'; max: number; urls?: true }
 
 export type Spec = {
   table: string
@@ -46,7 +46,7 @@ export const SPECS: Record<string, Spec> = {
       status_ok: { kind: 'bool' },
       stack: { kind: 'json', of: 'strings', max: 40 },
       sections: { kind: 'json', of: 'any', max: 40 },
-      links: { kind: 'json', of: 'any', max: 20 },
+      links: { kind: 'json', of: 'any', max: 20, urls: true },
       aliases: { kind: 'json', of: 'strings', max: 20 },
       note: { kind: 'text', max: 800 },
       caveat: { kind: 'text', max: 800 },
@@ -136,7 +136,7 @@ export const SINGLETONS: Record<
       initials: { kind: 'text', max: 4 },
       subtitle: { kind: 'text', max: 200 },
       paragraphs: { kind: 'json', of: 'strings', max: 12 },
-      email: { kind: 'text', max: 160 },
+      email: { kind: 'text', max: 160, pattern: /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)+$/ },
       resume_key: { kind: 'text', max: 200 },
     },
   },
@@ -157,6 +157,22 @@ export const SINGLETONS: Record<
 }
 
 export type Validated = { values: Record<string, string | number>; errors: string[] }
+
+/**
+ * The only URL schemes that may reach an href. `javascript:`, `data:` and `file:` are the ones
+ * that matter: every one of these values is rendered by the desktop as a link the visitor can
+ * click, so a scheme that executes is a stored XSS with a UI in front of it.
+ *
+ * Both places that accept a URL call this — the `url` field kind, and the entries of a `json`
+ * field marked `urls`. Keeping it one function is what stops the two from drifting apart.
+ */
+export function urlAllowed(text: string): boolean {
+  try {
+    return ['http:', 'https:', 'mailto:'].includes(new URL(text).protocol)
+  } catch {
+    return false
+  }
+}
 
 /**
  * Server-side validation. Every admin write goes through this — the admin UI's own checks are a
@@ -205,13 +221,8 @@ export function validate(
           else values[name] = ''
           break
         }
-        try {
-          const url = new URL(text)
-          if (!['http:', 'https:', 'mailto:'].includes(url.protocol)) throw new Error('scheme')
-          values[name] = text
-        } catch {
-          errors.push(`${name} must be a valid http, https or mailto URL`)
-        }
+        if (urlAllowed(text)) values[name] = text
+        else errors.push(`${name} must be a valid http, https or mailto URL`)
         break
       }
       case 'bool':
@@ -242,6 +253,19 @@ export function validate(
         if (field.of === 'strings' && (!isArray || (raw as unknown[]).some((v) => typeof v !== 'string'))) {
           errors.push(`${name} must be a list of text values`)
           break
+        }
+        if (field.urls) {
+          const entries = (isArray ? raw : [raw]) as unknown[]
+          const bad = entries.filter((entry) => {
+            if (typeof entry !== 'object' || entry === null) return false
+            const url = (entry as { url?: unknown }).url
+            if (url === undefined || url === null || url === '') return false
+            return typeof url !== 'string' || !urlAllowed(url.trim())
+          })
+          if (bad.length) {
+            errors.push(`${name} contains a link that is not a valid http, https or mailto URL`)
+            break
+          }
         }
         const text = JSON.stringify(raw)
         // A hard ceiling on any single JSON cell, so a deeply nested body cannot blow up a row.
