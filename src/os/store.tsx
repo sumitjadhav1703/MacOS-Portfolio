@@ -203,9 +203,9 @@ export function reducer(state: OsState, action: Action): OsState {
       const win = state.wins[action.app]
       if (!win) return state
       const next: WindowState = win.max
-        ? { ...win, max: false, ...(win.restore ?? {}), restore: undefined, snapped: undefined }
+        ? { ...win, max: false, ...win.restore, restore: undefined, snapped: undefined }
         : win.snapped
-          ? { ...win, ...(win.restore ?? {}), restore: undefined, snapped: undefined }
+          ? { ...win, ...win.restore, restore: undefined, snapped: undefined }
           : { ...win, max: true, restore: { x: win.x, y: win.y, w: win.w, h: win.h } }
       return { ...state, wins: { ...state.wins, [action.app]: next } }
     }

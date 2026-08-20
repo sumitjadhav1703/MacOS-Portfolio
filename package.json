@@ -3,6 +3,9 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "gen": "node scripts/gen-sources.mjs && node scripts/gen-icons.mjs",
     "predev": "npm run gen",
@@ -10,12 +13,15 @@
     "prebuild": "npm run gen",
     "build": "next build",
     "start": "next start",
-    "lint": "oxlint",
+    "lint": "oxlint --max-warnings=0",
     "pretest": "npm run gen",
     "test": "vitest run",
+    "ci": "npm run lint && npm test && npm run worker:check && npm run scan:secrets && npm run build",
+    "scan:secrets": "node scripts/scan-secrets.mjs",
     "seed": "node scripts/seed-d1.mjs",
     "preadmin:build": "npm run gen",
     "admin:build": "vite build --config worker/admin-ui/vite.config.ts",
+    "preworker:check": "npm run gen",
     "worker:check": "tsc -p worker --noEmit && tsc -p worker/admin-ui --noEmit",
     "worker:dev": "npm run admin:build && wrangler dev",
     "worker:migrate:local": "wrangler d1 migrations apply sumitos --local",
