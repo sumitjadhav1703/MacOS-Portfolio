@@ -1,0 +1,5 @@
+# sha256 of every migration, so an applied one cannot be edited unnoticed.
+# Regenerate with: node scripts/check-migrations.mjs --write
+e4529688310fbe55a09de2e73751847cfb3d657510a49b182390aef0f2a26751  0001_init.sql
+b3c34f8f92c5b4b57276a0c9067d09bac502a2362f15222260d04e961d5e039c  0002_seed.sql
+310e29f7b5b81bdcfdf70295ca58e1f88fd632b3826f2b1ac5c9b10265b4dab6  0003_project_draft.sql

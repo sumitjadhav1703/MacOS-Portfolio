@@ -16,7 +16,7 @@
     "lint": "oxlint --max-warnings=0",
     "pretest": "npm run gen",
     "test": "vitest run",
-    "ci": "npm run lint && npm test && npm run worker:check && npm run scan:secrets && npm run build",
+    "ci": "npm run lint && npm test && npm run worker:check && npm run scan:secrets && npm run check:migrations && npm run build && npm run check:bundle",
     "scan:secrets": "node scripts/scan-secrets.mjs",
     "seed": "node scripts/seed-d1.mjs",
     "preadmin:build": "npm run gen",
@@ -31,7 +31,10 @@
     "ai:dev": "uv run --directory ai pywrangler dev",
     "ai:deploy": "uv run --directory ai pywrangler deploy",
     "e2e": "playwright test",
-    "e2e:admin": "node scripts/e2e-admin.mjs"
+    "e2e:admin": "node scripts/e2e-admin.mjs",
+    "smoke": "node scripts/smoke.mjs",
+    "check:migrations": "node scripts/check-migrations.mjs",
+    "check:bundle": "node scripts/check-bundle.mjs"
   },
   "dependencies": {
     "next": "^16.3.1",
