@@ -9,9 +9,12 @@ npm install
 npm run dev        # http://localhost:3000
 npm run build      # next build — prerenders every route and OG image
 npm start          # serve the build
-npm test           # vitest: content invariants, worker mapping, validation, auth
-npm run lint       # oxlint
+npm test           # vitest: content invariants, worker mapping, validation, auth, routes
+npm run lint       # oxlint, zero warnings
+npm run ci         # everything CI runs, in one command
 ```
+
+Needs **Node 24** (there is an `.nvmrc`), and `uv` only if you are working on `ai/`.
 
 Content is served by a Cloudflare Worker (see **The CMS** below). The site runs without it —
 `src/data/` is compiled in as a fallback — so `npm run dev` needs no extra setup.
@@ -64,6 +67,40 @@ is unreachable; it does not change published content.
 ⌘K search · F4 Launchpad · ? shortcuts · ⌘↑ or F3 Mission Control · ⌃← / ⌃→ Spaces ·
 ⌃⌘← / ⌃⌘→ tile left/right · ⌘⇧F Projects · ⌘W close · ⌘M minimise · ⌘, System · Esc dismiss.
 Right-click the desk, a folder, a dock icon or a title bar for its menu.
+
+## Testing
+
+```bash
+npm run ci          # lint, tests, types, secret scan, migration check, build, bundle size
+npm run ai:test     # pytest over ai/ — pure Python, no runtime needed
+npm run e2e         # the desktop and the mobile shell, in Chromium
+npm run e2e:admin   # the CMS, against a real Worker with a real local D1
+```
+
+`npm run ci` is the same command GitHub Actions runs, so a green terminal and a green workflow
+mean the same thing. It ends with the build, which is where the app's own types are checked.
+
+`npm run e2e:admin` builds the admin SPA, migrates a throwaway local database, generates a
+password for that run alone and starts `wrangler dev --local`. No credential is stored anywhere,
+and `--local` is the only mode used — there is no path from a test to the production database.
+
+Some things are still only checkable in a browser. [AGENTS.md](AGENTS.md) lists them, and
+[docs/release-checklist.md](docs/release-checklist.md) asks for them before a release.
+
+## Continuous integration
+
+| Workflow | Runs on | Does |
+|---|---|---|
+| `ci.yml` | pull request, push to `master` | the gate, the Python suite, both browser suites, migrations |
+| `security.yml` | pull request, push, weekly | CodeQL over the code and over the workflows |
+| `dependency-review.yml` | pull request | blocks a new high or critical advisory |
+| `release.yml` | tag `v*` | runs the gate, drafts a release |
+
+Nothing deploys from CI. `wrangler deploy` stays a deliberate human action, which is what keeps
+every Cloudflare credential out of this repository.
+
+Branch protection is configured in GitHub rather than in these files — see
+[docs/github-settings.md](docs/github-settings.md).
 
 ## Notes
 
@@ -137,6 +174,19 @@ unset and the site simply serves its compiled-in content.
 Update `SITE_ORIGIN` in `wrangler.jsonc` if the site's origin ever changes — it is the only
 origin CORS lets through.
 
+### Environment
+
+Nothing here is a secret except the last row, and that one is never in a file that is committed.
+
+| Name | Where | What it is |
+|---|---|---|
+| `NEXT_PUBLIC_API_URL` | Vercel | The Worker's origin. **Unset** and the site serves `src/data/` — which is why it builds and runs with no database at all |
+| `SITE_ORIGIN` | `wrangler.jsonc`, plain var | The public origin. Used for CORS and to resolve the packaged resume URL |
+| `ADMIN_PASSWORD_HASH` | `wrangler secret put` | The one real secret. `pbkdf2$<iterations>$<salt>$<hash>`, from `node scripts/hash-password.mjs` |
+
+Locally the last two live in `.dev.vars`, which is gitignored and must stay that way. Quote the
+hash with **single** quotes — the file is parsed as dotenv and the hash is full of `$`.
+
 ### Local development
 
 ```bash
@@ -164,3 +214,25 @@ Everything sits inside the Cloudflare free tier with a wide margin: Workers 100k
 D1 5M rows read and 100k written per day with 5 GB storage, R2 10 GB-month with free egress.
 The whole public API is one cached bundle refreshed at most once a minute per location, and R2
 objects are immutable so they are cached indefinitely.
+
+## Security
+
+Please report a vulnerability privately, through
+[a security advisory](https://github.com/sumitjadhav1703/MacOS-Portfolio/security/advisories/new)
+rather than as a public issue. [SECURITY.md](SECURITY.md) has the details, and explains how the
+security model actually works — which makes for better reports.
+
+## Releasing
+
+[docs/release-process.md](docs/release-process.md) covers versioning, deployment order and
+rollback. The short version: content changes are edited in `/admin` and publish immediately with
+no release at all; code changes get a SemVer tag, and a bad schema migration is fixed forward
+because D1 has no way back.
+
+## Licence
+
+[MIT](LICENSE), for the code.
+
+The content is not covered by it: the resume, the biography, the project write-ups and the
+photographs are Sumit Jadhav's. Take the desktop, the window manager and the CMS and do what you
+like with them — please do not publish them as your own portfolio with the name changed.
