@@ -70,6 +70,11 @@ all built before this point; what this version adds is everything needed to chan
 - Node is pinned to 24 in `engines` and `.nvmrc`.
 - `vitest.config.ts` names the unit directories explicitly, so `npm test` no longer tries to
   collect the Playwright suites.
+- The three specification documents this project was built from move from the repository root to
+  `docs/specs/`, with a README saying they record what was asked for rather than what the code
+  does.
+- `next-env.d.ts` is no longer tracked. Next writes different contents for `next dev` than for
+  `next build`, so a committed copy is dirty half the time.
 
 ### Security
 
@@ -84,6 +89,11 @@ all built before this point; what this version adds is everything needed to chan
 - Upload guards are covered: size, empty files, unknown categories, and bytes that do not match
   the claimed type. Asset deletion is covered, including the refusal to delete a file a content
   row still references.
+- The four repository scripts no longer ask whether a file exists before reading or writing it —
+  the operation itself answers that, and the two questions could disagree. CodeQL raised this on
+  the branch's first run.
+- `astral-sh/setup-uv` is pinned to a commit rather than a tag. It is the only action here that
+  is not first-party GitHub or CodeQL, and a tag can be moved.
 
 ## Before 1.0.0
 
