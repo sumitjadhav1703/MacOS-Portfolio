@@ -23,7 +23,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: actions/dependency-review-action@v4
+      - uses: actions/dependency-review-action@v5
         with:
           # High and critical block. Moderate and low are reported and left to judgement: a
           # portfolio that cannot merge a documentation change because a transitive dev
