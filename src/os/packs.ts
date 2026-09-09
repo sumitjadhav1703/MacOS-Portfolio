@@ -100,5 +100,8 @@ const TINT_CYCLE = Object.values(FOLDER_TINTS)
  * rather than defaulting to grey.
  */
 export function folderColorFor(id: AppId, index: number): [string, string] {
-  return FOLDER_COLORS[id] ?? TINT_CYCLE[index % TINT_CYCLE.length]!
+  // Object.hasOwn, not a plain lookup: an id like `constructor` finds something on the
+  // prototype chain and hands back a function where a [start, end] colour pair is expected.
+  return (Object.hasOwn(FOLDER_COLORS, id) ? FOLDER_COLORS[id] : undefined) ??
+    TINT_CYCLE[index % TINT_CYCLE.length]!
 }

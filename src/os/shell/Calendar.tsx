@@ -12,11 +12,10 @@ export function Calendar({ accent }: { accent: string }) {
 
   return (
     <>
-      <div id="cal-head" style={s('font-size:13px;font-weight:700;margin-bottom:10px')}>
+      <div style={s('font-size:13px;font-weight:700;margin-bottom:10px')}>
         {now.toLocaleDateString([], { month: 'long', year: 'numeric' })}
       </div>
       <div
-        id="cal-grid"
         style={s('display:grid;grid-template-columns:repeat(7,1fr);gap:3px;font-size:11px;text-align:center')}
       >
         {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (

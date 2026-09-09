@@ -10,7 +10,7 @@ import {
   type Dispatch,
   type ReactNode,
 } from 'react'
-import { DEFAULT_SIZE, DOCK_FOR, SIZE, isAppId, titleOf } from './registry'
+import { DEFAULT_SIZE, DOCK_FOR, isAppId, sizeOf, titleOf } from './registry'
 import { PACKS } from './packs'
 import type {
   ActivityState,
@@ -23,7 +23,6 @@ import type {
   PowerState,
   Prefs,
   SnapZone,
-  StaticAppId,
   WindowState,
 } from './types'
 
@@ -152,7 +151,7 @@ export function reducer(state: OsState, action: Action): OsState {
 
       // Cascade new windows the way the original did, clamped to the viewport.
       const n = Object.keys(state.wins).length
-      const [dw, dh] = SIZE[app as StaticAppId] ?? DEFAULT_SIZE
+      const [dw, dh] = sizeOf(app) ?? DEFAULT_SIZE
       const saved: Partial<{ x: number; y: number; w: number; h: number }> =
         state.prefs.wins[app] ?? {}
       const w = saved.w ?? dw
