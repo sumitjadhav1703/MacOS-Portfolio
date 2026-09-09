@@ -11,12 +11,25 @@ const from = (origin: string | null) =>
   corsHeaders(new Request('https://api.example.workers.dev/api/content', origin ? { headers: { Origin: origin } } : {}), env)
 
 describe('the allowlist', () => {
-  it('is the site and local development, and nothing else', () => {
-    expect(allowedOrigins(env)).toEqual([SITE, 'http://localhost:3000'])
+  it('is the deployed site and nothing else', () => {
+    expect(allowedOrigins(env)).toEqual([SITE])
+  })
+
+  it('adds local development only when SITE_ORIGIN is itself local', () => {
+    // A deployed Worker has no reason to answer a developer's machine, and shipping
+    // localhost in the production allowlist is how it ended up doing exactly that.
+    expect(allowedOrigins(makeEnv({ SITE_ORIGIN: 'http://localhost:8787' }))).toEqual([
+      'http://localhost:8787',
+      'http://localhost:3000',
+    ])
+    expect(allowedOrigins(makeEnv({ SITE_ORIGIN: 'http://127.0.0.1:8799' }))).toEqual([
+      'http://127.0.0.1:8799',
+      'http://localhost:3000',
+    ])
   })
 
   it('drops an unset SITE_ORIGIN rather than allowing an empty origin', () => {
-    expect(allowedOrigins(makeEnv({ SITE_ORIGIN: '' }))).toEqual(['http://localhost:3000'])
+    expect(allowedOrigins(makeEnv({ SITE_ORIGIN: '' }))).toEqual([])
   })
 })
 

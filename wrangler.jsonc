@@ -55,11 +55,15 @@
 
   // The admin SPA. `run_worker_first` keeps the API paths out of the static-asset handler;
   // everything else falls through to the built files, with SPA routing for /admin/*.
+  //
+  // /admin and /admin/* are listed so the Worker can put its security headers on the sign-in
+  // document. Served straight from the asset handler it carried none, which is how the login
+  // form ended up rendering inside a cross-origin iframe.
   "assets": {
     "binding": "ASSETS",
     "directory": "worker/assets",
     "not_found_handling": "single-page-application",
-    "run_worker_first": ["/", "/api/*", "/admin/api/*", "/files/*", "/icons/*"]
+    "run_worker_first": ["/", "/api/*", "/admin", "/admin/*", "/files/*", "/icons/*"]
   },
 
   "observability": { "enabled": true }
