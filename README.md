@@ -160,6 +160,10 @@ npx wrangler login
 npx wrangler d1 create sumitos              # put the printed id in wrangler.jsonc
 npx wrangler r2 bucket create sumitos-assets
 
+# Set vars.SITE_ORIGIN in wrangler.jsonc to the origin the site is actually served from.
+# It is the CORS allowlist, so a wrong value deploys cleanly and then leaves the live site
+# silently serving its bundled content. `npm run worker:deploy` checks both before it runs.
+
 node scripts/hash-password.mjs              # prints the hash; the password is never stored
 npx wrangler secret put ADMIN_PASSWORD_HASH # paste it
 
@@ -171,8 +175,9 @@ npm run worker:deploy                       # builds the admin UI, deploys the W
 Then set `NEXT_PUBLIC_API_URL` on Vercel to the Worker's URL and redeploy the site. Leave it
 unset and the site simply serves its compiled-in content.
 
-Update `SITE_ORIGIN` in `wrangler.jsonc` if the site's origin ever changes — it is the only
-origin CORS lets through.
+Update `SITE_ORIGIN` in `wrangler.jsonc` whenever the site's origin changes — it is the only
+origin CORS lets through, and the desktop falls back to its bundled content without saying so
+when the API refuses it.
 
 ### Environment
 
@@ -195,8 +200,17 @@ npm run worker:dev                          # http://localhost:8787, /admin incl
 NEXT_PUBLIC_API_URL=http://127.0.0.1:8787 npm run dev
 ```
 
-`wrangler dev` reads secrets from `.dev.vars` (gitignored). Put an `ADMIN_PASSWORD_HASH=` line
-in it, generated the same way as above.
+`wrangler dev` reads `.dev.vars` (gitignored) and what is in it overrides `vars` in
+`wrangler.jsonc`. Two lines belong there:
+
+```bash
+ADMIN_PASSWORD_HASH='pbkdf2$...'            # single quotes: the hash is full of $
+SITE_ORIGIN=http://localhost:3000           # the origin `npm run dev` serves
+```
+
+`SITE_ORIGIN` is the CORS allowlist, so without that second line the local Worker refuses the
+local site and the desktop quietly serves its bundled content instead. The deployed value is a
+public https origin and only then does localhost stop being allowed — which is the point.
 
 ### Rollback
 

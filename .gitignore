@@ -7,7 +7,11 @@ src/generated
 .wrangler
 .dev.vars
 worker/assets
-.env*.local
+# Every dotenv file, not just the *.local ones Next documents: `.env` and `.env.production` are
+# loaded too, and scan-secrets can only refuse them once they are already tracked.
+.env
+.env.*
+!.env.example
 
 .playwright-mcp
 tsconfig.tsbuildinfo

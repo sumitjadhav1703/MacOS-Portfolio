@@ -16,7 +16,7 @@
     "lint": "oxlint --max-warnings=0",
     "pretest": "npm run gen",
     "test": "vitest run",
-    "ci": "npm run lint && npm test && npm run worker:check && npm run scan:secrets && npm run check:migrations && npm run build && npm run check:bundle",
+    "ci": "npm run lint && npm test && npm run worker:check && npm run scan:secrets && npm run check:install-scripts && npm run check:migrations && npm run build && npm run check:bundle",
     "scan:secrets": "node scripts/scan-secrets.mjs",
     "seed": "node scripts/seed-d1.mjs",
     "preadmin:build": "npm run gen",
@@ -34,10 +34,12 @@
     "e2e:admin": "node scripts/e2e-admin.mjs",
     "smoke": "node scripts/smoke.mjs",
     "check:migrations": "node scripts/check-migrations.mjs",
-    "check:bundle": "node scripts/check-bundle.mjs"
+    "check:bundle": "node scripts/check-bundle.mjs",
+    "check:install-scripts": "node scripts/check-install-scripts.mjs",
+    "preworker:deploy": "node scripts/check-deploy.mjs"
   },
   "dependencies": {
-    "next": "^16.3.1",
+    "next": "^16.3.4",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "simple-icons": "^16.28.0"
@@ -53,10 +55,13 @@
     "oxlint": "^1.75.0",
     "typescript": "~6.0.2",
     "vite": "^8.2.0",
-    "vitest": "^4.1.10",
-    "wrangler": "^4.123.0"
+    "vitest": "^4.1.11",
+    "wrangler": "^4.130.0"
   },
   "allowScripts": {
-    "workerd@1.20260811.1": true
+    "esbuild@0.28.1": true,
+    "fsevents@2.3.2": true,
+    "fsevents@2.3.3": true,
+    "workerd@1.20260908.1": true
   }
 }
