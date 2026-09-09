@@ -30,12 +30,16 @@ afterEach(() => {
 })
 
 /** A database that reports `failures` recent attempts and knows no sessions yet. */
+/**
+ * `failures` is what the attempt counter sees *including* the attempt being made, because
+ * handleLogin now records first and counts second — that write-then-read order is what makes the
+ * limit hold when requests arrive together.
+ */
 function loginDb(failures = 0, extra: Row | null = null) {
   return fakeDb({
-    first: (sql) => {
-      if (sql.includes('login_attempts')) return { n: failures }
-      return extra
-    },
+    first: () => extra,
+    // The counter is one batch: [INSERT attempt, SELECT COUNT(*)].
+    batch: [[], [{ n: failures }]],
   })
 }
 
@@ -83,8 +87,8 @@ describe('logging in', () => {
     expect(db.statements.some((s) => s.sql.startsWith('INSERT INTO login_attempts'))).toBe(true)
   })
 
-  it('locks the IP out after ten failures, before checking the password at all', async () => {
-    const db = loginDb(10)
+  it('locks the IP out once the eleventh attempt lands, before checking the password at all', async () => {
+    const db = loginDb(11)
     const response = await login({ password: PASSWORD }, makeEnv({ DB: db, ADMIN_PASSWORD_HASH: HASH }))
     expect(response.status).toBe(429)
     // The right password was supplied and still did not produce a session: the limiter runs first.
@@ -219,7 +223,7 @@ describe('what the server says back', () => {
     const bodies = [
       await (await login({ password: PASSWORD })).text(),
       await (await login({ password: 'wrong' })).text(),
-      await (await login({ password: PASSWORD }, makeEnv({ DB: loginDb(10), ADMIN_PASSWORD_HASH: HASH }))).text(),
+      await (await login({ password: PASSWORD }, makeEnv({ DB: loginDb(11), ADMIN_PASSWORD_HASH: HASH }))).text(),
       await (
         await worker.fetch(req('/admin/api/me', { cookie: VALID_SID, origin: ORIGIN }), makeEnv({ DB: sessionDb() }), ctx)
       ).text(),
