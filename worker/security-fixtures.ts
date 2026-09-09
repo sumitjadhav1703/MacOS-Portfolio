@@ -131,3 +131,23 @@ export const SECRET_SHAPES = [
   /expires_at/, // the column name; the API's own `expiresAt` is returned on purpose
   /"sid"\s*:/i, // a session id anywhere but the cookie
 ]
+
+/**
+ * Names every JavaScript object answers to but nobody declared.
+ *
+ * A `map[name]` lookup finds these on Object.prototype, so any check written as `if (SPECS[x])`
+ * or `x in TITLES` treats them as real entries — and the value that comes back is a function
+ * where a table name or a size was expected. Every map that is indexed by request text is tested
+ * against this list.
+ */
+export const PROTOTYPE_KEYS = [
+  'constructor',
+  '__proto__',
+  'prototype',
+  'toString',
+  'valueOf',
+  'hasOwnProperty',
+  'isPrototypeOf',
+  'propertyIsEnumerable',
+  'toLocaleString',
+]
