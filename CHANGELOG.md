@@ -25,6 +25,13 @@ in `/admin` and publish immediately. Only code releases get a version. See
 
 ### Added
 
+- **A README front page.** The project is a desktop environment and its README had no image at
+  all — no title block, no badges, nothing to look at. It now opens with a demo GIF of the thing
+  booting, stills at both viewports, and four badges that point at live data. Nothing was
+  deleted: the endpoint lists, the environment table and the deploy sequence moved into
+  `<details>` blocks, so the page is short to skim and complete when opened.
+  `scripts/capture-readme-media.mjs` retakes the media from the running site, choosing whichever
+  project the CMS currently holds rather than a slug that goes stale.
 - **[docs/deployment.md](docs/deployment.md)**, a first-deployment runbook. Every step says what
   it does, why it exists, where to run it, what a good result looks like and what to do when it
   fails, with LOCAL and REMOTE kept visibly apart. It also records the two things that are not

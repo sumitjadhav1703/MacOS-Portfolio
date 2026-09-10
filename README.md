@@ -1,72 +1,92 @@
-# Sumit's Portfolio OS
+<h1 align="center">SumitOS</h1>
 
-An interactive portfolio built as a desktop environment — windows, dock, Launchpad,
-Spotlight, a Shell, Spaces, Mission Control and a boot sequence. Next.js (App Router),
-React and TypeScript, deployed on Vercel.
+<p align="center">
+  A portfolio that boots. Windows, a dock, Launchpad, Spotlight, Spaces and a Shell —
+  with a real CMS behind it, so the content changes without a deploy.
+</p>
+
+<p align="center">
+  <a href="https://github.com/sumitjadhav1703/MacOS-Portfolio/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/sumitjadhav1703/MacOS-Portfolio/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="https://github.com/sumitjadhav1703/MacOS-Portfolio/actions/workflows/security.yml"><img alt="CodeQL" src="https://github.com/sumitjadhav1703/MacOS-Portfolio/actions/workflows/security.yml/badge.svg"></a>
+  <a href="https://mac-os-portfolio-self-nine.vercel.app"><img alt="Live site" src="https://img.shields.io/website?url=https%3A%2F%2Fmac-os-portfolio-self-nine.vercel.app&label=live&up_message=online&down_message=down"></a>
+  <a href="LICENSE"><img alt="MIT licence" src="https://img.shields.io/badge/licence-MIT-blue"></a>
+</p>
+
+<p align="center">
+  <a href="https://mac-os-portfolio-self-nine.vercel.app">
+    <img src=".github/assets/demo.gif" alt="Booting the desktop, opening Launchpad, dragging a project window and searching with Spotlight" width="820">
+  </a>
+</p>
+
+<p align="center"><b><a href="https://mac-os-portfolio-self-nine.vercel.app">Open the live desktop →</a></b></p>
+
+## What this is
+
+Sumit Jadhav's portfolio, built as a desktop operating system rather than a page you scroll.
+Every project is a folder on the desk, a Launchpad tile, a Spotlight hit, a window, and a
+`/projects/<slug>` route with its own preview card — all derived from one record.
+
+The site is Next.js on Vercel. Everything that can write — the content API, the admin CMS, the
+file uploads, the assistant — lives on a Cloudflare Worker on its own origin. The public site
+holds no credential and cannot write anything.
+
+## Quick start
 
 ```bash
-npm install
+npm ci
 npm run dev        # http://localhost:3000
-npm run build      # next build — prerenders every route and OG image
-npm start          # serve the build
-npm test           # vitest: content invariants, worker mapping, validation, auth, routes
-npm run lint       # oxlint, zero warnings
-npm run ci         # everything CI runs, in one command
 ```
+
+That is the whole setup. **No database, no API keys, no Cloudflare account.** `src/data/` is
+compiled in as the fallback, so a fresh clone boots the full desktop with real content.
 
 Needs **Node 24** (there is an `.nvmrc`), and `uv` only if you are working on `ai/`.
 
-Content is served by a Cloudflare Worker (see **The CMS** below). The site runs without it —
-`src/data/` is compiled in as a fallback — so `npm run dev` needs no extra setup.
+## What it looks like
 
-## Layout
+| Desktop — 1440×900 | Phone — 390×844 |
+|---|---|
+| <img src=".github/assets/desktop.jpg" alt="The desktop at 1440×900: menu bar, a project window showing a cover image and technology chips, project folders on the desk, and the dock" width="440"> | <img src=".github/assets/mobile.jpg" alt="The stacked mobile shell at 390×844: profile header, section tiles and a project list" width="150"> |
 
-```
-app/
-  layout.tsx                 document, site metadata
-  page.tsx                   the desktop
-  opengraph-image.tsx        1200×630 site card
-  projects/[slug]/
-    page.tsx                 generateStaticParams + generateMetadata, opens that project
-    opengraph-image.tsx      1200×630 card for the project, via next/og ImageResponse
-src/
-  data/                      projects, profile links, section copy, Shell/AI text
-  og/card.tsx                the card both images render
-  os/
-    store.tsx                windows, Spaces, preferences (useReducer + context)
-    shell/                   menu bar, dock, Launchpad, context menus, wallpaper,
-                             Notification Center, Control Center, toasts, boot
-    wm/                      window chrome, drag, resize, snapping, Mission Control
-    apps/                    About, Finder, Safari, Shell, Ask Sumit, Code, System,
-                             Resume, Contact, and one window per project
-    search/                  Spotlight (⌘K) and the shortcut sheet (?)
-    mobile/                  the stacked layout used below 768px
-  styles/os.css              chrome stylesheet, lifted from the original design
-worker/                      the Cloudflare Worker: public read API + admin API + admin UI
-  index.ts                   router
-  content.ts                 D1 rows -> the content bundle, and its edge cache
-  auth.ts admin.ts files.ts  sessions, CRUD, R2 uploads
-  tables.ts                  one spec per content type; the CRUD handler is generic
-  admin-ui/                  the admin SPA (Vite + React), built into worker/assets
-migrations/                  versioned D1 migrations; 0002 is generated from src/data
-legacy/                      the original single-file build, kept for reference
-```
+Below 768px the window manager is replaced outright by a stacked shell — not a squeezed desktop.
 
-## Adding a project
+## Highlights
 
-Through the admin, at `/admin` on the Worker: **Projects -> Add project**, then Publish. The
-desktop folder, Finder entry, Launchpad tile, window, Spotlight hit, Shell alias,
-`/projects/<slug>` route and preview image all follow from the one record.
-
-`src/data/projects.ts` is now the seed and the offline fallback rather than the live source.
-Editing it changes what a fresh database is seeded with, and what the site shows if the API
-is unreachable; it does not change published content.
+- **A real window manager.** Drag, resize from eight handles, snap to halves, minimise to the
+  dock, zoom, Mission Control, and four Spaces. Geometry persists in `localStorage`.
+- **Launchpad, Spotlight (⌘K) and a Shell** that all read the same content, so a project added in
+  the CMS is searchable and openable a minute later without a rebuild.
+- **Ask Sumit** — a second Worker, written in Python, that answers questions about the portfolio
+  grounded in the published bundle. It holds an `AI` binding and no database, so unpublished
+  content is not withheld by a rule someone has to remember: it is never in the process.
+- **A CMS at `/admin`** with drafts, publish, duplicate, reorder, uploads and optimistic
+  concurrency — served by the Worker, on the Worker's origin, behind one session check.
+- **Preview cards per project**, rendered with `next/og`.
+- **Derived icons.** One resolver reads a technology from a free-text tag and a platform from a
+  URL's host, so changing a link in the CMS changes its mark.
 
 ## Keyboard
 
 ⌘K search · F4 Launchpad · ? shortcuts · ⌘↑ or F3 Mission Control · ⌃← / ⌃→ Spaces ·
 ⌃⌘← / ⌃⌘→ tile left/right · ⌘⇧F Projects · ⌘W close · ⌘M minimise · ⌘, System · Esc dismiss.
 Right-click the desk, a folder, a dock icon or a title bar for its menu.
+
+## Architecture
+
+```
+recruiter -> mac-os-portfolio-self-nine.vercel.app     Vercel, static, no login anywhere
+                 |  GET /api/content                   anonymous, cached at the edge
+                 v
+owner     -> sumitos-api.<account>.workers.dev/admin
+                 |                                     password + HttpOnly session cookie
+             Worker --+-- D1                           content, sessions
+                      +-- R2                           resume, covers, certificate files
+                      +-- sumitos-ai                   the assistant, no route of its own
+```
+
+The admin UI is served by the Worker, same origin as the admin API, so the session cookie is
+`HttpOnly; Secure; SameSite=Strict` and is never a third-party cookie. The public site only ever
+makes anonymous cross-origin `GET`s; the API rejects every other method outright.
 
 ## Testing
 
@@ -92,56 +112,84 @@ Some things are still only checkable in a browser. [AGENTS.md](AGENTS.md) lists 
 | Workflow | Runs on | Does |
 |---|---|---|
 | `ci.yml` | pull request, push to `master` | the gate, the Python suite, both browser suites, migrations |
-| `security.yml` | pull request, push, weekly | CodeQL over the code and over the workflows |
+| `security.yml` | pull request, push, weekly | CodeQL over the code, the assistant and the workflows |
 | `dependency-review.yml` | pull request | blocks a new high or critical advisory |
 | `release.yml` | tag `v*` | runs the gate, drafts a release |
 
 Nothing deploys from CI. `wrangler deploy` stays a deliberate human action, which is what keeps
-every Cloudflare credential out of this repository.
+every Cloudflare credential out of this repository. Branch protection is configured in GitHub
+rather than in these files — see [docs/github-settings.md](docs/github-settings.md).
 
-Branch protection is configured in GitHub rather than in these files — see
-[docs/github-settings.md](docs/github-settings.md).
+---
 
-## Notes
-
-- Preferences and window geometry persist in `localStorage` (`sumit-os-prefs`); a wallpaper
-  dropped on the desk persists as `sumit-os-wallpaper`, with `public/wallpaper.png` as the
-  default.
-- The Code app reads `src/generated/sources.ts`, written by `scripts/gen-sources.mjs` on
-  `predev` / `prebuild`.
-- Deploy the site: import the repo on Vercel. It detects Next.js and runs `npm run build`;
-  the shipped project pages and their OG images are prerendered at build time, and projects
-  added later render on demand.
-
-## The CMS
-
-The public site stays on Vercel. One Cloudflare Worker holds everything else: D1 for
-structured content, R2 for files, the read-only public API, the admin API and the admin UI.
+<details>
+<summary><b>Repository layout</b></summary>
 
 ```
-recruiter -> sumitjadhav.vercel.app          Vercel, static, no login anywhere
-                 |  GET /api/content         anonymous, cached at the edge
-                 v
-owner     -> sumitos-api.<account>.workers.dev/admin
-                 |                           password + HttpOnly session cookie
-             Worker --+-- D1                 content, sessions
-                      +-- R2                 resume, covers, certificate files
+app/
+  layout.tsx                 document, site metadata
+  page.tsx                   the desktop
+  opengraph-image.tsx        1200×630 site card
+  projects/[slug]/
+    page.tsx                 generateStaticParams + generateMetadata, opens that project
+    opengraph-image.tsx      1200×630 card for the project, via next/og ImageResponse
+src/
+  data/                      projects, profile links, section copy, Shell/AI text
+  og/card.tsx                the card both images render
+  site-url.ts                the public origin, resolved once
+  os/
+    store.tsx                windows, Spaces, preferences (useReducer + context)
+    shell/                   menu bar, dock, Launchpad, context menus, wallpaper,
+                             Notification Center, Control Center, toasts, boot
+    wm/                      window chrome, drag, resize, snapping, Mission Control
+    apps/                    About, Finder, Safari, Shell, Ask Sumit, Code, System,
+                             Resume, Contact, and one window per project
+    search/                  Spotlight (⌘K) and the shortcut sheet (?)
+    mobile/                  the stacked layout used below 768px
+  styles/os.css              chrome stylesheet, lifted from the original design
+worker/                      the Cloudflare Worker: public read API + admin API + admin UI
+  index.ts                   router
+  content.ts                 D1 rows -> the content bundle, and its edge cache
+  auth.ts admin.ts files.ts  sessions, CRUD, R2 uploads
+  tables.ts                  one spec per content type; the CRUD handler is generic
+  admin-ui/                  the admin SPA (Vite + React), built into worker/assets
+ai/                          Ask Sumit: a Python Worker with an AI binding and no database
+migrations/                  versioned D1 migrations; 0002 is generated from src/data
+scripts/                     generators, checks, the secret scan, the smoke test
+legacy/                      the original single-file build, kept for reference
 ```
 
-The admin UI is served by the Worker, same origin as the admin API, so the session cookie is
-`HttpOnly; Secure; SameSite=Strict` and is never a third-party cookie. The public site only
-ever makes anonymous cross-origin `GET`s; the API rejects every other method outright.
+</details>
 
-### Endpoints
+<details>
+<summary><b>Adding a project</b></summary>
 
-Public, read-only, `GET` only. Each is a slice of one cached bundle, so extra endpoints cost
-no extra database reads:
+Through the admin, at `/admin` on the Worker: **Projects -> Add project**, then Publish. The
+desktop folder, Finder entry, Launchpad tile, window, Spotlight hit, Shell alias,
+`/projects/<slug>` route and preview image all follow from the one record.
+
+`src/data/projects.ts` is the seed and the offline fallback rather than the live source. Editing
+it changes what a fresh database is seeded with, and what the site shows if the API is
+unreachable; it does not change published content.
+
+Content changes need no release, no tag and no deploy. Code changes do — see
+[docs/release-process.md](docs/release-process.md).
+
+</details>
+
+<details>
+<summary><b>The API</b></summary>
+
+Public, read-only, `GET` only. Each is a slice of one cached bundle, so extra endpoints cost no
+extra database reads:
 
 ```
 /api/content   /api/projects   /api/projects/:slug   /api/certificates   /api/experience
 /api/education /api/skills     /api/social-links     /api/site           /api/os
 /api/resume    /files/:key
 ```
+
+`POST /api/ask` is the one exception to the read-only rule, and it writes nothing.
 
 Admin, all behind the session check, all on the Worker's own origin:
 
@@ -153,43 +201,12 @@ POST          /admin/api/reorder/:type
 GET|POST      /admin/api/files             DELETE /admin/api/files/:key
 ```
 
-### First deploy
+</details>
 
-[docs/deployment.md](docs/deployment.md) is the full runbook — what each command does, what to
-expect, and what to do when it fails. The short version, in the order that works:
+<details>
+<summary><b>Environment and local development</b></summary>
 
-```bash
-# 1. Enable R2 in the Cloudflare dashboard. Nothing on the command line can do it.
-# 2. Import the repo on Vercel with NEXT_PUBLIC_API_URL unset. The site ships its bundled
-#    content, and the URL it hands back is the SITE_ORIGIN below.
-
-npx wrangler d1 create sumitos              # put the printed id in wrangler.jsonc
-npx wrangler r2 bucket create sumitos-assets
-# Set vars.SITE_ORIGIN in wrangler.jsonc to the origin Vercel assigned. It is the CORS
-# allowlist, so a wrong value deploys cleanly and then leaves the live site silently serving
-# its bundled content. `npm run worker:deploy` checks both before it runs.
-
-npm run worker:migrate                      # applies the migrations to the remote database
-# Not `npm run seed` — 0002_seed.sql is already committed, applied and checksummed. See
-# docs/deployment.md; content is edited in /admin after this, not regenerated into a migration.
-
-npm run ai:deploy                           # sumitos-ai first: sumitos-api binds to it
-npm run worker:deploy                       # builds the admin UI, deploys the Worker
-
-node scripts/hash-password.mjs              # prints the hash; the password is never stored
-npx wrangler secret put ADMIN_PASSWORD_HASH # paste it
-```
-
-Then set `NEXT_PUBLIC_API_URL` on Vercel to the Worker's URL and redeploy the site. Leave it
-unset and the site simply serves its compiled-in content.
-
-Update `SITE_ORIGIN` in `wrangler.jsonc` whenever the site's origin changes — it is the only
-origin CORS lets through, and the desktop falls back to its bundled content without saying so
-when the API refuses it.
-
-### Environment
-
-Nothing here is a secret except the last row, and that one is never in a file that is committed.
+Three names in total. Only the last is a secret, and it is never in a file that is committed.
 
 | Name | Where | What it is |
 |---|---|---|
@@ -200,44 +217,65 @@ Nothing here is a secret except the last row, and that one is never in a file th
 Locally the last two live in `.dev.vars`, which is gitignored and must stay that way. Quote the
 hash with **single** quotes — the file is parsed as dotenv and the hash is full of `$`.
 
-### Local development
-
 ```bash
 npm run worker:migrate:local                # local D1, never the production database
 npm run worker:dev                          # http://localhost:8787, /admin included
 NEXT_PUBLIC_API_URL=http://127.0.0.1:8787 npm run dev
 ```
 
-`wrangler dev` reads `.dev.vars` (gitignored) and what is in it overrides `vars` in
-`wrangler.jsonc`. Two lines belong there:
+`SITE_ORIGIN` is the CORS allowlist, so without it in `.dev.vars` the local Worker refuses the
+local site and the desktop quietly serves its bundled content instead of saying so.
+
+</details>
+
+<details>
+<summary><b>Deploying, and rolling back</b></summary>
+
+[**docs/deployment.md**](docs/deployment.md) is the full runbook — every step with what it does,
+why it exists, where to run it, what to expect and what to do when it fails. The short version,
+in the order that works:
 
 ```bash
-ADMIN_PASSWORD_HASH='pbkdf2$...'            # single quotes: the hash is full of $
-SITE_ORIGIN=http://localhost:3000           # the origin `npm run dev` serves
+# 1. Enable R2 in the Cloudflare dashboard. Nothing on the command line can do it.
+# 2. Import the repo on Vercel with NEXT_PUBLIC_API_URL unset. The site ships its bundled
+#    content, and the URL it hands back is the SITE_ORIGIN below.
+
+npx wrangler d1 create sumitos               # put the printed id in wrangler.jsonc
+npx wrangler r2 bucket create sumitos-assets
+# Set vars.SITE_ORIGIN to the origin Vercel assigned. `npm run worker:deploy` checks both first.
+
+npm run worker:migrate                       # applies the migrations to the remote database
+npm run ai:deploy                            # sumitos-ai first: sumitos-api binds to it
+npm run worker:deploy                        # builds the admin UI, deploys the Worker
+
+node scripts/hash-password.mjs               # prints the hash; the password is never stored
+npx wrangler secret put ADMIN_PASSWORD_HASH  # paste it
 ```
 
-`SITE_ORIGIN` is the CORS allowlist, so without that second line the local Worker refuses the
-local site and the desktop quietly serves its bundled content instead. The deployed value is a
-public https origin and only then does localhost stop being allowed — which is the point.
-
-### Rollback
+Then set `NEXT_PUBLIC_API_URL` on Vercel to the Worker's URL and redeploy the site.
 
 ```bash
 npx wrangler deployments list
 npx wrangler rollback [deployment-id]
 ```
 
-Worker deployments are versioned, so a bad deploy is one command back. Database changes are
-not — add a new numbered migration rather than editing an applied one. Vercel and D1 rollback,
-and the failures worth recognising, are in
-[docs/deployment.md](docs/deployment.md#rollback).
+Worker deployments are versioned, so a bad deploy is one command back. Database changes are not —
+D1 has no rollback, and a bad migration is corrected by the next numbered one, never by editing
+the applied one.
 
-### What it costs
+</details>
+
+<details>
+<summary><b>What it costs</b></summary>
 
 Everything sits inside the Cloudflare free tier with a wide margin: Workers 100k requests/day,
-D1 5M rows read and 100k written per day with 5 GB storage, R2 10 GB-month with free egress.
-The whole public API is one cached bundle refreshed at most once a minute per location, and R2
-objects are immutable so they are cached indefinitely.
+D1 5M rows read and 100k written per day with 5 GB storage, R2 10 GB-month with free egress. The
+whole public API is one cached bundle refreshed at most once a minute per location, and R2
+objects are immutable so they are cached indefinitely. Vercel's Hobby plan covers the site.
+
+</details>
+
+---
 
 ## Security
 
@@ -245,13 +283,6 @@ Please report a vulnerability privately, through
 [a security advisory](https://github.com/sumitjadhav1703/MacOS-Portfolio/security/advisories/new)
 rather than as a public issue. [SECURITY.md](SECURITY.md) has the details, and explains how the
 security model actually works — which makes for better reports.
-
-## Releasing
-
-[docs/release-process.md](docs/release-process.md) covers versioning, deployment order and
-rollback. The short version: content changes are edited in `/admin` and publish immediately with
-no release at all; code changes get a SemVer tag, and a bad schema migration is fixed forward
-because D1 has no way back.
 
 ## Licence
 
