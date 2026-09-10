@@ -1,8 +1,9 @@
 name: Security
 
-# CodeQL over the application code and over the workflows themselves. The second matters here:
-# a workflow that interpolates untrusted text into a shell line is a supply-chain problem that
-# no amount of application testing would find.
+# CodeQL over the application code, the assistant and the workflows themselves. The workflows
+# matter here: one that interpolates untrusted text into a shell line is a supply-chain problem
+# that no amount of application testing would find. `ai/` matters for the opposite reason — it is
+# the one part of the tree that takes a sentence typed by a stranger and does something with it.
 
 on:
   pull_request:
@@ -34,7 +35,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [javascript-typescript, actions]
+        language: [javascript-typescript, python, actions]
 
     steps:
       - uses: actions/checkout@v7
@@ -42,14 +43,18 @@ jobs:
       - uses: github/codeql-action/init@v4
         with:
           language: ${{ matrix.language }}
+          # Keeps the retired prototype in `legacy/` out of the analysis. The reasoning is in the
+          # config file itself, next to the exclusion it explains.
+          config-file: ./.github/codeql/codeql-config.yml
           # The default suite, not security-extended. Extended roughly doubles the run and, on a
           # codebase this size, mostly produces findings that are triaged away — which trains
           # everyone to skim the alerts. The decision is recorded in SECURITY.md so it can be
           # revisited rather than rediscovered.
           queries: security-and-quality
 
-      # The site builds with Turbopack and the Worker with tsc; CodeQL's own extractor reads the
-      # sources directly and needs neither, so there is no build step to keep in sync here.
+      # The site builds with Turbopack, the Worker with tsc, and `ai/` runs on Pyodide with no
+      # runtime dependencies at all; CodeQL's own extractor reads the sources directly and needs
+      # none of them, so there is no build step to keep in sync here.
       - uses: github/codeql-action/analyze@v4
         with:
           category: /language:${{ matrix.language }}
