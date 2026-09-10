@@ -155,21 +155,28 @@ GET|POST      /admin/api/files             DELETE /admin/api/files/:key
 
 ### First deploy
 
+[docs/deployment.md](docs/deployment.md) is the full runbook — what each command does, what to
+expect, and what to do when it fails. The short version, in the order that works:
+
 ```bash
-npx wrangler login
+# 1. Enable R2 in the Cloudflare dashboard. Nothing on the command line can do it.
+# 2. Import the repo on Vercel with NEXT_PUBLIC_API_URL unset. The site ships its bundled
+#    content, and the URL it hands back is the SITE_ORIGIN below.
+
 npx wrangler d1 create sumitos              # put the printed id in wrangler.jsonc
 npx wrangler r2 bucket create sumitos-assets
+# Set vars.SITE_ORIGIN in wrangler.jsonc to the origin Vercel assigned. It is the CORS
+# allowlist, so a wrong value deploys cleanly and then leaves the live site silently serving
+# its bundled content. `npm run worker:deploy` checks both before it runs.
 
-# Set vars.SITE_ORIGIN in wrangler.jsonc to the origin the site is actually served from.
-# It is the CORS allowlist, so a wrong value deploys cleanly and then leaves the live site
-# silently serving its bundled content. `npm run worker:deploy` checks both before it runs.
+npm run seed                                # regenerates migrations/0002_seed.sql
+npm run worker:migrate                      # applies the migrations to the remote database
+
+npm run ai:deploy                           # sumitos-ai first: sumitos-api binds to it
+npm run worker:deploy                       # builds the admin UI, deploys the Worker
 
 node scripts/hash-password.mjs              # prints the hash; the password is never stored
 npx wrangler secret put ADMIN_PASSWORD_HASH # paste it
-
-npm run seed                                # regenerates migrations/0002_seed.sql
-npm run worker:migrate                      # applies 0001 + 0002 to the remote database
-npm run worker:deploy                       # builds the admin UI, deploys the Worker
 ```
 
 Then set `NEXT_PUBLIC_API_URL` on Vercel to the Worker's URL and redeploy the site. Leave it
@@ -220,7 +227,9 @@ npx wrangler rollback [deployment-id]
 ```
 
 Worker deployments are versioned, so a bad deploy is one command back. Database changes are
-not — add a new numbered migration rather than editing an applied one.
+not — add a new numbered migration rather than editing an applied one. Vercel and D1 rollback,
+and the failures worth recognising, are in
+[docs/deployment.md](docs/deployment.md#rollback).
 
 ### What it costs
 

@@ -9,6 +9,15 @@ in `/admin` and publish immediately. Only code releases get a version. See
 
 ## [Unreleased]
 
+### Added
+
+- **[docs/deployment.md](docs/deployment.md)**, a first-deployment runbook. Every step says what
+  it does, why it exists, where to run it, what a good result looks like and what to do when it
+  fails, with LOCAL and REMOTE kept visibly apart. It also records the two things that are not
+  obvious until they bite: R2 must be enabled in the dashboard before any command-line tool can
+  see it, and `sumitos-ai` has to deploy before `sumitos-api`, which binds to it. The README's
+  first-deploy block was missing both and is now in the order that actually works.
+
 ### Security
 
 - **`sharp` forced to 0.35.4** (GHSA-rgj7-g3m4-5g8c, two libheif advisories). `next` already asked
