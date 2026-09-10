@@ -75,7 +75,10 @@ this across every route derived from the table specs.
 is immediate. Mutations additionally require an `Origin` matching the Worker itself.
 
 **The password** is PBKDF2-SHA256, 210,000 iterations, compared in constant time, and a malformed
-stored hash fails closed rather than open. Ten failures from one IP in fifteen minutes locks that
+stored hash fails closed rather than open. Deployed Workers refuse a single `deriveBits` call
+above 100,000 iterations, so the work is done in chained rounds that sum to the full count — one
+round's output is the next round's key material. Local workerd does not enforce that ceiling,
+which is why `worker/auth.test.ts` asserts the per-call count rather than trusting a green suite. Ten failures from one IP in fifteen minutes locks that
 IP out.
 
 **Uploads** are checked against their own leading bytes, never the `Content-Type` header and never

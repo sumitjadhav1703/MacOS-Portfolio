@@ -18,14 +18,34 @@ function timingSafeEqual(a: Uint8Array, b: Uint8Array): boolean {
   return diff === 0
 }
 
+/**
+ * The most iterations one `deriveBits` call may ask for. Above this, deployed Workers throw
+ * `NotSupportedError: Pbkdf2 failed: iteration counts above 100000 are not supported`. Local
+ * workerd does not enforce it, so this is invisible to every test and to `wrangler dev`.
+ */
+const MAX_ROUND = 100_000
+
+/**
+ * PBKDF2-SHA256, run in chained rounds so the platform ceiling above does not cap the work
+ * factor: each round derives from the previous round's output, and the rounds sum to
+ * `iterations`. At or below the ceiling this is exactly one ordinary PBKDF2 call, so a hash
+ * produced by any standard implementation still verifies.
+ */
 export async function pbkdf2(password: string, salt: Uint8Array, iterations: number): Promise<Uint8Array> {
-  const key = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveBits'])
-  const bits = await crypto.subtle.deriveBits(
-    { name: 'PBKDF2', hash: 'SHA-256', salt: salt as BufferSource, iterations },
-    key,
-    256,
-  )
-  return new Uint8Array(bits)
+  let material: Uint8Array = enc.encode(password)
+  let remaining = iterations
+  while (remaining > 0) {
+    const round = Math.min(remaining, MAX_ROUND)
+    const key = await crypto.subtle.importKey('raw', material as BufferSource, 'PBKDF2', false, ['deriveBits'])
+    const bits = await crypto.subtle.deriveBits(
+      { name: 'PBKDF2', hash: 'SHA-256', salt: salt as BufferSource, iterations: round },
+      key,
+      256,
+    )
+    material = new Uint8Array(bits)
+    remaining -= round
+  }
+  return material
 }
 
 /**
