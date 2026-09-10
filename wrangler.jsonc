@@ -9,15 +9,16 @@
   // The one real secret, ADMIN_PASSWORD_HASH, is set with `wrangler secret put` and never lives
   // in this file.
   "vars": {
-    "SITE_ORIGIN": "https://sumitjadhav.vercel.app"
+    "SITE_ORIGIN": "https://mac-os-portfolio-self-nine.vercel.app"
   },
 
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "sumitos",
-      // Replace after `wrangler d1 create sumitos` — the command prints it.
-      "database_id": "REPLACE_WITH_D1_DATABASE_ID",
+      // From `wrangler d1 create sumitos`. Not a secret: it names a database that only a
+      // binding on this account can reach.
+      "database_id": "70f6b440-12c1-4840-a5cb-7544af1cb4a3",
       "migrations_dir": "migrations"
     }
   ],
