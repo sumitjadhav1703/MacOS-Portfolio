@@ -8,7 +8,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import worker from './index'
 import { SPECS, SINGLETONS } from './tables'
-import { BAD_SESSION_IDS, SECRET_SHAPES } from './security-fixtures'
+import { BAD_SESSION_IDS, PROTOTYPE_KEYS, SECRET_SHAPES } from './security-fixtures'
 import { ORIGIN, VALID_SID, ctx, makeEnv, req, sessionDb, stubCaches } from './test-harness'
 
 beforeEach(() => {
@@ -153,5 +153,48 @@ describe('login itself', () => {
   it('is POST-only — a GET falls through to the session gate, not to a login form', async () => {
     const response = await call(req('/admin/api/login', { origin: ORIGIN }))
     expect(response.status).toBe(401)
+  })
+})
+
+describe('the content-type allowlist', () => {
+  // A truthiness check on SPECS/SINGLETONS is not an allowlist: every prototype member passes it,
+  // and the spec that comes back has `table: undefined`, which D1 answers with
+  // `no such table: undefined` — reported to the client as a stack trace when the route also
+  // forgot to await. Three routes take a type name from the URL, so all three are tested.
+  for (const key of PROTOTYPE_KEYS) {
+    it(`refuses ${key} as a collection`, async () => {
+      const response = await worker.fetch(
+        req(`/admin/api/${key}`, { cookie: VALID_SID, origin: ORIGIN }),
+        makeEnv({ DB: sessionDb() }),
+        ctx,
+      )
+      expect(response.status).toBe(404)
+      expect(await response.json()).toEqual({ error: 'Unknown content type.' })
+    })
+
+    it(`refuses ${key} as a reorder target`, async () => {
+      const response = await worker.fetch(
+        req(`/admin/api/reorder/${key}`, {
+          method: 'POST',
+          cookie: VALID_SID,
+          origin: ORIGIN,
+          body: { ids: [] },
+        }),
+        makeEnv({ DB: sessionDb() }),
+        ctx,
+      )
+      expect(response.status).toBe(404)
+    })
+  }
+
+  it('still accepts the types that really are declared', async () => {
+    for (const type of [...Object.keys(SPECS), ...Object.keys(SINGLETONS)]) {
+      const response = await worker.fetch(
+        req(`/admin/api/${type}`, { cookie: VALID_SID, origin: ORIGIN }),
+        makeEnv({ DB: sessionDb() }),
+        ctx,
+      )
+      expect(response.status, type).toBe(200)
+    }
   })
 })

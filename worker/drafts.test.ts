@@ -130,7 +130,7 @@ describe('copyValues', () => {
     links: '[{"label":"Code","url":"https://github.com/x/y"}]',
     published: 1,
     featured: 1,
-    cover_key: 'portfolio/projects/abc.png',
+    cover_key: 'portfolio/projects/3b8029a9-1f4e-4c62-9d51-571809e5aff3.png',
     draft: '{"title":"pending"}',
     created_at: 'x',
   }
@@ -147,7 +147,7 @@ describe('copyValues', () => {
 
   it('keeps the shared cover reference rather than the draft', () => {
     const values = copyValues(row, fields, 'demo-copy', 7)
-    expect(values.cover_key).toBe('portfolio/projects/abc.png')
+    expect(values.cover_key).toBe('portfolio/projects/3b8029a9-1f4e-4c62-9d51-571809e5aff3.png')
     expect(values.draft).toBeUndefined()
     expect(values.title).toBe('Demo (copy)')
   })

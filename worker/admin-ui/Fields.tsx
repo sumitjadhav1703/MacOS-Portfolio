@@ -632,9 +632,10 @@ const IMAGE = /\.(png|jpg|webp)$/i
  * Upload, replace, detach.
  *
  * The database is only told about a file after the Worker has answered 201, and the field never
- * says "uploaded" before that (spec §21, §22). Replacing swaps the reference; the old object is
- * left in R2 and stays reachable from the Assets screen, because deleting it here would take a
- * cover image away from any other row still pointing at it.
+ * says "uploaded" before that (spec §21, §22). Replacing only swaps the reference here; the old
+ * object is collected by the Worker when the row is saved, and only once nothing else points at
+ * it, so a cover shared with another project survives the swap. The resume is deliberately not
+ * collected that way — see Resume.tsx, where the previous PDF is kept for one-click rollback.
  */
 function FileField({
   field,

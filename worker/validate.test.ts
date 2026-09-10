@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { SINGLETONS, SPECS, urlAllowed, validate } from './tables'
+import { ASSET_KEY, SINGLETONS, SPECS, urlAllowed, validate } from './tables'
 import { isOwnKey, makeKey, sniff } from './files'
 import {
   DANGEROUS_URLS,
@@ -233,4 +233,61 @@ describe('text fields under hostile input', () => {
       expect(validate(fields, { [name]: OVERSIZED }, true).errors, name).not.toEqual([])
     }
   })
+})
+
+describe('null on a text field', () => {
+  // `null` is how the admin UI clears an optional field, so it is accepted — but it used to
+  // short-circuit ahead of the `required` and `pattern` checks, which is how {"slug": null}
+  // created a project with an empty slug, an id of `project-`, and a place in the public bundle.
+  const fields = {
+    slug: { kind: 'text', max: 60, required: true, pattern: /^[a-z0-9-]+$/ },
+    tagline: { kind: 'text', max: 200 },
+  } as const
+
+  it('is still rejected when the field is required', () => {
+    const { errors, values } = validate(fields, { slug: null, tagline: 'x' }, false)
+    expect(errors).toEqual(['slug is required'])
+    expect(values.slug).toBeUndefined()
+  })
+
+  it('clears an optional field rather than failing', () => {
+    const { errors, values } = validate(fields, { slug: 'ok', tagline: null }, false)
+    expect(errors).toEqual([])
+    expect(values.tagline).toBe('')
+  })
+
+  it('behaves exactly as the empty string does', () => {
+    const fromNull = validate(fields, { slug: null }, true)
+    const fromEmpty = validate(fields, { slug: '' }, true)
+    expect(fromNull).toEqual(fromEmpty)
+  })
+})
+
+describe('file-key columns', () => {
+  const fields = { cover_key: { kind: 'text', max: 200, pattern: ASSET_KEY } } as const
+
+  it('accepts a key this Worker could have generated', () => {
+    const key = 'portfolio/projects/3b8029a9-1f4e-4c62-9d51-571809e5aff3.png'
+    expect(validate(fields, { cover_key: key }, true).errors).toEqual([])
+  })
+
+  it('accepts an empty value, which is how a cover is detached', () => {
+    expect(validate(fields, { cover_key: '' }, true).errors).toEqual([])
+    expect(validate(fields, { cover_key: null }, true).errors).toEqual([])
+  })
+
+  for (const bad of [
+    'not even a key',
+    'portfolio/projects/abc.png',
+    'portfolio/hacker/3b8029a9-1f4e-4c62-9d51-571809e5aff3.png',
+    'portfolio/projects/3b8029a9-1f4e-4c62-9d51-571809e5aff3.exe',
+    '../../../etc/passwd',
+    'https://evil.com/x.png',
+  ]) {
+    it(`rejects ${bad}`, () => {
+      expect(validate(fields, { cover_key: bad }, true).errors).toEqual([
+        'cover_key has an invalid format',
+      ])
+    })
+  }
 })

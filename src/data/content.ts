@@ -168,3 +168,69 @@ export function projectAliases(content: Content): Record<string, string> {
   }
   return out
 }
+
+/**
+ * Take each category from the CMS only if it arrived in the shape the desktop reads, and from
+ * FALLBACK otherwise.
+ *
+ * The old check asked one question — is `projects` a non-empty array — and then handed the whole
+ * body to the render. Anything else missing was a crash rather than a degraded page: a body
+ * carrying only `projects` took out the entire site on `content.socialLinks.find`, because the
+ * menu bar has no reason to expect the CMS to answer half a question. FALLBACK is a complete
+ * portfolio, so it is the right floor for every category independently.
+ *
+ * `projects` keeps its extra condition: an empty list is a database that has not been seeded
+ * yet, not a portfolio with no work in it.
+ */
+export function mergeContent(live: Partial<Content> | null | undefined): Content {
+  if (!live || typeof live !== 'object') return FALLBACK
+
+  const projects = live.projects
+  const usable = Array.isArray(projects) && projects.length && projects.every(usableProject)
+
+  return {
+    ...FALLBACK,
+    ...(usable ? { projects: projects as Content['projects'] } : null),
+    ...list('certificates', live), ...list('experience', live), ...list('education', live),
+    ...list('skills', live), ...list('socialLinks', live),
+    ...(live.site && typeof live.site === 'object' ? { site: { ...FALLBACK.site, ...live.site } } : null),
+    ...(live.os && typeof live.os === 'object' ? { os: { ...FALLBACK.os, ...live.os } } : null),
+    ...(typeof live.updatedAt === 'string' ? { updatedAt: live.updatedAt } : null),
+  }
+}
+
+/**
+ * A project the desktop can actually render.
+ *
+ * "Is an object" was not enough: every surface below reaches straight through these fields —
+ * `project.stack` in Spotlight, `project.links.map` in Safari and the OG card, `project.status.ok`
+ * and `project.sections.map` in the project window, `p.title.toLowerCase()` in Ask Sumit. A row
+ * missing any of them is not a degraded project, it is a crash one render later, which is the
+ * failure this whole function exists to prevent. One bad project rejects the category, so the
+ * desktop shows the packaged portfolio rather than a list with a hole in it.
+ */
+function usableProject(p: unknown): boolean {
+  if (!p || typeof p !== 'object') return false
+  const v = p as Record<string, unknown>
+  const text = (k: string) => typeof v[k] === 'string'
+  const status = v.status as Record<string, unknown> | undefined
+  return (
+    // A blank tagline renders as a blank line; a blank id or slug has nothing to open or route
+    // to, so those three have to carry something.
+    ['id', 'slug', 'title'].every((k) => text(k) && (v[k] as string).length > 0) &&
+    ['tagline', 'desktopLabel'].every(text) &&
+    ['stack', 'sections', 'links'].every((k) => Array.isArray(v[k])) &&
+    !!status &&
+    typeof status === 'object' &&
+    typeof status.label === 'string' &&
+    typeof status.ok === 'boolean'
+  )
+}
+
+/** An array category is taken only when it is an array of objects; empty is a legitimate answer. */
+function list<K extends keyof Content>(key: K, live: Partial<Content>): Partial<Content> {
+  const value = live[key]
+  return Array.isArray(value) && value.every((v) => v && typeof v === 'object')
+    ? ({ [key]: value } as Partial<Content>)
+    : {}
+}

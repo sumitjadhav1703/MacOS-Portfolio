@@ -1,4 +1,4 @@
-import { FALLBACK } from './content'
+import { FALLBACK, mergeContent } from './content'
 import type { Content, Project } from './content'
 
 /**
@@ -14,10 +14,15 @@ export async function getContent(): Promise<Content> {
   if (!api) return FALLBACK
 
   try {
-    const response = await fetch(`${api}/api/content`, { next: { revalidate: 60 } })
+    // A Worker that accepts the connection and then never answers used to hang this render for
+    // as long as the platform allowed — the fallback below can only run if the fetch ends. The
+    // OG route already settles its cover lookup this way.
+    const response = await fetch(`${api}/api/content`, {
+      next: { revalidate: 60 },
+      signal: AbortSignal.timeout(5000),
+    })
     if (!response.ok) return FALLBACK
-    const live = (await response.json()) as Content
-    return Array.isArray(live?.projects) && live.projects.length ? live : FALLBACK
+    return mergeContent((await response.json()) as Partial<Content>)
   } catch {
     return FALLBACK
   }

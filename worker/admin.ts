@@ -1,6 +1,6 @@
 import type { Env } from './env'
 import { fail, json, log } from './http'
-import { SPECS, SINGLETONS, validate } from './tables'
+import { SPECS, SINGLETONS, own, validate } from './tables'
 import {
   copyValues,
   draftFrom,
@@ -185,8 +185,65 @@ async function update(
   const nextId = type === 'projects' ? renamedId(id, values) : null
   await writeRow(env, spec.table, id, values, nextId)
 
-  log('admin.update', { type, id, columns: Object.keys(values), renamedTo: nextId })
-  return json({ ok: true, id: nextId ?? id })
+  // Swapping a cover used to leave the old object in R2 with nothing pointing at it. Deleting a
+  // row already collects its unreferenced files; replacing one is the same question asked about
+  // a single column, so it gets the same answer. `referencesTo` is checked after the write, so
+  // a key still used by another row is left alone.
+  const orphaned = await sweep(env, spec.fileColumns, row, values)
+
+  log('admin.update', { type, id, columns: Object.keys(values), renamedTo: nextId, removedAssets: orphaned })
+  return json({ ok: true, id: nextId ?? id, removedAssets: orphaned })
+}
+
+/**
+ * `collectDetached`, but never at the cost of the write that already committed.
+ *
+ * Cleanup runs after the row is saved. If R2 or D1 refuses here, the edit is still in the
+ * database and the editor must be told it landed — a 500 would send the operator back to redo a
+ * save that already happened, and the caller skips `invalidate` on a failed response, so the
+ * public cache would go on serving the old row too. A file left behind is a wasted object; a
+ * committed edit reported as an error is a lie about the state of the site.
+ */
+async function sweep(
+  env: Env,
+  fileColumns: string[],
+  before: Record<string, unknown>,
+  after: Record<string, string | number>,
+): Promise<string[]> {
+  try {
+    return await collectDetached(env, fileColumns, before, after)
+  } catch (error) {
+    log('admin.sweep_failed', { columns: fileColumns, message: String(error) })
+    return []
+  }
+}
+
+/**
+ * Deletes any file this write detached from its last reference. Returns the keys removed.
+ *
+ * The reference count and the delete are two steps, not one: a second write that attaches this
+ * key between them loses its object. Both writes have to come from the same signed-in admin
+ * saving two rows that share one file within the same few milliseconds, and D1 offers no lock
+ * that would close the window, so the gap is accepted rather than papered over. Re-uploading is
+ * the recovery.
+ */
+async function collectDetached(
+  env: Env,
+  fileColumns: string[],
+  before: Record<string, unknown>,
+  after: Record<string, string | number>,
+): Promise<string[]> {
+  const removed: string[] = []
+  for (const column of fileColumns) {
+    const old = before[column]
+    if (typeof old !== 'string' || !old) continue
+    if (!Object.hasOwn(after, column) || after[column] === old) continue
+    if ((await referencesTo(env, old)).length) continue
+    await env.BUCKET.delete(old)
+    await env.DB.prepare('DELETE FROM assets WHERE key = ?').bind(old).run()
+    removed.push(old)
+  }
+  return removed
 }
 
 /**
@@ -260,8 +317,12 @@ async function publish(env: Env, id: string, payload: Record<string, unknown>): 
     .bind(...Object.values(columns), at, id)
     .run()
 
-  log('admin.publish', { id, renamedTo: nextId, fromDraft: parseDraft(row.draft) !== null })
-  return json({ ok: true, id: nextId ?? id, updatedAt: at })
+  // Publishing writes the same live columns `update` does, so it detaches files the same way: a
+  // draft that swapped the cover leaves the published one referenced by nothing.
+  const orphaned = await sweep(env, spec.fileColumns, row, columns)
+
+  log('admin.publish', { id, renamedTo: nextId, fromDraft: parseDraft(row.draft) !== null, removedAssets: orphaned })
+  return json({ ok: true, id: nextId ?? id, updatedAt: at, removedAssets: orphaned })
 }
 
 /**
@@ -300,15 +361,9 @@ async function remove(env: Env, type: string, id: string): Promise<Response> {
 
   await env.DB.prepare(`DELETE FROM ${spec.table} WHERE id = ?`).bind(id).run()
 
-  const orphaned: string[] = []
-  for (const column of spec.fileColumns) {
-    const key = row[column]
-    if (typeof key !== 'string' || !key) continue
-    if ((await referencesTo(env, key)).length) continue
-    await env.BUCKET.delete(key)
-    await env.DB.prepare('DELETE FROM assets WHERE key = ?').bind(key).run()
-    orphaned.push(key)
-  }
+  // Deleting the row detaches every file column at once, which is the same question `sweep`
+  // already answers for a write that detaches one.
+  const orphaned = await sweep(env, spec.fileColumns, row, Object.fromEntries(spec.fileColumns.map((c) => [c, ''])))
 
   log('admin.delete', { type, id, removedAssets: orphaned })
   return json({ ok: true, removedAssets: orphaned })
@@ -321,6 +376,26 @@ async function reorder(env: Env, type: string, payload: Record<string, unknown>)
     return fail(400, 'Expected a list of ids.')
   }
   if (ids.length > 500) return fail(400, 'Too many items.')
+  // D1 rejects an empty batch with "No SQL statements detected", so nothing to reorder is
+  // answered here rather than as a 500.
+  if (!ids.length) return json({ ok: true })
+  // An id that matches no row would `UPDATE ... WHERE id = ?` nothing and report success, which
+  // leaves the rows that were left out sharing a display_order with the ones that moved. Saying
+  // which ids are unknown is more useful than a silently partial sort.
+  const known = new Set(
+    (
+      await env.DB.prepare(`SELECT id FROM ${spec.table}`).all<{ id: string }>()
+    ).results.map((row) => row.id),
+  )
+  const unknown = (ids as string[]).filter((id) => !known.has(id))
+  if (unknown.length) return fail(400, `Unknown ids: ${unknown.slice(0, 5).join(', ')}.`)
+  // Rejecting unknown ids was only half of it. A list that repeats an id, or leaves one out,
+  // assigns positions to some rows and leaves the rest holding the numbers they had — two rows
+  // claiming one place, which sorts arbitrarily. The list has to be every id exactly once.
+  if (new Set(ids as string[]).size !== ids.length) return fail(400, 'That list repeats an id.')
+  if (ids.length !== known.size) {
+    return fail(409, 'The list is out of date — reload before reordering.')
+  }
   await env.DB.batch(
     (ids as string[]).map((id, i) =>
       env.DB.prepare(`UPDATE ${spec.table} SET display_order = ?, updated_at = ? WHERE id = ?`).bind(
@@ -401,28 +476,28 @@ export async function handleAdminApi(
   }
 
   if (head === 'reorder' && method === 'POST') {
-    if (!tail || !SPECS[tail]) return fail(404, 'Unknown content type.')
+    if (!tail || !own(SPECS, tail)) return fail(404, 'Unknown content type.')
     const payload = await body(request)
     if (!payload) return fail(400, 'Invalid request.')
     const response = await reorder(env, tail, payload)
-    await invalidate(origin)
+    if (response.ok) await invalidate(origin)
     return response
   }
 
-  if (head && SINGLETONS[head]) {
+  if (head && own(SINGLETONS, head)) {
     if (method === 'GET') return readSingleton(env, head)
     if (method === 'PUT') {
       const payload = await body(request)
       if (!payload) return fail(400, 'Invalid request.')
       const response = await writeSingleton(env, head, payload)
-      await invalidate(origin)
+      if (response.ok) await invalidate(origin)
       return response
     }
     return fail(405, 'Method not allowed.')
   }
 
-  if (!head || !SPECS[head]) return fail(404, 'Unknown content type.')
-  const spec = SPECS[head]!
+  const spec = head ? own(SPECS, head) : undefined
+  if (!head || !spec) return fail(404, 'Unknown content type.')
 
   if (!tail) {
     if (method === 'GET') return listAll(env, spec.table)
@@ -430,7 +505,7 @@ export async function handleAdminApi(
       const payload = await body(request)
       if (!payload) return fail(400, 'Invalid request.')
       const response = await create(env, head, payload)
-      await invalidate(origin)
+      if (response.ok) await invalidate(origin)
       return response
     }
     return fail(405, 'Method not allowed.')
@@ -465,12 +540,12 @@ export async function handleAdminApi(
     const payload = await body(request)
     if (!payload) return fail(400, 'Invalid request.')
     const response = await update(env, head, id, payload)
-    await invalidate(origin)
+    if (response.ok) await invalidate(origin)
     return response
   }
   if (method === 'DELETE') {
     const response = await remove(env, head, id)
-    await invalidate(origin)
+    if (response.ok) await invalidate(origin)
     return response
   }
   return fail(405, 'Method not allowed.')

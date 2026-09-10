@@ -1,10 +1,18 @@
 'use client'
 
 import { s } from '../css'
+import { folderColorFor } from '../packs'
 import { titleOf } from '../registry'
 import { useDispatch, useOpenApp, useOs } from '../store'
 import type { AppId } from '../types'
 
+/**
+ * Tile colours for the fixed apps. Projects are deliberately absent: they used to be listed here
+ * by id, which meant every project added through the CMS fell through to the grey default while
+ * the six shipped ones were coloured. `folderColorFor` already answers this question for the
+ * desktop grid and Finder — Mission asks it the same way now, so a new project is coloured
+ * everywhere or nowhere.
+ */
 const HUE: Partial<Record<AppId, string>> = {
   finder: '#1c62c9',
   terminal: '#3b424c',
@@ -14,13 +22,10 @@ const HUE: Partial<Record<AppId, string>> = {
   settings: '#4c545f',
   resume: '#c33026',
   trash: '#5b6068',
-  'project-lazarus': '#2b8743',
-  'project-ai-video': '#1c62c9',
-  'project-pm25': '#cf9611',
-  'project-sar': '#cd6212',
-  'project-multi-agent': '#6a3ec0',
-  'project-airbnb': '#c33026',
 }
+
+const hueFor = (id: AppId, index: number): string =>
+  (Object.hasOwn(HUE, id) ? HUE[id] : undefined) ?? folderColorFor(id, index)[0]
 
 export function Mission() {
   const { mission, wins, spaces, activeSpace } = useOs()
@@ -93,7 +98,7 @@ export function Mission() {
           style={s('display:grid;grid-template-columns:repeat(auto-fill,minmax(196px,1fr));gap:14px')}
         >
           {ids.length ? (
-            ids.map((id) => (
+            ids.map((id, index) => (
               <div
                 key={id}
                 draggable
@@ -109,7 +114,7 @@ export function Mission() {
                 <span
                   style={{
                     ...s('width:34px;height:34px;flex:none;border-radius:9px;box-shadow:inset 0 1px 0 rgba(255,255,255,.28)'),
-                    background: HUE[id] ?? '#4c545f',
+                    background: hueFor(id, index),
                   }}
                 />
                 <span style={s('min-width:0')}>

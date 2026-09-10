@@ -70,9 +70,12 @@ export function Spotlight() {
       { title: 'Appearance: Dark', kind: 'Action', run: () => setTheme('dark') },
       { title: 'Appearance: System', kind: 'Action', run: () => setTheme('system') },
     ],
-    // openApp and dispatch are stable for the lifetime of the provider.
+    // openApp and dispatch are stable for the lifetime of the provider. `resumeUrl` is not: it
+    // changes the moment live content replaces the bundled copy, and with an empty dep list the
+    // Download Resume action kept pointing at the URL that was there when Spotlight first
+    // mounted.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
+    [content.site.resumeUrl],
   )
 
   const results = useMemo<Result[]>(() => {
