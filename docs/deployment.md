@@ -209,10 +209,16 @@ live database, in order.
 **WHERE** Repository root. **This is a REMOTE command — it changes live data.**
 
 ```bash
-npm run seed              # regenerates migrations/0002_seed.sql from src/data/
 npm run check:migrations  # numbering is sequential, applied files are unchanged
 npm run worker:migrate    # --remote
 ```
+
+**Do not run `npm run seed` here.** It rewrites `migrations/0002_seed.sql` from `src/data/`, and
+that migration is already committed, already applied locally and in CI, and already checksummed
+in `migrations/.checksums` — so regenerating it fails `check:migrations` on the next run and puts
+a file in the tree that no longer matches what any database has applied. The seed script exists
+for the moment before 0002 was first written; after that, seeded content is edited in `/admin`
+like all other content, and a schema change gets a new numbered migration.
 
 **EXPECTED** Wrangler lists the migrations it is about to apply, asks for confirmation, and
 reports each as successful.
