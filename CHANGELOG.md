@@ -9,6 +9,20 @@ in `/admin` and publish immediately. Only code releases get a version. See
 
 ## [Unreleased]
 
+### Fixed
+
+- **Admin login was impossible on the deployed Worker.** Cloudflare refuses a PBKDF2 `deriveBits`
+  call above 100,000 iterations — `NotSupportedError: Pbkdf2 failed: iteration counts above 100000
+  are not supported` — and the password check asked for 210,000. The error was swallowed by the
+  fail-closed `catch` in `verifyPassword`, so every password, correct or not, came back
+  `Incorrect password.` Local workerd does not enforce the ceiling, so 512 unit tests and the CMS
+  browser suite all passed against a system that could not have worked in production; the unit
+  tests also hashed at 1,000 iterations, below the limit. The derivation now runs in chained
+  rounds that sum to 210,000, which is one ordinary PBKDF2 call at or below the ceiling, and
+  `worker/auth.test.ts` now asserts that no single call exceeds it. `scripts/hash-password.mjs`
+  derives the same way; a hash from the old script no longer verifies, so rerun it and set the
+  secret again.
+
 ### Added
 
 - **[docs/deployment.md](docs/deployment.md)**, a first-deployment runbook. Every step says what
