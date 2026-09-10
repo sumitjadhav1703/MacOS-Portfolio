@@ -5,8 +5,8 @@
 // no good reason to hold a production password just to prove a page renders. Admin verification
 // stays manual and is listed in docs/release-checklist.md.
 //
-//   node scripts/smoke.mjs https://sumitjadhav.vercel.app
-//   node scripts/smoke.mjs https://sumitjadhav.vercel.app https://api.example.workers.dev
+//   node scripts/smoke.mjs https://mac-os-portfolio-self-nine.vercel.app
+//   node scripts/smoke.mjs https://mac-os-portfolio-self-nine.vercel.app https://sumitos-api.jadhavsumit534.workers.dev
 //
 // The second argument is the Worker, if you want the API and admin-guard checks too. Without it
 // only the site is checked, which is the right thing after a Vercel-only deploy.
