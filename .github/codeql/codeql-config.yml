@@ -1,0 +1,13 @@
+# What CodeQL is pointed at, and what it is pointed away from.
+#
+# `legacy/portfolio-os.html` is the original single-file prototype. It builds nothing, ships
+# nothing and is imported by nothing — the React app replaced it — but AGENTS.md rule 9 makes it
+# the source of truth for behaviour questions, so it stays in the tree and is not edited to suit
+# a query. Its `innerHTML` writes are real, and they were real in a page nobody serves; leaving
+# them in the alert list trains everyone to skim the alerts, which is the thing SECURITY.md
+# already says this repository will not do. `.oxlintrc.json` excludes the same directory for the
+# same reason, so this follows a rule that is already kept rather than inventing an exception.
+name: SumitOS
+
+paths-ignore:
+  - legacy/

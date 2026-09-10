@@ -100,19 +100,27 @@ that is validated.
 
 | | |
 |---|---|
-| CodeQL | `javascript-typescript` and `actions`, on every pull request and weekly |
+| CodeQL | `javascript-typescript`, `python` and `actions`, on every pull request and weekly |
 | Dependency review | Blocks a pull request introducing a high or critical advisory |
 | Secret scanning | GitHub's, plus `npm run scan:secrets` locally and in CI |
 | Auth and authorization tests | `worker/authz.test.ts`, `worker/session.test.ts` |
 | Input and upload tests | `worker/validate.test.ts`, `worker/files.test.ts`, shared fixtures in `worker/security-fixtures.ts` |
 | Prompt-injection tests | `ai/tests/test_security.py`, `ai/tests/test_api.py` |
 
-### Two decisions worth recording
+### Three decisions worth recording
 
 **CodeQL runs the default `security-and-quality` suite, not `security-extended`.** Extended
 roughly doubles the run time and, on a codebase this size, mostly surfaces findings that get
 triaged away — which teaches everyone to skim the alerts. If this repository ever grows a real
 back end, revisit it.
+
+**CodeQL does not analyse `legacy/`.** The single-file prototype in there is the source of truth
+for behaviour questions (AGENTS.md rule 9) and is kept for that reason alone: it builds nothing,
+serves nothing and is imported by nothing. Its `innerHTML` writes are real, and they were real in
+a page no visitor can reach, so leaving four permanent high alerts in the list would teach exactly
+the skimming the paragraph above is trying to avoid. `.oxlintrc.json` excludes the same directory.
+The exclusion lives in `.github/codeql/codeql-config.yml`; deleting a line there is all it takes
+to look again.
 
 **Actions are pinned to a major tag, not a commit SHA.** Every action used is first-party
 (`actions/*`, `github/codeql-action`, `astral-sh/setup-uv`). Blanket SHA-pinning would add

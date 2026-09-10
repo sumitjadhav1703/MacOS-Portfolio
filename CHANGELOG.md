@@ -9,6 +9,24 @@ in `/admin` and publish immediately. Only code releases get a version. See
 
 ## [Unreleased]
 
+### Security
+
+- **`sharp` forced to 0.35.4** (GHSA-rgj7-g3m4-5g8c, two libheif advisories). `next` already asked
+  for a patched `^0.35.4`; `miniflare`, which `wrangler` pulls in, pins the vulnerable `0.35.2`
+  exactly, and no newer miniflare exists to wait for. An `overrides` entry in `package.json` is
+  the only way to move a transitive exact pin. It is a patch bump of a dev-only image library,
+  `npm run e2e:admin` boots real miniflare and therefore exercises it, and the override should be
+  removed the moment a miniflare release moves past 0.35.2. Deduplicating the two copies also took
+  610 lines and a second set of per-platform binaries out of the lockfile.
+
+### Changed
+
+- **CodeQL now analyses `ai/` and no longer analyses `legacy/`.** The assistant is the one part of
+  the tree that takes a sentence typed by a stranger, and it had never been scanned. The retired
+  single-file prototype is the reverse: four permanent high alerts on a page nothing serves.
+  `.oxlintrc.json` already excluded it for the same reason. Both decisions are recorded in
+  SECURITY.md and in `.github/codeql/codeql-config.yml`.
+
 ## [1.0.0] — 2026-08-20
 
 First tagged release. The desktop, the CMS behind it and the assistant that answers about it were
