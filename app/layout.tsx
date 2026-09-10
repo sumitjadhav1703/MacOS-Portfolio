@@ -1,12 +1,13 @@
 import type { Metadata, Viewport } from 'next'
 import type { ReactNode } from 'react'
 import '../src/styles/os.css'
+import { SITE_URL } from '../src/site-url'
 
 const DESCRIPTION =
   'Sumit Jadhav — AI & Data Science. Generative AI, RAG systems and applied deep learning, presented as an interactive desktop.'
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://sumitjadhav.vercel.app'),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "Sumit Jadhav — Portfolio OS",
     template: '%s — Sumit Jadhav',

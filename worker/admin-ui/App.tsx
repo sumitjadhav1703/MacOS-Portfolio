@@ -31,11 +31,11 @@ import { s } from '../../src/os/css'
 /** What the public site does after a save here, said plainly. Never "instantly everywhere". */
 const PROPAGATION = 'Live now — may take a minute or two to appear everywhere.'
 
-// Where the public portfolio lives, for the Preview links. Injected at build time so the admin
-// does not have to guess; falls back to the deployed site.
-const SITE_ORIGIN =
-  (import.meta as { env?: Record<string, string> }).env?.VITE_SITE_ORIGIN ??
-  'https://sumitjadhav.vercel.app'
+// Where the public portfolio lives, for the Preview links. Substituted at build time from
+// vars.SITE_ORIGIN in wrangler.jsonc — the same value the Worker uses as its CORS allowlist, so
+// the admin cannot point at a host the API refuses.
+declare const __SITE_ORIGIN__: string
+const SITE_ORIGIN = __SITE_ORIGIN__
 
 function Login({ onIn }: { onIn: () => void }) {
   const [password, setPassword] = useState('')

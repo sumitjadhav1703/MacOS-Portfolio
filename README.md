@@ -169,8 +169,9 @@ npx wrangler r2 bucket create sumitos-assets
 # allowlist, so a wrong value deploys cleanly and then leaves the live site silently serving
 # its bundled content. `npm run worker:deploy` checks both before it runs.
 
-npm run seed                                # regenerates migrations/0002_seed.sql
 npm run worker:migrate                      # applies the migrations to the remote database
+# Not `npm run seed` — 0002_seed.sql is already committed, applied and checksummed. See
+# docs/deployment.md; content is edited in /admin after this, not regenerated into a migration.
 
 npm run ai:deploy                           # sumitos-ai first: sumitos-api binds to it
 npm run worker:deploy                       # builds the admin UI, deploys the Worker
