@@ -1,6 +1,7 @@
 import type { ReactElement } from 'react'
 import * as simpleIcons from 'simple-icons'
 import { tagSlug } from '../lib/icons'
+import { SITE_HOST } from '../site-url'
 
 /**
  * The 1200×630 preview card, shaped like one of the desktop's windows: chrome bar with
@@ -272,11 +273,5 @@ export function OgCard({
     </div>
   )
 }
-
-/** Same source as metadataBase in app/layout.tsx, so the card never advertises a stale host. */
-const SITE_HOST = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://sumitjadhav.vercel.app').replace(
-  /^https?:\/\//,
-  '',
-)
 
 export const OG_SIZE = { width: 1200, height: 630 }
