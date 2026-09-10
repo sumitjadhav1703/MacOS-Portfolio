@@ -40,8 +40,22 @@ export function registerTitles(projects: Project[]): void {
   for (const project of projects) TITLES[project.id] = project.title
 }
 
+/**
+ * A map lookup that is an allowlist.
+ *
+ * `v in TITLES` and `SIZE[v]` both answer for names nobody registered — every object inherits
+ * `constructor`, `toString` and `valueOf` — so `open constructor` in the Terminal used to reach
+ * the reducer and throw while destructuring `Object.prototype.constructor` as a [w, h] pair.
+ */
+const own = <T>(map: Record<string, T>, key: string): T | undefined =>
+  Object.hasOwn(map, key) ? map[key] : undefined
+
 /** Never undefined, so callers can split or slice the result without a guard. */
-export const titleOf = (id: string): string => TITLES[id] ?? id
+export const titleOf = (id: string): string => own(TITLES, id) ?? id
+
+/** The registered default size for an app, or undefined for anything unlisted. */
+export const sizeOf = (id: string): [number, number] | undefined =>
+  own(SIZE as Record<string, [number, number]>, id)
 
 /** Default window size per app; anything unlisted — every project — opens at 780×520. */
 export const SIZE: Partial<Record<StaticAppId, [number, number]>> = {
@@ -78,6 +92,7 @@ export const DOCK_FOR: Partial<Record<StaticAppId, AppId>> = {
  * A project the CMS added after this build has no entry in TITLES until content loads, so the
  * shape of the id is the authority, not the registry.
  */
-export const isAppId = (v: string): v is AppId => v in TITLES || /^project-[a-z0-9-]+$/.test(v)
+export const isAppId = (v: string): v is AppId =>
+  Object.hasOwn(TITLES, v) || /^project-[a-z0-9-]+$/.test(v)
 
 export const DEFAULT_SIZE: [number, number] = [780, 520]

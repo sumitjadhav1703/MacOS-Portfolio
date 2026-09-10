@@ -1,5 +1,5 @@
 import type { Env } from './env'
-import { corsHeaders, fail, json, log } from './http'
+import { DOCUMENT_HEADERS, corsHeaders, fail, json, log } from './http'
 import { TTL_SECONDS, cachedContent } from './content'
 import { serveFile } from './files'
 import { currentSession, handleLogin, handleLogout, originAllowed } from './auth'
@@ -68,11 +68,15 @@ export default {
       return new Response(null, { status: 204, headers: corsHeaders(request, env) })
     }
 
+    // Every branch below `await`s before returning. A bare `return somePromise()` inside a
+    // `try` is not covered by the `catch` — the rejection escapes the handler entirely, the
+    // log line never runs, and the runtime answers with its own stack trace. The awaits are
+    // the error boundary, not decoration.
     try {
       // ---- public: files -------------------------------------------------------------
       if (path.startsWith('/files/')) {
         if (request.method !== 'GET') return fail(405, 'Method not allowed.')
-        return serveFile(env, decodeURIComponent(path.slice('/files/'.length)))
+        return await serveFile(env, decodeURIComponent(path.slice('/files/'.length)))
       }
 
       // ---- brand marks ------------------------------------------------------------------
@@ -88,12 +92,17 @@ export default {
         if (request.method !== 'GET') return fail(405, 'Method not allowed.')
         const slug = path.slice('/icons/'.length)
         if (!/^[a-z0-9.-]{1,60}\.svg$/.test(slug)) return fail(404, 'Not found.')
+        // A glyph this Worker cannot fetch is a missing glyph, not a server fault. `!glyph.ok`
+        // already said so; a fetch that *throws* — SITE_ORIGIN down, DNS gone, connection lost —
+        // used to escape to the catch-all and answer 500, so every icon on the page turned into
+        // a server error the moment the site it proxies from had a bad minute.
         const glyph = await fetch(`${env.SITE_ORIGIN}/icons/${slug}`, {
           cf: { cacheEverything: true, cacheTtl: 86_400 },
-        } as RequestInit)
-        if (!glyph.ok) return fail(404, 'Not found.')
+        } as RequestInit).catch(() => null)
+        if (!glyph?.ok) return fail(404, 'Not found.')
         return new Response(glyph.body, {
           headers: {
+            ...DOCUMENT_HEADERS,
             'Content-Type': 'image/svg+xml',
             'Cache-Control': 'public, max-age=86400',
           },
@@ -131,7 +140,7 @@ export default {
 
         if (parts[0] === 'login' && request.method === 'POST') {
           if (!originAllowed(request)) return fail(403, 'Blocked.')
-          return handleLogin(request, env)
+          return await handleLogin(request, env)
         }
 
         // Authorisation is enforced here, on the server, for every remaining admin route. The
@@ -142,7 +151,7 @@ export default {
           return fail(401, 'Not signed in.')
         }
 
-        if (parts[0] === 'logout') return handleLogout(request, env)
+        if (parts[0] === 'logout') return await handleLogout(request, env)
         if (parts[0] === 'me') return json({ ok: true })
 
         if (MUTATIONS.includes(request.method) && !originAllowed(request)) {
@@ -150,12 +159,18 @@ export default {
           return fail(403, 'Blocked.')
         }
 
-        return handleAdminApi(request, env, parts, origin)
+        return await handleAdminApi(request, env, parts, origin)
       }
 
       // ---- admin UI ------------------------------------------------------------------
       if (path === '/') return Response.redirect(`${origin}/admin`, 302)
-      return env.ASSETS.fetch(request)
+      // The admin SPA. Served through DOCUMENT_HEADERS because it is a document on the same
+      // origin as the admin API: without `frame-ancestors 'none'` the sign-in form renders
+      // inside a cross-origin iframe, and SameSite=Strict protects the cookie but not a click.
+      const asset = await env.ASSETS.fetch(request)
+      const headers = new Headers(asset.headers)
+      for (const [k, v] of Object.entries(DOCUMENT_HEADERS)) headers.set(k, v)
+      return new Response(asset.body, { status: asset.status, statusText: asset.statusText, headers })
     } catch (error) {
       // The client is told nothing beyond "it failed"; the detail goes to the log.
       log('server.error', { path, method: request.method, message: String(error) })

@@ -82,19 +82,31 @@ export async function currentSession(request: Request, env: Env): Promise<string
   return row.id
 }
 
-async function recentFailures(env: Env, ip: string): Promise<number> {
+/**
+ * Record this attempt, then say how many are on the clock for this IP — including the one just
+ * written.
+ *
+ * Writing before counting is the whole point. Counting first and inserting only on failure
+ * leaves a window every concurrent request reads at once: 25 wrong passwords fired together all
+ * saw a count of 0 and all got as far as the hash. Now each request has already added itself
+ * before it looks, so simultaneous attempts see each other and the ceiling holds. The row is
+ * deleted again on a successful sign-in, so a correct password still costs nothing.
+ *
+ * ponytail: a row count per IP in D1. Right size for a single-user admin; the Rate Limiting
+ * binding already in wrangler.jsonc for /api/ask is the upgrade if this ever faces real traffic.
+ */
+async function countAttempt(env: Env, ip: string): Promise<number> {
   const since = new Date(Date.now() - WINDOW_MINUTES * 60_000).toISOString()
-  const row = await env.DB.prepare('SELECT COUNT(*) AS n FROM login_attempts WHERE ip = ? AND at > ?')
-    .bind(ip, since)
-    .first<{ n: number }>()
-  return row?.n ?? 0
+  const [, counted] = await env.DB.batch<{ n: number }>([
+    env.DB.prepare('INSERT INTO login_attempts (ip) VALUES (?)').bind(ip),
+    env.DB.prepare('SELECT COUNT(*) AS n FROM login_attempts WHERE ip = ? AND at > ?').bind(ip, since),
+  ])
+  return counted?.results?.[0]?.n ?? 0
 }
 
 export async function handleLogin(request: Request, env: Env): Promise<Response> {
   const ip = clientIp(request)
-  // ponytail: D1 row count per IP. Right size for a single-user admin; a Durable Object or the
-  // Rate Limiting binding would be the upgrade if this ever faced real traffic.
-  if ((await recentFailures(env, ip)) >= MAX_FAILURES) {
+  if ((await countAttempt(env, ip)) > MAX_FAILURES) {
     log('auth.rate_limited', { ip })
     return fail(429, 'Too many attempts. Try again later.')
   }
@@ -108,7 +120,6 @@ export async function handleLogin(request: Request, env: Env): Promise<Response>
   }
 
   if (!password || !(await verifyPassword(password, env.ADMIN_PASSWORD_HASH))) {
-    await env.DB.prepare('INSERT INTO login_attempts (ip) VALUES (?)').bind(ip).run()
     log('auth.failed', { ip })
     return fail(401, 'Incorrect password.')
   }
@@ -120,6 +131,11 @@ export async function handleLogin(request: Request, env: Env): Promise<Response>
   await env.DB.batch([
     env.DB.prepare('INSERT INTO sessions (id, expires_at) VALUES (?, ?)').bind(sid, expires),
     env.DB.prepare('DELETE FROM login_attempts WHERE ip = ?').bind(ip),
+    // Attempts from every other IP age out here too. Without this the table only ever shrinks
+    // for whoever signs in, so a row stamped years ago outlives every session sweep beside it.
+    env.DB.prepare('DELETE FROM login_attempts WHERE at <= ?').bind(
+      new Date(Date.now() - WINDOW_MINUTES * 60_000).toISOString(),
+    ),
     env.DB.prepare("DELETE FROM sessions WHERE expires_at <= strftime('%Y-%m-%dT%H:%M:%fZ', 'now')"),
   ])
   log('auth.login', { ip })

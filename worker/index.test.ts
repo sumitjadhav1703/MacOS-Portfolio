@@ -109,6 +109,23 @@ describe('/icons', () => {
     }
   })
 
+  it('answers 404, not 500, when the upstream site is unreachable', async () => {
+    // A glyph this Worker cannot fetch is a missing glyph. Left to throw, the rejection reached
+    // the catch-all and every icon on the page became a server error the moment the site it
+    // proxies from had a bad minute.
+    vi.stubGlobal('fetch', async () => {
+      throw new Error('Network connection lost.')
+    })
+    const response = await call(req('/icons/github.svg'))
+    expect(response.status).toBe(404)
+    expect(await response.json()).toEqual({ error: 'Not found.' })
+  })
+
+  it('still answers 404 when the upstream says the glyph is missing', async () => {
+    vi.stubGlobal('fetch', async () => new Response('nope', { status: 404 }))
+    expect((await call(req('/icons/github.svg'))).status).toBe(404)
+  })
+
   it('cannot be walked out of — a traversal normalises away from the route entirely', async () => {
     const upstream: string[] = []
     vi.stubGlobal('fetch', async (input: RequestInfo) => {

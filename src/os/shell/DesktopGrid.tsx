@@ -39,8 +39,16 @@ export function DesktopGrid() {
       id="desktop-grid"
       style={{
         ...s(
-          'position:absolute;top:44px;right:22px;display:grid;grid-template-columns:repeat(2,86px);gap:16px 6px;z-index:20;transform-origin:top right',
+          // overflow-y: the grid used to run off the bottom of a container that clips, so past 18
+          // icons at 1440x900 a project simply had no way to be reached from the desktop.
+          // Scrolling is the smallest thing that keeps every project on the desk.
+          'position:absolute;top:44px;right:22px;display:grid;grid-template-columns:repeat(2,86px);grid-auto-rows:min-content;gap:16px 6px;z-index:20;transform-origin:top right;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin',
         ),
+        // The height is divided by the scale because `transform` does not resize the box layout
+        // gave it: at Large Icons a `bottom:96px` grid still measured the full gap to the dock,
+        // then scaled 1.25x past the bottom of the screen, and the last row scrolled into a
+        // region the desktop clips. 44px of menu bar above, 96px of dock below.
+        height: `calc((100% - 140px) / ${iconScale})`,
         transform: `scale(${iconScale})`,
       }}
     >

@@ -1,6 +1,6 @@
 import type { Env } from './env'
-import { fail, json, log } from './http'
-import { SPECS, SINGLETONS } from './tables'
+import { DOCUMENT_HEADERS, fail, json, log } from './http'
+import { ASSET_KEY, SPECS, SINGLETONS } from './tables'
 
 const MAX_BYTES = 8 * 1024 * 1024
 const KINDS = ['resume', 'certificates', 'projects', 'profile', 'misc'] as const
@@ -34,8 +34,7 @@ export function sniff(bytes: Uint8Array): { mime: string; ext: string } | null {
 export const makeKey = (kind: Kind, ext: string) => `portfolio/${kind}/${crypto.randomUUID()}.${ext}`
 
 /** A key is only ever served or deleted if it looks like one we generated. */
-export const isOwnKey = (key: string) =>
-  /^portfolio\/(resume|certificates|projects|profile|misc)\/[0-9a-f-]{36}\.(pdf|png|jpg|webp)$/.test(key)
+export const isOwnKey = (key: string) => ASSET_KEY.test(key)
 
 export async function handleUpload(request: Request, env: Env): Promise<Response> {
   const form = await request.formData().catch(() => null)
@@ -156,9 +155,14 @@ export async function serveFile(env: Env, key: string): Promise<Response> {
   if (!isOwnKey(key)) return fail(404, 'Not found.')
   const object = await env.BUCKET.get(key)
   if (!object) return fail(404, 'Not found.')
-  const headers = new Headers()
+  const headers = new Headers(DOCUMENT_HEADERS)
   object.writeHttpMetadata(headers)
   headers.set('etag', object.httpEtag)
   headers.set('Cache-Control', 'public, max-age=31536000, immutable')
+  // The content type comes from the magic-byte sniff at upload, never from the client, and
+  // `nosniff` (in DOCUMENT_HEADERS) holds the browser to it. `inline` is still spelled out
+  // because these objects are served from the origin that also serves /admin, and a PDF is a
+  // scriptable format in some viewers — the filename is the stored one, display-only.
+  headers.set('Content-Disposition', 'inline')
   return new Response(object.body, { headers })
 }

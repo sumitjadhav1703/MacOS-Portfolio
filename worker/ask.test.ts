@@ -26,13 +26,14 @@ type Options = {
   aiStatus?: number
   aiBody?: unknown
   aiThrows?: boolean
+  SITE_ORIGIN?: string
 }
 
-function makeEnv({ allowed = true, aiStatus = 200, aiBody = { answer: 'Yes.', sources: [] }, aiThrows = false }: Options = {}) {
+function makeEnv({ allowed = true, aiStatus = 200, aiBody = { answer: 'Yes.', sources: [] }, aiThrows = false, SITE_ORIGIN = SITE }: Options = {}) {
   const seen: { body?: string } = {}
   const env = {
     DB: emptyDb,
-    SITE_ORIGIN: SITE,
+    SITE_ORIGIN,
     ASK_LIMIT: { limit: async () => ({ success: allowed }) },
     ASK_AI: {
       fetch: async (request: Request) => {
@@ -53,10 +54,13 @@ const ask = (body: unknown, headers: Record<string, string> = {}) =>
   })
 
 describe('askOriginAllowed', () => {
-  it('accepts the configured site and local development', () => {
+  it('accepts the configured site, and local development only when the site is local', () => {
     const { env } = makeEnv()
     expect(askOriginAllowed(ask({}, { Origin: SITE }), env)).toBe(true)
-    expect(askOriginAllowed(ask({}, { Origin: 'http://localhost:3000' }), env)).toBe(true)
+    expect(askOriginAllowed(ask({}, { Origin: 'http://localhost:3000' }), env)).toBe(false)
+
+    const { env: local } = makeEnv({ SITE_ORIGIN: 'http://127.0.0.1:8799' })
+    expect(askOriginAllowed(ask({}, { Origin: 'http://localhost:3000' }), local)).toBe(true)
   })
 
   it('refuses another site, and refuses a request with no Origin at all', () => {

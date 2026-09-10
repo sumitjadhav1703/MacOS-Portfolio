@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
-import { FALLBACK } from '../data/content'
+import { FALLBACK, mergeContent } from '../data/content'
 import type { Content } from '../data/content'
 import { registerTitles } from './registry'
 
@@ -27,8 +27,11 @@ export function ContentProvider({ children, initial }: { children: ReactNode; in
     const abort = new AbortController()
     fetch(`${API}/api/content`, { signal: abort.signal })
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
-      .then((live: Content) => {
-        if (Array.isArray(live?.projects)) setContent(live)
+      .then((live: Partial<Content>) => {
+        // Same merge the server render uses. This used to be a weaker check than the server's —
+        // it accepted an empty `projects` array the server rejected — so a truncated bundle
+        // could paint a correct desktop and then unmount it a moment after hydration.
+        setContent(mergeContent(live))
       })
       .catch(() => {
         // Nothing to do: FALLBACK is already on screen and is a complete portfolio.
