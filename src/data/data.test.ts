@@ -65,6 +65,29 @@ describe('mergeContent', () => {
     )
   })
 
+  it('refuses a project missing a field the desktop reaches through', () => {
+    // An object was enough to pass before, so a row with no `stack` reached Spotlight's
+    // `for (const tag of project.stack)` and a row with no `status` reached the project window's
+    // `project.status.ok`. Each of these is one render away from a blank desktop.
+    const good = live.projects[0]!
+    const cases: Record<string, unknown> = {
+      stack: undefined,
+      sections: undefined,
+      links: undefined,
+      status: undefined,
+      title: '',
+      slug: '',
+      id: '',
+    }
+    for (const [field, value] of Object.entries(cases)) {
+      const broken = { ...good, [field]: value }
+      expect(mergeContent({ projects: [broken] as never }).projects, field).toBe(FALLBACK.projects)
+    }
+    expect(
+      mergeContent({ projects: [{ ...good, status: { label: 'Live' } }] as never }).projects,
+    ).toBe(FALLBACK.projects)
+  })
+
   it('ignores a category that is not the shape the desktop reads', () => {
     const merged = mergeContent({ ...live, skills: 'nope' as never, socialLinks: [1, 2] as never })
     expect(merged.skills).toBe(FALLBACK.skills)
