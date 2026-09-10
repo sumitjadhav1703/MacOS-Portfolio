@@ -11,3 +11,4 @@ the system actually works, read `AGENTS.md`; for how it ships, `docs/release-pro
 | `cloudflare-portfolio-and-admin-cms.md` | The Cloudflare Worker, D1 content model and the admin CMS |
 | `project-preview-and-icons.md` | Smart project previews and the generated platform/skill icons |
 | `ci-testing-security-and-release.md` | This release-engineering work: CI, the test suites, the security gates |
+| `final-cleanup-and-deployment.md` | The final cleanup pass, the deployment runbook and the first production deployment |
