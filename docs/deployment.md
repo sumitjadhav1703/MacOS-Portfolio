@@ -149,6 +149,33 @@ still off. There is no way around it — uploads, the resume and every cover ima
 
 ---
 
+## Vercel — first deploy
+
+The public site stays on Vercel. Do not migrate it to Cloudflare.
+
+This comes **before** the Cloudflare resources, because it is what produces `SITE_ORIGIN`. That
+value is the Worker's CORS allowlist, and it cannot be guessed: Vercel assigns the hostname.
+
+1. vercel.com → **Add New** → **Project** → import the GitHub repository.
+2. Framework detection should say **Next.js**. Build command `npm run build`, install command
+   `npm ci`. Leave both as detected.
+3. **Add no environment variables.** Leave `NEXT_PUBLIC_API_URL` unset for this first deploy.
+4. Deploy, and open the URL it gives you.
+
+**EXPECTED** The desktop boots and shows your projects, with no API deployed at all. Step 3 is a
+deliberate test rather than an oversight: with no API URL the site serves the content compiled in
+from `src/data/`, so a working first deploy proves the site half is sound before the Worker
+exists — and any later problem is definitely configuration.
+
+**IF IT FAILS** The build log is the whole story; `npm ci && npm run build` locally reproduces it
+exactly. A build that fails here would have failed in CI too.
+
+Write the assigned URL down. The next section needs it, and
+[Vercel — point the site at the API](#vercel--point-the-site-at-the-api) closes the loop once the
+Worker is up.
+
+---
+
 ## D1 setup
 
 D1 is Cloudflare's SQL database. It holds every content row — projects, certificates, experience,
@@ -277,21 +304,10 @@ is what keeps every Cloudflare credential out of this repository.
 
 ---
 
-## Vercel setup
+## Vercel — point the site at the API
 
-The public site stays on Vercel. Do not migrate it to Cloudflare.
-
-1. vercel.com → **Add New** → **Project** → import the GitHub repository.
-2. Framework detection should say **Next.js**. Build command `npm run build`, install command
-   `npm ci`. Leave both as detected.
-3. **Leave `NEXT_PUBLIC_API_URL` unset for the very first deploy.**
-4. Deploy, and open the URL it gives you.
-
-Step 3 is a deliberate test, not an oversight. With no API URL the site serves the content
-compiled in from `src/data/` — so a working first deploy proves the site half is sound before the
-API half exists, and any later problem is definitely configuration.
-
-Once the Worker is deployed, add the variable and redeploy:
+The site is already deployed at this point ([Vercel — first deploy](#vercel--first-deploy)); what
+is left is telling it where the API lives. Add the variable and redeploy:
 
 | Variable | Environment | Value |
 |---|---|---|
