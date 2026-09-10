@@ -60,7 +60,7 @@ const toastsGone = (page) => pause(page, 6000)
 async function openBestProject(page) {
   // `data-win` sits on the eight resize handles too; the id is what identifies a window.
   const icons = page.locator('[data-dsk]')
-  const count = Math.min(await icons.count(), 6)
+  const count = await icons.count()
   for (let i = 0; i < count; i++) {
     await icons.nth(i).dblclick()
     const win = page.locator('#wm [id^="win-"]').last()
