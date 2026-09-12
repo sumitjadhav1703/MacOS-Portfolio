@@ -7,7 +7,8 @@ import { MENU_SURFACE, MenuEntries } from './menu'
 import type { MenuEntry } from '../types'
 
 const WIDTH = 210
-const ROW = 27
+/** menu.tsx renders a row as padding:5px 10px at 13px — about 25.6px. */
+const ROW = 26
 
 /**
  * Right-click menus. One instance lives on the desktop; anything that wants a menu opens
@@ -21,7 +22,9 @@ export function ContextMenu() {
   const { x, y, entries } = contextMenu
   // Keep the menu on screen when it is opened near the right or bottom edge.
   const height = entries.reduce((sum, e) => sum + ('divider' in e ? 11 : ROW), 12)
-  const left = Math.min(x, window.innerWidth - WIDTH - 8)
+  // Math.min alone had no lower bound: a viewport narrower than the menu produced a
+  // negative left and the menu opened off the side of the screen.
+  const left = Math.max(8, Math.min(x, window.innerWidth - WIDTH - 8))
   const top = Math.min(y, Math.max(8, window.innerHeight - height - 8))
 
   return (
@@ -35,7 +38,7 @@ export function ContextMenu() {
         left,
         top,
         width: WIDTH,
-        zIndex: 320,
+        zIndex: 'var(--z-context-menu)',
         fontSize: 13,
       }}
     >

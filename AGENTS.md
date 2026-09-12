@@ -79,7 +79,7 @@ src/
     shell/                    menu bar, dock, Launchpad, context menus, wallpaper,
                               Notification Center, Control Center, toasts, grid
       appMenus.tsx            which menus the focused app puts in the bar
-      Boot.tsx                the startup curtain, and Sleep / Restart / Shut Down
+      Boot.tsx                the `hello` startup, and Sleep / Restart / Shut Down
     wm/                       Window (drag/resize/snap), WindowManager, Mission Control
     apps/                     one component per window; index.tsx maps AppId → component
     search/                   Spotlight (⌘K), shortcut sheet (?)
@@ -123,6 +123,20 @@ the elements that carry them, or the chrome quietly loses its glass.
 per theme in `os.css`, plus the theme packs in `src/os/packs.ts`. Never hardcode a hex in a
 component; the exception is `src/og/card.tsx`, because Satori has no CSS variables.
 
+**Chrome metrics and the stacking order are tokens too.** `--s-menubar-h` (24px, macOS's own
+24pt), `--s-dock-h` and `--s-under-menubar` live on `[data-root]`, and `src/os/metrics.ts`
+mirrors the two heights for the arithmetic that cannot read a custom property — the reducer's
+`snapBox()` and the window drag/resize clamps. Anchor a panel to
+`calc(var(--s-menubar-h) + …)`, never to a literal. Every z-index is a `--z-*` token in one
+ordered block in `os.css`. Before this there were three copies of `MENUBAR_H = 28`, six
+different "just below the menu bar" offsets, four guesses at the dock's height, and 22
+anonymous z-index literals.
+
+**`snapBox()` in `src/os/store.tsx` is the only implementation of the tiling rule.** The
+reducer lands the window with it and `WindowManager` draws the drop preview with it. They
+used to be separate arithmetic — one in pixels, one in CSS percentages with its own
+half-height fudge — and the plate did not match where the window went.
+
 **The menu bar is a table, not markup.** `src/os/shell/appMenus.tsx` maps the focused `AppId` to
 its menus; `MenuBar.tsx` renders whatever comes back. Adding a command means adding a `MenuEntry`
 there, never a new `<Menu>` in the bar. Almost every entry is a store action. The three or four
@@ -132,6 +146,12 @@ question — go through `src/os/cmd.ts`, a single `os:cmd` window event, the sam
 more than a name belongs in the reducer instead. Every entry must do something, and one whose
 target is closed is `disabled` rather than absent — a menu that only looks like a menu teaches
 the visitor that the chrome is a picture.
+
+**A div that acts like a button gets `pressable()`.** `src/os/pressable.ts` returns the
+`role`, `tabIndex`, `aria-label`, `data-focusable`, `onClick` and `onKeyDown` a control needs;
+spread it. `role="button"` on its own puts nothing in the tab order and answers no key, which
+is why the dock, the traffic lights and every menu-bar extra were mouse-only while the axe
+suite stayed green — axe does not flag it.
 
 **One store.** `src/os/store.tsx` is a `useReducer` + context. Add an action to the union,
 handle it in the reducer, dispatch it from a component. No side effects in the reducer.
@@ -191,6 +211,22 @@ during render.
    shortcuts must test `e.ctrlKey` / `e.metaKey` explicitly. This was a real bug once.
 5. **Opacity-zero plus `backdrop-filter` still paints in Chromium.** Dock tooltips also
    toggle `visibility`. Watch for it on any new blurred, hidden surface.
+
+5b. **In `os.css`, write `-webkit-backdrop-filter` FIRST and `backdrop-filter` second.** The
+   CSS build merges the two aliases into one declaration and keeps whichever came last. This
+   file wrote the standard property first everywhere, so the emitted chunk carried
+   `-webkit-backdrop-filter` only — and current Chrome has dropped that alias. The effect was
+   that *no blur declared in this stylesheet reached the page*: the dock's glass, the
+   `[data-glasspane]` sidebars and the `[data-icons="clear"]` faces all rendered flat, and the
+   `!important` rules behind Reduce Transparency and Low Power had nothing to override. It
+   looked fine in the source and in DevTools' Styles pane; the proof is `grep backdrop-filter
+   .next/static/chunks/*.css`.
+
+5c. **Never write a literal `backdrop-filter: blur(...)` in an `s('…')` string.** Use
+   `var(--s-blur)`, `var(--s-blur-heavy)` (full-screen surfaces) or `var(--s-blur-scrim)`
+   (the thin scrim behind a modal). Reduce Transparency and Low Power empty all three. An
+   inline blur is invisible to those modes *and* outranks the stylesheet rule meant to strip
+   it, so a literal there is a bug, not a style choice.
 6. **The public API is read-only and the admin API is guarded server-side.** Route guards in
    the admin SPA are convenience only; `worker/index.ts` is what actually rejects anonymous
    requests. Never add a mutation path outside `/admin/api/*`. `POST /api/ask` is the single
@@ -285,6 +321,13 @@ immediately. They are not a release and never get a tag.
    the CMS. Two real defects turned up while writing it — a project link's URL was never
    validated on the server, and a JSON column holding valid JSON of the wrong type reached the
    public bundle.
+
+The startup sequence is three beats — power-on bar, the handwritten `hello` stroke-drawn over
+a colour field, then the dissolve — and it plays in full **once per browser**
+(`localStorage['sumit-os-seen-hello']`); a return visit gets a 600ms fade instead.  → Restart…
+replays the whole thing, which is the only deliberate way to see it again. The word is one SVG
+path carrying `pathLength="1"`, so the draw is a dash array of 1 counted down to 0 — no
+`getTotalLength()`, no layout read, and it renders correctly on the server.
 
 Deliberate substitutions from the original: the wallpaper picker stores the image as a data
 URL in `localStorage` instead of the Claude Design sidecar, the desk defaults to the active

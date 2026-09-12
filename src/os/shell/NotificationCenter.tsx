@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { EASE } from '../anim'
 import { s } from '../css'
+import { pressable } from '../pressable'
 import { useDispatch, useOpenApp, useOs } from '../store'
 import { useTheme } from '../useTheme'
 import { Calendar } from './Calendar'
@@ -31,7 +32,7 @@ export function NotificationCenter() {
       onClick={(e) => e.stopPropagation()}
       style={{
         ...s(
-          'position:absolute;top:28px;right:0;bottom:0;width:320px;z-index:215;padding:14px 12px 20px;display:flex;flex-direction:column;gap:10px;overflow:auto;background:rgba(10,12,16,.22);backdrop-filter:blur(26px) saturate(150%);-webkit-backdrop-filter:blur(26px) saturate(150%);border-left:1px solid var(--s-line)',
+          'position:absolute;top:var(--s-menubar-h);right:0;bottom:0;width:320px;z-index:var(--z-notif-center);padding:14px 12px 20px;display:flex;flex-direction:column;gap:10px;overflow:auto;background:rgba(10,12,16,.22);backdrop-filter:var(--s-blur-heavy);-webkit-backdrop-filter:var(--s-blur-heavy);border-left:1px solid var(--s-line)',
         ),
         animation: `toastIn .34s ${EASE} both`,
       }}
@@ -79,11 +80,10 @@ export function NotificationCenter() {
           ))}
         </div>
         <div
-          role="button"
-          onClick={() => {
+          {...pressable('Open Projects', () => {
             openApp('finder-projects')
             dispatch({ type: 'overlay', name: 'notifCenter', on: false })
-          }}
+          })}
           style={s(
             'margin-top:10px;padding:8px 12px;border-radius:10px;background:var(--s-fill-2);border:1px solid var(--s-line);font-size:12px;text-align:center;cursor:default',
           )}
@@ -99,8 +99,9 @@ export function NotificationCenter() {
         <div style={s('flex:1')} />
         {notifications.length ? (
           <span
-            role="button"
-            onClick={() => notifications.forEach((n) => dispatch({ type: 'dismissNotif', id: n.id }))}
+            {...pressable('Clear notifications', () =>
+              notifications.forEach((n) => dispatch({ type: 'dismissNotif', id: n.id })),
+            )}
             style={s('font-size:11.5px;color:var(--s-dim);cursor:default')}
           >
             Clear
@@ -112,7 +113,7 @@ export function NotificationCenter() {
         notifications.map((n) => (
           <div
             key={n.id}
-            onClick={() => dispatch({ type: 'dismissNotif', id: n.id })}
+            {...pressable(`Dismiss ${n.title}`, () => dispatch({ type: 'dismissNotif', id: n.id }))}
             style={s(
               'padding:12px 14px;border-radius:14px;background:var(--s-pop);border:1px solid var(--s-line);box-shadow:var(--s-shadow-rest);font-size:12.5px;cursor:default',
             )}

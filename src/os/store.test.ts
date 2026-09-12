@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { initialState, reducer } from './store'
+import { DOCK_H, MENUBAR_H } from './metrics'
+import { initialState, reducer, snapBox } from './store'
 import { isAppId, sizeOf } from './registry'
 
 describe('power', () => {
@@ -60,5 +61,95 @@ describe('app ids that nobody registered', () => {
       })
       expect(Object.keys(next.wins)).not.toContain(key)
     }
+  })
+})
+
+describe('window geometry', () => {
+  const VIEWPORT = { w: 1440, h: 900 }
+  const open = (app: 'terminal' | 'safari' = 'terminal', viewport = VIEWPORT) =>
+    reducer(initialState(), { type: 'open', app, viewport })
+
+  it('tiles above the dock, not under it', () => {
+    const state = open()
+    const tiled = reducer(state, { type: 'snap', app: 'terminal', zone: 'left', viewport: VIEWPORT })
+    const win = tiled.wins.terminal!
+
+    expect(win.y).toBe(MENUBAR_H)
+    // The dock is the bottom band; a tiled window that runs under it cannot be reached
+    // there, and the dock paints over it.
+    expect(win.y + win.h).toBe(VIEWPORT.h - DOCK_H)
+    expect(win.snapped).toBe('left')
+  })
+
+  it('gives the tiled window the whole desk once the dock is hidden', () => {
+    const hidden = reducer(open(), { type: 'toggleDock' })
+    const tiled = reducer(hidden, { type: 'snap', app: 'terminal', zone: 'left', viewport: VIEWPORT })
+    expect(tiled.wins.terminal!.h).toBe(VIEWPORT.h - MENUBAR_H)
+  })
+
+  it('draws the preview where the window lands', () => {
+    const tiled = reducer(open(), {
+      type: 'snap',
+      app: 'terminal',
+      zone: 'bottom-right',
+      viewport: VIEWPORT,
+    })
+    const win = tiled.wins.terminal!
+    // WindowManager renders snapBox() directly; the two used to be separate arithmetic and
+    // disagreed about the half-height.
+    expect(snapBox('bottom-right', VIEWPORT, true)).toEqual({
+      x: win.x,
+      y: win.y,
+      w: win.w,
+      h: win.h,
+    })
+  })
+
+  it('clamps a window that is wider than the viewport it opens in', () => {
+    // Safari's default is 900 wide; the 768-900px band is narrower than that.
+    const narrow = { w: 820, h: 700 }
+    const win = open('safari', narrow).wins.safari!
+    expect(win.w).toBeLessThanOrEqual(narrow.w)
+    expect(win.x + win.w).toBeLessThanOrEqual(narrow.w)
+    expect(win.y).toBeGreaterThanOrEqual(MENUBAR_H)
+  })
+
+  it('pulls windows back on to a viewport that shrank', () => {
+    const wide = reducer(initialState(), {
+      type: 'open',
+      app: 'safari',
+      viewport: { w: 1920, h: 1080 },
+    })
+    const shrunk = reducer(wide, { type: 'clampAll', viewport: { w: 700, h: 600 } })
+    const win = shrunk.wins.safari!
+
+    expect(win.w).toBeLessThanOrEqual(700)
+    expect(win.x).toBeLessThanOrEqual(700 - 120)
+    expect(win.y).toBeLessThanOrEqual(600 - 60)
+  })
+
+  it('re-tiles a snapped window rather than leaving stale pixels', () => {
+    const tiled = reducer(open(), { type: 'snap', app: 'terminal', zone: 'right', viewport: VIEWPORT })
+    const next = { w: 1000, h: 800 }
+    const resized = reducer(tiled, { type: 'clampAll', viewport: next })
+    expect(resized.wins.terminal).toEqual({
+      ...tiled.wins.terminal,
+      ...snapBox('right', next, true),
+    })
+  })
+})
+
+describe('the two top-right panels', () => {
+  it('are mutually exclusive, as they are on macOS', () => {
+    const cc = reducer(initialState(), { type: 'overlay', name: 'controlCenter', on: true })
+    expect(cc.controlCenter).toBe(true)
+
+    const notif = reducer(cc, { type: 'overlay', name: 'notifCenter', on: true })
+    expect(notif.notifCenter).toBe(true)
+    expect(notif.controlCenter).toBe(false)
+
+    const back = reducer(notif, { type: 'overlay', name: 'controlCenter', on: true })
+    expect(back.controlCenter).toBe(true)
+    expect(back.notifCenter).toBe(false)
   })
 })

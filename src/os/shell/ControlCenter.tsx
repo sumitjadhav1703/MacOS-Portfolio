@@ -1,6 +1,7 @@
 'use client'
 
 import { s } from '../css'
+import { pressable } from '../pressable'
 import { useDispatch, useOpenApp, useOs } from '../store'
 import { useTheme } from '../useTheme'
 import { useOnline } from '../useMedia'
@@ -34,7 +35,7 @@ export function ControlCenter() {
       id="control-center"
       onClick={(e) => e.stopPropagation()}
       style={s(
-        'position:absolute;top:34px;right:12px;width:288px;padding:12px;border-radius:14px;background:var(--s-pop);backdrop-filter:var(--s-blur);-webkit-backdrop-filter:var(--s-blur);border:1px solid var(--s-line);box-shadow:var(--s-shadow-pop);z-index:210',
+        'position:absolute;top:var(--s-under-menubar);right:12px;width:288px;padding:12px;border-radius:14px;background:var(--s-pop);backdrop-filter:var(--s-blur);-webkit-backdrop-filter:var(--s-blur);border:1px solid var(--s-line);box-shadow:var(--s-shadow-pop);z-index:var(--z-control-center)',
       )}
     >
       <div style={s('display:flex;flex-direction:column;gap:9px')}>
@@ -65,8 +66,7 @@ export function ControlCenter() {
               <div
                 key={value}
                 data-seg={value}
-                role="button"
-                onClick={() => setTheme(value)}
+                {...pressable(`${label} appearance`, () => setTheme(value))}
                 style={{
                   ...s('flex:1;text-align:center;padding:6px 0;border-radius:8px;font-size:12px;cursor:default'),
                   background: prefs.theme === value ? accent : 'var(--s-fill-2)',
@@ -108,11 +108,10 @@ export function ControlCenter() {
               <div
                 key={id}
                 data-side="1"
-                role="button"
-                onClick={() => {
+                {...pressable(label, () => {
                   openApp(id)
                   dispatch({ type: 'overlay', name: 'controlCenter', on: false })
-                }}
+                })}
                 style={s('padding:7px 9px;border-radius:8px;background:var(--s-fill-2);font-size:12px;cursor:default')}
               >
                 {label}
@@ -123,11 +122,10 @@ export function ControlCenter() {
 
         <div
           data-side="1"
-          role="button"
-          onClick={() => {
+          {...pressable('Portfolio Settings', () => {
             openApp('settings')
             dispatch({ type: 'overlay', name: 'controlCenter', on: false })
-          }}
+          })}
           style={s(
             'padding:9px 12px;border-radius:10px;background:var(--s-fill);cursor:default;font-weight:600;font-size:12.5px',
           )}

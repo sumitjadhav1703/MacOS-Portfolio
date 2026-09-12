@@ -104,12 +104,67 @@ export const ICONS: IconSpec[] = [
 
 /** Icons for the apps that have no dock slot; Launchpad still needs a face for them. */
 export const EXTRA_ICONS: IconSpec[] = [
-  { id: 'about', tip: 'About', grad: 'linear-gradient(180deg,#8e97a6,#4c545f)', inks: [] },
-  { id: 'resume', tip: 'Resume', grad: 'linear-gradient(180deg,#f26a63,#c33026)', inks: [] },
-  { id: 'skills', tip: 'Skills', grad: 'linear-gradient(180deg,#a97bf0,#6a3ec0)', inks: [] },
-  { id: 'experience', tip: 'Experience', grad: 'linear-gradient(180deg,#5cc36a,#2b8743)', inks: [] },
-  { id: 'education', tip: 'Education', grad: 'linear-gradient(180deg,#4ea3f5,#1c62c9)', inks: [] },
-  { id: 'certificates', tip: 'Certificates', grad: 'linear-gradient(180deg,#f79a3e,#cd6212)', inks: [] },
+  {
+    id: 'about',
+    tip: 'About',
+    grad: 'linear-gradient(180deg,#8e97a6,#4c545f)',
+    inks: [
+      ['left:13px;top:13px;width:28px;height:28px;border-radius:50%;border:2px solid rgba(255,255,255,.9)', 'inkline'],
+      ['left:25.7px;top:19px;width:2.6px;height:2.6px;border-radius:50%;background:#fff', 'ink'],
+      ['left:25.7px;top:24px;width:2.6px;height:13px;border-radius:2px;background:#fff', 'ink'],
+    ],
+  },
+  {
+    id: 'resume',
+    tip: 'Resume',
+    grad: 'linear-gradient(180deg,#f26a63,#c33026)',
+    inks: [
+      ['left:16px;top:11px;width:22px;height:31px;border-radius:3px;background:rgba(255,255,255,.94)', 'ink'],
+      ['left:20px;top:18px;width:14px;height:2px;border-radius:1px;background:rgba(0,0,0,.3)', 'ink'],
+      ['left:20px;top:24px;width:14px;height:2px;border-radius:1px;background:rgba(0,0,0,.22)', 'ink'],
+      ['left:20px;top:30px;width:9px;height:2px;border-radius:1px;background:rgba(0,0,0,.22)', 'ink'],
+    ],
+  },
+  {
+    id: 'skills',
+    tip: 'Skills',
+    grad: 'linear-gradient(180deg,#a97bf0,#6a3ec0)',
+    inks: [
+      ['left:14px;top:16px;width:26px;height:5px;border-radius:3px;background:rgba(255,255,255,.94)', 'ink'],
+      ['left:14px;top:25px;width:17px;height:5px;border-radius:3px;background:rgba(255,255,255,.78)', 'ink'],
+      ['left:14px;top:34px;width:22px;height:5px;border-radius:3px;background:rgba(255,255,255,.62)', 'ink'],
+    ],
+  },
+  {
+    id: 'experience',
+    tip: 'Experience',
+    grad: 'linear-gradient(180deg,#5cc36a,#2b8743)',
+    inks: [
+      ['left:22px;top:14px;width:10px;height:8px;border-radius:2px 2px 0 0;border:2px solid rgba(255,255,255,.94)', 'inkline'],
+      ['left:13px;top:21px;width:28px;height:19px;border-radius:3px;background:rgba(255,255,255,.94)', 'ink'],
+      ['left:13px;top:29px;width:28px;height:1.8px;background:rgba(0,0,0,.22)', 'ink'],
+    ],
+  },
+  {
+    id: 'education',
+    tip: 'Education',
+    grad: 'linear-gradient(180deg,#4ea3f5,#1c62c9)',
+    inks: [
+      ['left:22px;top:24px;width:10px;height:12px;border-radius:0 0 3px 3px;background:rgba(255,255,255,.72)', 'ink'],
+      ['left:14px;top:11px;width:26px;height:26px;border-radius:2px;background:rgba(255,255,255,.94);transform:scaleY(.46) rotate(45deg)', 'ink'],
+      ['left:38px;top:22px;width:2px;height:13px;border-radius:1px;background:rgba(255,255,255,.72)', 'ink'],
+    ],
+  },
+  {
+    id: 'certificates',
+    tip: 'Certificates',
+    grad: 'linear-gradient(180deg,#f79a3e,#cd6212)',
+    inks: [
+      ['left:17px;top:10px;width:20px;height:20px;border-radius:50%;border:2.4px solid rgba(255,255,255,.94)', 'inkline'],
+      ['left:20px;top:28px;width:5px;height:14px;border-radius:1px;background:rgba(255,255,255,.8);transform:rotate(-9deg)', 'ink'],
+      ['left:29px;top:28px;width:5px;height:14px;border-radius:1px;background:rgba(255,255,255,.8);transform:rotate(9deg)', 'ink'],
+    ],
+  },
   {
     id: 'monitor',
     tip: 'System Monitor',

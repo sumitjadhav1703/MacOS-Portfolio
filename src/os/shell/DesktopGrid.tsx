@@ -42,13 +42,14 @@ export function DesktopGrid() {
           // overflow-y: the grid used to run off the bottom of a container that clips, so past 18
           // icons at 1440x900 a project simply had no way to be reached from the desktop.
           // Scrolling is the smallest thing that keeps every project on the desk.
-          'position:absolute;top:44px;right:22px;display:grid;grid-template-columns:repeat(2,86px);grid-auto-rows:min-content;gap:16px 6px;z-index:20;transform-origin:top right;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin',
+          'position:absolute;top:calc(var(--s-menubar-h) + 16px);right:22px;display:grid;grid-template-columns:repeat(2,86px);grid-auto-rows:min-content;gap:16px 6px;z-index:var(--z-desktop-grid);transform-origin:top right;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin',
         ),
         // The height is divided by the scale because `transform` does not resize the box layout
         // gave it: at Large Icons a `bottom:96px` grid still measured the full gap to the dock,
         // then scaled 1.25x past the bottom of the screen, and the last row scrolled into a
-        // region the desktop clips. 44px of menu bar above, 96px of dock below.
-        height: `calc((100% - 140px) / ${iconScale})`,
+        // region the desktop clips. The two reserved bands are the real chrome heights now —
+        // the old numbers were 44 and 96, and the menu bar has never been 44px tall.
+        height: `calc((100% - var(--s-menubar-h) - 16px - var(--s-dock-h) - 14px) / ${iconScale})`,
         transform: `scale(${iconScale})`,
       }}
     >
@@ -102,7 +103,7 @@ export function DesktopGrid() {
             <span
               style={{
                 ...s(
-                  'font-size:11.5px;line-height:1.25;text-align:center;padding:2px 6px;border-radius:6px;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)',
+                  'font-size:11.5px;line-height:1.25;text-align:center;padding:2px 6px;border-radius:6px;backdrop-filter:var(--s-blur-scrim);-webkit-backdrop-filter:var(--s-blur-scrim)',
                 ),
                 color: selected === id ? '#fff' : 'var(--s-onwall)',
                 textShadow: selected === id ? 'none' : 'var(--s-onwall-shadow)',

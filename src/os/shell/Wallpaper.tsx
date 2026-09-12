@@ -86,7 +86,7 @@ export function Wallpaper() {
         id="wall-pick-bar"
         style={{
           ...s(
-            'position:absolute;left:50%;top:44px;transform:translateX(-50%);z-index:400;padding:8px 14px;border-radius:10px;background:rgba(24,26,30,.94);backdrop-filter:blur(18px);border:1px solid var(--s-fill-2);box-shadow:0 16px 38px rgba(0,0,0,.5);font-size:12.5px;align-items:center;gap:12px;color:#f2f3f5',
+            'position:absolute;left:50%;top:calc(var(--s-menubar-h) + 16px);transform:translateX(-50%);z-index:var(--z-wall-pick);padding:8px 14px;border-radius:10px;background:rgba(24,26,30,.94);backdrop-filter:var(--s-blur);-webkit-backdrop-filter:var(--s-blur);border:1px solid var(--s-fill-2);box-shadow:0 16px 38px rgba(0,0,0,.5);font-size:12.5px;align-items:center;gap:12px;color:#f2f3f5',
           ),
           display: picking ? 'flex' : 'none',
         }}

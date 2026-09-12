@@ -4,15 +4,17 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { useContent } from '../content'
 import { platformSlug } from '../../lib/icons'
 import { s } from '../css'
+import { pressable } from '../pressable'
 import { titleOf } from '../registry'
 import { useDispatch, useOpenApp, useOs } from '../store'
 import { useTheme } from '../useTheme'
+import { useOnline } from '../useMedia'
 import { Popovers } from './Popovers'
 import { menusFor, type MenuCtx } from './appMenus'
 import { MENU_SURFACE, MenuEntries } from './menu'
 import type { MenuEntry, MenuName } from '../types'
 
-const DROPDOWN = `position:absolute;top:26px;left:0;z-index:10;${MENU_SURFACE}`
+const DROPDOWN = `position:absolute;top:calc(100% + 4px);left:0;z-index:10;${MENU_SURFACE}`
 
 function Menu({
   name,
@@ -58,11 +60,38 @@ function Clock() {
   return (
     <span id="clock" style={s('font-variant-numeric:tabular-nums')} suppressHydrationWarning>
       {now
-        ? `${now.toLocaleDateString([], { weekday: 'short' })} ${now.toLocaleTimeString([], {
-            hour: 'numeric',
-            minute: '2-digit',
-          })}`
+        ? `${now.toLocaleDateString([], {
+            weekday: 'short',
+            day: 'numeric',
+            month: 'short',
+          })} ${now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`
         : '—'}
+    </span>
+  )
+}
+
+
+/**
+ * The Wi-Fi extra. Driven by `useOnline`, the same hook Control Center reads, so it is a
+ * status indicator rather than a decoration.
+ */
+function Wifi() {
+  const online = useOnline()
+  return (
+    <span
+      role="img"
+      aria-label={online ? 'Network connected' : 'Network offline'}
+      style={s('display:flex;align-items:center')}
+    >
+      <svg viewBox="0 0 16 13" width="15" height="12" aria-hidden="true" style={{ opacity: online ? 0.92 : 0.45 }}>
+        <g fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+          <path d="M1.2 4.1a10.4 10.4 0 0 1 13.6 0" />
+          <path d="M3.8 6.9a6.6 6.6 0 0 1 8.4 0" />
+          <path d="M6.3 9.6a2.9 2.9 0 0 1 3.4 0" />
+          {online ? null : <path d="M2.4 12 13.6 1.4" />}
+        </g>
+        <circle cx="8" cy="11.6" r="1.05" fill="currentColor" />
+      </svg>
     </span>
   )
 }
@@ -135,7 +164,7 @@ export function MenuBar() {
     <div
       id="menubar"
       style={s(
-        'position:absolute;top:0;left:0;right:0;height:28px;border-bottom:1px solid var(--s-menu-line);box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;padding:0 14px;z-index:200;font-size:13px;color:var(--s-menu-fg);text-shadow:var(--s-menu-shadow);background:var(--s-menu-bg);backdrop-filter:var(--s-blur);-webkit-backdrop-filter:var(--s-blur);transition:background .4s ease,color .4s ease',
+        'position:absolute;top:0;left:0;right:0;height:var(--s-menubar-h);border-bottom:1px solid var(--s-menu-line);box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;padding:0 14px;z-index:var(--z-menubar);font-size:13px;color:var(--s-menu-fg);text-shadow:var(--s-menu-shadow);background:var(--s-menu-bg);backdrop-filter:var(--s-blur);-webkit-backdrop-filter:var(--s-blur);transition:background .4s ease,color .4s ease',
       )}
     >
       <div style={s('display:flex;align-items:center;gap:2px')}>
@@ -229,14 +258,13 @@ export function MenuBar() {
           </div>
         ) : null}
 
+        <Wifi />
+
         <div
           style={s('cursor:default;display:flex;flex-direction:column;gap:3px;padding:3px 2px')}
-          onClick={(e) => {
-            e.stopPropagation()
-            dispatch({ type: 'overlay', name: 'controlCenter' })
-          }}
-          role="button"
-          aria-label="Control Center"
+          {...pressable('Control Center', () => dispatch({ type: 'overlay', name: 'controlCenter' }), {
+            stopPropagation: true,
+          })}
         >
           <div style={s('width:16px;height:2.5px;border-radius:2px;background:currentColor;opacity:.9')} />
           <div style={s('width:16px;height:2.5px;border-radius:2px;background:currentColor;opacity:.9')} />
@@ -244,12 +272,9 @@ export function MenuBar() {
 
         <div
           style={s('cursor:default;width:14px;height:14px;position:relative')}
-          onClick={(e) => {
-            e.stopPropagation()
-            dispatch({ type: 'overlay', name: 'spotlight', on: true })
-          }}
-          role="button"
-          aria-label="Search"
+          {...pressable('Search', () => dispatch({ type: 'overlay', name: 'spotlight', on: true }), {
+            stopPropagation: true,
+          })}
         >
           <div
             style={s(
@@ -265,6 +290,8 @@ export function MenuBar() {
 
         <div
           data-menu="cal"
+          role="button"
+          aria-label="Notification Center"
           style={s('cursor:default;position:relative;padding:2px 4px;border-radius:5px')}
           onClick={(e) => {
             e.stopPropagation()

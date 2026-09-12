@@ -159,7 +159,7 @@ export function Spotlight() {
       id="spotlight"
       onClick={() => dispatch({ type: 'overlay', name: 'spotlight', on: false })}
       style={s(
-        'position:absolute;inset:0;z-index:300;background:rgba(0,0,0,.35);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);display:flex;align-items:flex-start;justify-content:center;padding-top:16vh',
+        'position:absolute;inset:0;z-index:var(--z-spotlight);background:rgba(0,0,0,.35);backdrop-filter:var(--s-blur-scrim);-webkit-backdrop-filter:var(--s-blur-scrim);display:flex;align-items:flex-start;justify-content:center;padding-top:16vh',
       )}
     >
       <div

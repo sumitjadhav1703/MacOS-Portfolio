@@ -57,15 +57,15 @@
   [data-root][data-contrast="1"] [data-focusable]:focus-visible{outline:2px solid var(--s-accent);outline-offset:2px}
   [data-root][data-opaque="1"]{--s-blur:none;--s-pop:var(--s-win);--s-menu-bg:var(--s-chrome);--s-menu-shadow:none;--s-tip:var(--s-chrome);--s-dock:var(--s-chrome)!important;--s-glass-icon:var(--s-fill-3);--s-side-glass:var(--s-chrome);--s-glass-ring:var(--s-line)}
   /* Liquid-glass chrome. Dock and in-window sidebars refract the wallpaper; Reduce Transparency flattens them onto --s-chrome. */
-  [data-root][data-dockstyle="glass"] #dock{background:var(--s-dock-glass)!important;backdrop-filter:blur(32px) saturate(190%) brightness(1.05)!important;-webkit-backdrop-filter:blur(32px) saturate(190%) brightness(1.05)!important;box-shadow:var(--s-shadow-pop),inset 0 1px 0 var(--s-glass-ring),inset 0 0 0 .5px var(--s-glass-edge)!important;border-color:transparent!important}
-  [data-root][data-opaque="1"] #dock{background:var(--s-chrome)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;border-color:var(--s-line)!important}
-  [data-glasspane]{background:var(--s-side-glass)!important;backdrop-filter:blur(22px) saturate(170%);-webkit-backdrop-filter:blur(22px) saturate(170%)}
-  [data-root][data-opaque="1"] [data-glasspane]{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
-  [data-root][data-icons="clear"] [data-iconface]{background-image:linear-gradient(180deg,rgba(255,255,255,.26),rgba(255,255,255,.07)),var(--icon-grad)!important;box-shadow:0 7px 15px rgba(0,0,0,.2),inset 0 1px 0 var(--s-glass-ring),inset 0 0 0 .5px var(--s-glass-icon-ring)!important;backdrop-filter:blur(10px) saturate(150%);-webkit-backdrop-filter:blur(10px) saturate(150%)}
+  [data-root][data-dockstyle="glass"] #dock{background:var(--s-dock-glass)!important;-webkit-backdrop-filter:blur(32px) saturate(190%) brightness(1.05)!important;backdrop-filter:blur(32px) saturate(190%) brightness(1.05)!important;box-shadow:var(--s-shadow-pop),inset 0 1px 0 var(--s-glass-ring),inset 0 0 0 .5px var(--s-glass-edge)!important;border-color:transparent!important}
+  [data-root][data-opaque="1"] #dock{background:var(--s-chrome)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;border-color:var(--s-line)!important}
+  [data-glasspane]{background:var(--s-side-glass)!important;-webkit-backdrop-filter:blur(22px) saturate(170%);backdrop-filter:blur(22px) saturate(170%)}
+  [data-root][data-opaque="1"] [data-glasspane]{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+  [data-root][data-icons="clear"] [data-iconface]{background-image:linear-gradient(180deg,rgba(255,255,255,.26),rgba(255,255,255,.07)),var(--icon-grad)!important;box-shadow:0 7px 15px rgba(0,0,0,.2),inset 0 1px 0 var(--s-glass-ring),inset 0 0 0 .5px var(--s-glass-icon-ring)!important;-webkit-backdrop-filter:blur(10px) saturate(150%);backdrop-filter:blur(10px) saturate(150%)}
   [data-root][data-icons="clear"] [data-ink],[data-root][data-icons="clear"] [data-inkline]{filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.5))}
-  [data-root][data-opaque="1"] [data-iconface]{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+  [data-root][data-opaque="1"] [data-iconface]{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
   [data-root][data-lowpower="1"]{--s-blur:none;--s-shadow-win:0 10px 22px rgba(0,0,0,.34);--s-shadow-pop:0 8px 18px rgba(0,0,0,.3)}
-  [data-root][data-lowpower="1"] *{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+  [data-root][data-lowpower="1"] *{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
   :focus-visible{outline:2px solid var(--s-accent);outline-offset:2px}
   *::-webkit-scrollbar{width:10px;height:10px}
   *::-webkit-scrollbar-track{background:transparent}
@@ -90,10 +90,11 @@
   @keyframes toastIn{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:none}}
   [data-btn]:hover{filter:brightness(1.15)}
   [data-chipbtn]:hover{background:var(--s-fill-3)}
-  [data-mobilenav]{display:none!important}
   #mobile{display:none}
   @media (max-width:767px){
-    #dock,#desktop-grid,#wm,#menubar,#desk-vignette,#toasts,#control-center,[data-mobilenav]{display:none!important}
+    #dock,#desktop-grid,#wm,#menubar,#desk-vignette,#toasts,#control-center,
+    #spotlight,#launchpad,#mission,#shortcuts,#notification-center,#dock-hint,
+    #boot,#power-sleep{display:none!important}
     #mobile{display:block!important}
     #wallpaper{opacity:.5}
   }
@@ -130,3 +131,165 @@
 }
 [data-root][data-opaque="1"] #wallpaper::after,
 [data-root][data-lowpower="1"] #wallpaper::after { display: none }
+
+/* ───────────────────────────────────────────────────────────────────────────
+   macOS fidelity pass. Everything below is additive: it overrides tokens the
+   verbatim block above defines, rather than editing that block in place.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* Chrome metrics. The menu bar is 24px because macOS's is 24pt (NSMenu.menuBarHeight,
+   unchanged from Big Sur through Tahoe); the dock figure is what the slab actually
+   measures — 8px offset + 6/8 padding + 54px icons. Both are mirrored in
+   src/os/metrics.ts for the arithmetic that cannot read a custom property. */
+[data-root] {
+  --s-menubar-h: 24px;
+  --s-dock-h: 82px;
+  --s-menu-gap: 6px;
+  /* Where anything hanging off the menu bar starts. */
+  --s-under-menubar: calc(var(--s-menubar-h) + var(--s-menu-gap));
+}
+
+/* The stacking order, in one place instead of 22 literals spread across the tree. */
+[data-root] {
+  --z-desktop-grid: 20;
+  --z-wm: 100;
+  --z-dock: 150;
+  --z-dock-hint: 160;
+  --z-menubar: 200;
+  --z-control-center: 210;
+  --z-notif-center: 215;
+  --z-toast: 230;          /* above both top-right panels — a toast fired behind the
+                              panel it is announcing is a notification nobody sees */
+  --z-mission: 290;
+  --z-launchpad: 295;
+  --z-spotlight: 300;
+  --z-shortcuts: 310;
+  --z-context-menu: 320;
+  --z-wall-pick: 190;      /* below the menu bar it is centred under */
+  --z-mobile: 400;
+  --z-curtain: 500;
+}
+
+/* Traffic lights. Apple publishes no hex values; these are the community-measured set
+   every good recreation uses. The idle colours are the real tell: macOS greys all three
+   out the moment a window loses focus. */
+[data-root] {
+  --s-tl-red: #ff5f57;
+  --s-tl-yellow: #febc2e;
+  --s-tl-green: #28c840;
+  --s-tl-idle: #56585c;
+  --s-tl-rim: rgba(0, 0, 0, .18);
+}
+[data-root][data-theme="light"] {
+  --s-tl-idle: #dddddd;
+  --s-tl-rim: rgba(0, 0, 0, .12);
+}
+
+/* The field the startup `hello` is drawn over. Derived per theme rather than being a
+   second hardcoded palette; the pack's accent bleeds through via --s-accent. */
+[data-root] {
+  --s-hello-wall:
+    radial-gradient(52% 46% at 22% 26%, color-mix(in srgb, var(--s-accent) 42%, transparent) 0%, transparent 70%),
+    radial-gradient(48% 44% at 82% 72%, rgba(236, 92, 140, .30) 0%, transparent 72%),
+    radial-gradient(60% 50% at 60% 14%, rgba(255, 186, 86, .20) 0%, transparent 68%),
+    #07080a;
+}
+
+/* Glass. --s-blur was blur(18px) with no saturation, which is why every popover looked
+   grey and dead next to the dock. Apple's material is roughly blur 20-24px with
+   saturate(180%) — the saturation is the half that reads as glass. */
+[data-root] {
+  --s-blur: blur(22px) saturate(180%);
+  /* Full-screen surfaces: Launchpad, Mission Control, Notification Center. */
+  --s-blur-heavy: blur(28px) saturate(170%);
+  /* The thin scrim behind a modal, and the plate behind on-wallpaper text. */
+  --s-blur-scrim: blur(4px);
+  /* Specular top edge + bottom bounce, the two insets that give glass an edge. */
+  --s-glass-inset: inset 0 1.5px 0 var(--s-glass-ring), inset 0 -1px 0 rgba(255, 255, 255, .08);
+}
+
+/*
+ * Every blur in the tree goes through one of these three tokens, and both accessibility
+ * modes empty all three.
+ *
+ * This is not tidiness. An inline `backdrop-filter` on an element BEATS a stylesheet rule
+ * marked `!important` here — measured in Chrome 152, where `[data-opaque="1"] #dock`
+ * applied its background and border-color and had its `backdrop-filter: none !important`
+ * silently ignored because the element carried the property inline. So while the dock, the
+ * Launchpad, Mission Control and the Notification Center all wrote a literal blur inline,
+ * Reduce Transparency and Low Power never actually removed any of it: the token was set to
+ * `none`, nothing read the token, and the escape hatch did nothing.
+ *
+ * A literal `backdrop-filter: blur(...)` in an `s('…')` string is therefore a bug, not a
+ * style choice. AGENTS.md rule 5 is the neighbouring trap on the same property.
+ */
+[data-root][data-opaque="1"],
+[data-root][data-lowpower="1"] {
+  --s-blur: none;
+  --s-blur-heavy: none;
+  --s-blur-scrim: none;
+  --s-glass-inset: none;
+}
+
+/*
+ * ORDER MATTERS on the next two lines, and everywhere else in this file that pairs them:
+ * `-webkit-backdrop-filter` first, `backdrop-filter` second.
+ *
+ * Next's CSS pipeline merges the two aliases into one declaration and keeps whichever came
+ * LAST in the source. This file used to write the standard property first, so the build
+ * emitted `-webkit-backdrop-filter` only — and current Chrome has dropped that alias. The
+ * result was that no blur declared in this stylesheet reached the page at all: the dock's
+ * glass, the in-window sidebars and the clear icon faces were flat, and the `!important`
+ * overrides behind Reduce Transparency and Low Power had nothing to override. Only the
+ * blurs written inline through `s('…')` ever worked, because inline styles skip the build.
+ *
+ * Verified by reading the emitted chunk in .next/static/chunks/*.css, not by inspection.
+ */
+
+/* The dock's own material lives here rather than inline, so the glass, Reduce Transparency
+   and Low Power rules above can actually override it. */
+#dock {
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  backdrop-filter: blur(24px) saturate(160%);
+}
+
+/* macOS icons are superellipses, not rounded rectangles, and Tahoe made the squircle
+   mandatory. One declaration; border-radius is the automatic fallback where
+   corner-shape is unsupported. */
+[data-iconface], [data-squircle] {
+  corner-shape: squircle;
+}
+
+/* The startup `hello`. pathLength="1" on the path normalises its geometry, so the draw
+   is a dasharray of 1 counted down to 0 — no getTotalLength(), no layout read, no magic
+   length constant, and it renders correctly server-side. */
+@keyframes helloDraw { from { stroke-dashoffset: 1 } to { stroke-dashoffset: 0 } }
+@keyframes helloIn { from { opacity: 0 } to { opacity: 1 } }
+
+/* Launchpad. Animating backdrop-filter stutters, so the blurred plate cross-fades and
+   the tiles do the moving. */
+@keyframes lpIn { from { opacity: 0 } to { opacity: 1 } }
+@keyframes lpTile { from { opacity: 0; transform: scale(.9) } to { opacity: 1; transform: none } }
+
+/* Inter, self-hosted. Apple's SF Pro is referenced by name in the stack so a Mac uses the
+   real thing, but it cannot be shipped — its licence covers Apple-platform UI only. Inter
+   (SIL OFL) is the closest free analogue and is what every non-Mac visitor sees; without
+   it the whole desktop renders in Segoe UI or Roboto and the illusion is gone on the first
+   frame. Latin subset, variable weight, ~48KB — a static asset, so it does not touch the
+   JavaScript budget in perf-budget.json. */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/fonts/inter-latin-var.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215,
+    U+FEFF, U+FFFD;
+}
+
+/* cv11 is Inter's single-storey `a`, which is what SF uses. */
+[data-root] { font-feature-settings: 'cv11' }
+
+/* SF switches Text → Display at 20pt and tightens tracking; approximate it. */
+[data-root] :where(h1, h2, [data-display]) { letter-spacing: -.01em }

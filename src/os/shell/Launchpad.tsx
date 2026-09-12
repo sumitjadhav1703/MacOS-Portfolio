@@ -2,12 +2,14 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { s } from '../css'
+import { pressable } from '../pressable'
 import { titleOf } from '../registry'
 import { fuzzy } from '../search/Spotlight'
 import { useContent } from '../content'
+import { folderColorFor } from '../packs'
 import { useDispatch, useOpenApp, useOs } from '../store'
 import { useReducedMotion } from '../useTheme'
-import { AppIcon, ICONS, iconFor } from './AppIcon'
+import { AppIcon, iconFor, type IconSpec } from './AppIcon'
 import type { AppId } from '../types'
 
 /** Everything launchable, in the order macOS would lay it out: apps first, then documents. */
@@ -28,7 +30,20 @@ const APPS: AppId[] = [
   'certificates',
 ]
 
-const FALLBACK = ICONS[0]
+/** A published project, wearing the folder colour it has everywhere else. */
+function projectSpec(id: AppId, index: number): IconSpec {
+  const [c1, c2] = folderColorFor(id, index)
+  return {
+    id,
+    tip: titleOf(id),
+    grad: `linear-gradient(180deg,${c1},${c2})`,
+    inks: [
+      ['left:14px;top:17px;width:11px;height:7px;border-radius:2px 3px 0 0;background:rgba(255,255,255,.5)', 'ink'],
+      ['left:14px;top:21px;width:26px;height:18px;border-radius:3px;background:rgba(255,255,255,.9)', 'ink'],
+      ['left:14px;top:27px;width:26px;height:1.6px;background:rgba(0,0,0,.16)', 'ink'],
+    ],
+  }
+}
 
 export function Launchpad() {
   const { launchpad } = useOs()
@@ -38,6 +53,8 @@ export function Launchpad() {
   const [query, setQuery] = useState('')
   // Projects sit between the apps and Trash, exactly where the hardcoded list used to put them.
   const projects = useContent().projects
+  // Same index `folderColorFor` is given everywhere else, so a project's colour matches.
+  const projectIndex = new Map(projects.map((project, i) => [project.id as AppId, i]))
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -65,9 +82,9 @@ export function Launchpad() {
       onClick={() => dispatch({ type: 'overlay', name: 'launchpad', on: false })}
       style={{
         ...s(
-          'position:absolute;inset:0;z-index:295;background:rgba(6,8,11,.5);backdrop-filter:blur(26px) saturate(150%);-webkit-backdrop-filter:blur(26px) saturate(150%);display:flex;flex-direction:column;align-items:center;padding:64px 60px 40px',
+          'position:absolute;inset:0;z-index:var(--z-launchpad);background:rgba(6,8,11,.5);backdrop-filter:var(--s-blur-heavy);-webkit-backdrop-filter:var(--s-blur-heavy);display:flex;flex-direction:column;align-items:center;padding:64px 60px 40px',
         ),
-        animation: reduced ? 'none' : 'riseIn .28s cubic-bezier(.32,.72,0,1) both',
+        animation: reduced ? 'none' : 'lpIn .26s ease both',
       }}
     >
       <input
@@ -91,23 +108,25 @@ export function Launchpad() {
           'margin-top:44px;width:100%;max-width:960px;display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:34px 12px;overflow:auto',
         )}
       >
-        {items.map((id) => {
-          const spec = iconFor(id) ?? {
-            ...FALLBACK,
-            id,
-            tip: titleOf(id),
-            grad: 'linear-gradient(180deg,#6b7686,#39404a)',
-            inks: [],
-          }
+        {items.map((id, i) => {
+          // A project has no icon of its own, and a two-letter monogram is the one thing in
+          // this grid that looks like a placeholder. Give it the same tinted folder the
+          // desktop and Finder already give it, from the same `folderColorFor`.
+          const spec = iconFor(id) ?? projectSpec(id, projectIndex.get(id) ?? 0)
           return (
             <div
               key={id}
               data-lp={id}
-              role="button"
-              onClick={() => launch(id)}
-              style={s(
-                'display:flex;flex-direction:column;align-items:center;gap:9px;cursor:default;padding:6px',
-              )}
+              {...pressable(titleOf(id), () => launch(id))}
+              style={{
+                ...s(
+                  'display:flex;flex-direction:column;align-items:center;gap:9px;cursor:default;padding:6px',
+                ),
+                // Capped, so a long project list does not end with tiles arriving a second late.
+                animation: reduced
+                  ? 'none'
+                  : `lpTile .26s cubic-bezier(.32,.72,0,1) ${Math.min(i * 12, 220)}ms both`,
+              }}
             >
               <AppIcon
                 spec={spec}

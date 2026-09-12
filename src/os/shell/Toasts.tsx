@@ -23,8 +23,12 @@ export function Toasts() {
   return (
     <div
       id="toasts"
+      // Toasts are the only feedback several actions give; without this a screen reader
+      // never hears that anything happened.
+      role="status"
+      aria-live="polite"
       style={s(
-        'position:absolute;top:40px;right:14px;z-index:190;display:flex;flex-direction:column;gap:8px;pointer-events:none',
+        'position:absolute;top:calc(var(--s-menubar-h) + 16px);right:14px;z-index:var(--z-toast);display:flex;flex-direction:column;gap:8px;pointer-events:none',
       )}
     >
       {notifications.map((n) => (

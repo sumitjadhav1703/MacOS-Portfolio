@@ -122,9 +122,10 @@ export function Finder() {
           onClick={() => dispatch({ type: 'finderPath', path: 'projects' })}
         >
           <span
-            style={s(
-              'width:15px;height:15px;border-radius:4px;background:linear-gradient(180deg,#4ea3f5,#1c62c9);flex:none',
-            )}
+            style={{
+              ...s('width:15px;height:15px;border-radius:4px;flex:none'),
+              background: `linear-gradient(180deg,${FOLDER_TINTS.blue[0]},${FOLDER_TINTS.blue[1]})`,
+            }}
           />
           Projects
         </div>
@@ -208,7 +209,7 @@ export function Finder() {
             <Folder
               id="finder-projects"
               label="Projects"
-              colors={['#4ea3f5', '#1c62c9']}
+              colors={FOLDER_TINTS.blue}
               selected={selected === 'finder-projects'}
               onSelect={() => setSelected('finder-projects')}
               onOpen={() => dispatch({ type: 'finderPath', path: 'projects' })}

@@ -8,7 +8,7 @@ import { useOnline } from '../useMedia'
 import type { ActivityState } from '../types'
 
 const POP =
-  'position:absolute;top:30px;width:276px;padding:13px;border-radius:13px;background:var(--s-pop);backdrop-filter:var(--s-blur);-webkit-backdrop-filter:var(--s-blur);border:1px solid var(--s-line);box-shadow:var(--s-shadow-pop);color:var(--s-text);text-shadow:none;z-index:10'
+  'position:absolute;top:var(--s-under-menubar);width:276px;padding:13px;border-radius:13px;background:var(--s-pop);backdrop-filter:var(--s-blur);-webkit-backdrop-filter:var(--s-blur);border:1px solid var(--s-line);box-shadow:var(--s-shadow-pop);color:var(--s-text);text-shadow:none;z-index:10'
 
 const ACT_FILL: Record<ActivityState, string> = {
   Idle: '34%',
