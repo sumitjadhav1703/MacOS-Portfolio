@@ -1,10 +1,10 @@
 'use client'
 
-import { FALLBACK } from '../../data/content'
 import { Body, MetricGrid, PageHead, Sec, StatusPill } from '../../components/primitives'
 import { useContent } from '../content'
 import { s } from '../css'
 import { useOnline } from '../useMedia'
+import { AI_MODEL, useRuntime } from '../runtime'
 import { useOs } from '../store'
 import { PACKS } from '../packs'
 import type { AppId } from '../types'
@@ -12,14 +12,13 @@ import type { AppId } from '../types'
 /**
  * What the desktop knows about itself.
  *
- * Everything here is either already in the store, a `useSyncExternalStore` subscription, or a
- * build-time check of whether an environment variable was set. Nothing polls: the portfolio's
- * first paint must not depend on the backend, and a status panel that pings the Worker every
- * few seconds would quietly reintroduce that dependency.
+ * Everything here is either already in the store, a `useSyncExternalStore` subscription, or
+ * derived by `useRuntime()`. Nothing polls: the portfolio's first paint must not depend on the
+ * backend, and a status panel that pings the Worker every few seconds would quietly
+ * reintroduce that dependency.
  *
  * Only *whether* the API URL is configured is reported, never its value — this window is public.
  */
-const API = process.env.NEXT_PUBLIC_API_URL
 
 /** Rows read better as a label/value pair than as a metric tile. */
 function Row({ label, value, pill }: { label: string; value: string; pill?: boolean }) {
@@ -38,17 +37,14 @@ function Row({ label, value, pill }: { label: string; value: string; pill?: bool
 export function SystemMonitor() {
   const content = useContent()
   const online = useOnline()
+  const runtime = useRuntime()
   const { prefs, wins, spaces } = useOs()
 
   const skills = content.skills.reduce((n, group) => n + group.items.length, 0)
   const open = (Object.keys(wins) as AppId[]).length
   const minimised = (Object.keys(wins) as AppId[]).filter((id) => wins[id]?.min).length
 
-  // FALLBACK carries the epoch as its `updatedAt` — the compiled-in copy was never edited by
-  // anyone — so a timestamp that is not the epoch is a bundle that came from the CMS.
-  // ponytail: a CMS row somehow stamped 1970-01-01 would read as bundled. Upgrade path if that
-  // ever matters: have ContentProvider publish a `live` flag beside the content itself.
-  const live = content.updatedAt !== FALLBACK.updatedAt
+  const live = runtime.live
 
   const revision = (() => {
     const at = new Date(content.updatedAt)
@@ -74,18 +70,26 @@ export function SystemMonitor() {
 
       <Sec heading="Runtime">
         <Row label="Frontend" value="Ready" pill />
+        <Row label="Served from" value={runtime.host} />
         <Row label="Network" value={online ? 'Connected' : 'Offline'} pill={online} />
-        <Row label="Content API" value={API ? 'Configured' : 'Not configured'} pill={Boolean(API)} />
+        <Row label="Backend" value={runtime.backend} pill={runtime.configured} />
+        <Row
+          label="Content API"
+          value={runtime.configured ? 'Cloudflare Worker — D1 + R2' : 'Not configured'}
+          pill={runtime.configured}
+        />
         <Row
           label="Assistant"
-          value={API ? 'Grounded model' : 'Local answers'}
-          pill={Boolean(API)}
+          value={runtime.configured ? `Workers AI — ${AI_MODEL}` : 'Local keyword fallback'}
+          pill={runtime.configured}
         />
-        <Row label="Content source" value={live ? 'Live from the CMS' : 'Bundled with the build'} pill={live} />
+        <Row label="Content source" value={runtime.data} pill={live} />
         {live ? <Row label="Last published" value={revision} /> : null}
         <div style={s('color:var(--s-faint);font-size:11.5px;margin-top:10px;line-height:1.5')}>
           The portfolio renders its bundled copy first and swaps in live content after mount, so
-          nothing on this desktop waits on a network round trip.
+          nothing on this desktop waits on a network round trip. Ask Sumit is answered by a
+          second Worker that is handed the published bundle and has no database binding of its
+          own — it cannot read a draft, because a draft never reaches the process that answers.
         </div>
       </Sec>
 

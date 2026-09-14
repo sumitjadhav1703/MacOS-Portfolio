@@ -42,7 +42,8 @@ function DockHint() {
     >
       <span>
         Press <b style={s('font-family:ui-monospace,Menlo,monospace')}>⌘K</b> to search ·{' '}
-        <b style={s('font-family:ui-monospace,Menlo,monospace')}>?</b> for shortcuts
+        <b style={s('font-family:ui-monospace,Menlo,monospace')}>?</b> for shortcuts · the{' '}
+        <b>AI</b> badge in the dock is a grounded assistant
       </span>
       <span
         {...pressable(

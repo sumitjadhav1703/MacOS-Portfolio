@@ -74,7 +74,7 @@ export type ActivityState = 'Idle' | 'Ready' | 'Working' | 'Processing'
 
 export type Notification = { id: number; title: string; msg: string; at: Date }
 
-export type PopoverName = 'status' | 'activity' | 'cal' | null
+export type PopoverName = 'status' | 'activity' | 'cal' | 'net' | null
 
 /** One row of a context menu; `divider` rows carry no label. */
 export type MenuEntry =

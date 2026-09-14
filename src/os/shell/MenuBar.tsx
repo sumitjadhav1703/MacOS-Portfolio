@@ -75,13 +75,17 @@ function Clock() {
  * The Wi-Fi extra. Driven by `useOnline`, the same hook Control Center reads, so it is a
  * status indicator rather than a decoration.
  */
-function Wifi() {
+function Wifi({ onOpen }: { onOpen: () => void }) {
   const online = useOnline()
   return (
     <span
-      role="img"
-      aria-label={online ? 'Network connected' : 'Network offline'}
-      style={s('display:flex;align-items:center')}
+      data-menu="net"
+      {...pressable(online ? 'Network — connected' : 'Network — offline', onOpen, {
+        stopPropagation: true,
+      })}
+      style={s(
+        'display:flex;align-items:center;cursor:default;padding:2px 4px;border-radius:5px',
+      )}
     >
       <svg viewBox="0 0 16 13" width="15" height="12" aria-hidden="true" style={{ opacity: online ? 0.92 : 0.45 }}>
         <g fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
@@ -258,7 +262,7 @@ export function MenuBar() {
           </div>
         ) : null}
 
-        <Wifi />
+        <Wifi onOpen={() => dispatch({ type: 'popover', name: 'net' })} />
 
         <div
           style={s('cursor:default;display:flex;flex-direction:column;gap:3px;padding:3px 2px')}

@@ -4,7 +4,9 @@ import { useContent } from '../content'
 import { useAppCommand } from '../cmd'
 import { EASE } from '../anim'
 import { s } from '../css'
+import { pressable } from '../pressable'
 import { useReducedMotion, useTheme } from '../useTheme'
+import { AI_MODEL, useRuntime } from '../runtime'
 
 type Source = { type: string; slug: string; title: string }
 type Msg = { from: 'them' | 'me'; text: string; sources?: Source[] }
@@ -28,6 +30,78 @@ function historyOf(msgs: Msg[]): { role: string; content: string }[] {
     role: m.from === 'me' ? 'user' : 'assistant',
     content: m.text,
   }))
+}
+
+/**
+ * The strip above the conversation.
+ *
+ * Ask Sumit is the most interesting thing on this desktop and it looked like a chat window
+ * with canned replies — nothing on screen said a model was answering, or what it was allowed
+ * to answer from. This says both, and it says the honest thing when there is no model: the
+ * standalone build really does fall back to a keyword lookup.
+ */
+function Header() {
+  const runtime = useRuntime()
+  const live = runtime.configured
+  return (
+    <div
+      style={s(
+        'flex:none;display:flex;align-items:center;gap:11px;padding:12px 16px;border-bottom:1px solid var(--s-line);background:var(--s-side)',
+      )}
+    >
+      <span
+        aria-hidden="true"
+        style={s(
+          'width:30px;height:30px;flex:none;border-radius:9px;background:linear-gradient(180deg,#9370f4,#4a2cb2);display:flex;align-items:center;justify-content:center;box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 2px 6px rgba(0,0,0,.3)',
+        )}
+      >
+        <span style={s('width:12px;height:12px;border-radius:50%;border:1.6px solid rgba(255,255,255,.75)')} />
+      </span>
+      <div style={s('min-width:0;flex:1')}>
+        <div style={s('display:flex;align-items:center;gap:7px')}>
+          <span style={s('font-size:13px;font-weight:700;letter-spacing:-.01em')}>Ask Sumit</span>
+          <span
+            style={{
+              ...s(
+                'display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:999px;font-size:10.5px;font-weight:600;background:var(--s-fill-2)',
+              ),
+              border: `1px solid ${live ? 'var(--s-accent)' : 'var(--s-line)'}`,
+            }}
+          >
+            <span
+              style={{
+                ...s('width:5px;height:5px;border-radius:50%'),
+                background: live ? 'var(--s-ok)' : 'var(--s-faint)',
+              }}
+            />
+            {live ? `Workers AI · ${AI_MODEL}` : 'Offline fallback'}
+          </span>
+        </div>
+        <div style={s('font-size:11.5px;color:var(--s-dim);margin-top:2px')}>
+          {live
+            ? 'Retrieval-grounded on the published portfolio. It answers from that, or not at all.'
+            : 'No model configured — answering from a local keyword index.'}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/** Three dots, so a pending answer reads as work rather than as a stalled window. */
+function Thinking() {
+  return (
+    <div style={s('display:flex;align-items:center;gap:5px;padding:2px 0')} aria-hidden="true">
+      {[0, 1, 2].map((i) => (
+        <span
+          key={i}
+          style={{
+            ...s('width:6px;height:6px;border-radius:50%;background:var(--s-dim)'),
+            animation: `thinkDot 1.05s ease-in-out ${i * 0.16}s infinite`,
+          }}
+        />
+      ))}
+    </div>
+  )
 }
 
 /**
@@ -156,6 +230,7 @@ export function SumitAI() {
 
   return (
     <div style={s('height:100%;display:flex;flex-direction:column')}>
+      <Header />
       <div
         id="ai-scroll"
         ref={scrollRef}
@@ -172,15 +247,15 @@ export function SumitAI() {
 
         {typing !== null ? <div style={bubble('them')}>{typing}</div> : null}
         {pending ? (
-          <div style={{ ...bubble('them'), opacity: 0.6 }} aria-live="polite">
-            Reading the portfolio…
+          <div style={bubble('them')} aria-live="polite" aria-label="Reading the portfolio">
+            <Thinking />
           </div>
         ) : null}
 
         {msgs.length === 1 && !pending ? (
-          <div style={s('display:flex;flex-wrap:wrap;gap:7px;margin-top:2px')}>
+          <div style={s('display:flex;flex-wrap:wrap;gap:7px;margin-top:2px')} aria-label="Suggested questions">
             {content.os.aiSuggestions.map((q) => (
-              <div key={q} data-chipbtn="1" role="button" style={chip} onClick={() => ask(q)}>
+              <div key={q} data-chipbtn="1" {...pressable(q, () => ask(q))} style={chip}>
                 {q}
               </div>
             ))}
@@ -192,7 +267,7 @@ export function SumitAI() {
             <span style={s('font-size:11px;color:var(--s-dim)')}>
               Answered offline — the assistant could not be reached.
             </span>
-            <div data-chipbtn="1" role="button" style={chip} onClick={() => ask(retry)}>
+            <div data-chipbtn="1" {...pressable('Try again', () => ask(retry))} style={chip}>
               Try again
             </div>
           </div>

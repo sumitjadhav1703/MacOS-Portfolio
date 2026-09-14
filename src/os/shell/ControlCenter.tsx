@@ -5,6 +5,7 @@ import { pressable } from '../pressable'
 import { useDispatch, useOpenApp, useOs } from '../store'
 import { useTheme } from '../useTheme'
 import { useOnline } from '../useMedia'
+import { useRuntime } from '../runtime'
 import type { AppId, Theme } from '../types'
 
 const CARD = 'padding:11px 12px;border-radius:11px;background:var(--s-fill)'
@@ -22,6 +23,7 @@ const QUICK: [AppId | 'finder-projects', string][] = [
 export function ControlCenter() {
   const { controlCenter, prefs, status, activity } = useOs()
   const online = useOnline()
+  const runtime = useRuntime()
   const dispatch = useDispatch()
   const openApp = useOpenApp()
   const { accent } = useTheme()
@@ -49,7 +51,11 @@ export function ControlCenter() {
           </div>
           <div style={{ ...s(ROW), marginTop: 5 }}>
             <span>Portfolio data</span>
-            <span style={s('color:var(--s-dim)')}>Local</span>
+            <span style={s('color:var(--s-dim)')}>{runtime.dataShort}</span>
+          </div>
+          <div style={{ ...s(ROW), marginTop: 5 }}>
+            <span>Assistant</span>
+            <span style={s('color:var(--s-dim)')}>{runtime.assistantShort}</span>
           </div>
         </div>
 

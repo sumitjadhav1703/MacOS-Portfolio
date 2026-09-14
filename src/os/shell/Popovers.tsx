@@ -5,6 +5,7 @@ import { s } from '../css'
 import { Calendar } from './Calendar'
 import { useOs } from '../store'
 import { useOnline } from '../useMedia'
+import { useRuntime } from '../runtime'
 import type { ActivityState } from '../types'
 
 const POP =
@@ -85,6 +86,7 @@ export function Popovers({ accent }: { accent: string }) {
   const { popover, status, activity, task, wins, notifications } = useOs()
   const [started] = useState(() => Date.now())
   const online = useOnline()
+  const runtime = useRuntime()
   const busy = activity === 'Working' || activity === 'Processing'
   const [checked] = useState(() => new Date())
 
@@ -129,8 +131,9 @@ export function Popovers({ accent }: { accent: string }) {
             <Metric label="Session" value={`${mins} min`} />
           </div>
           <div style={s('margin-top:8px;border-radius:11px;border:1px solid var(--s-line);overflow:hidden')}>
-            <Quiet label="Interface" value="Running locally" />
-            <Quiet label="Portfolio data" value="Bundled — no backend" divided />
+            <Quiet label="Interface" value={runtime.host} />
+            <Quiet label="Portfolio data" value={runtime.dataShort} divided />
+            <Quiet label="Assistant" value={runtime.assistantShort} divided />
           </div>
         </div>
       </div>
@@ -179,6 +182,38 @@ export function Popovers({ accent }: { accent: string }) {
         >
           <span style={s('color:var(--s-dim)')}>System status</span>
           <span id="act-sys">{status}</span>
+        </div>
+      </div>
+    )
+  }
+
+  // Hung off the Wi-Fi extra. It is the one place in the chrome that says out loud what is
+  // serving this portfolio, which is worth a recruiter's glance.
+  if (popover === 'net') {
+    return (
+      <div id="net-pop" style={{ ...s(POP), right: 12 }} onClick={(e) => e.stopPropagation()}>
+        <Head
+          label="Network"
+          pill={online ? 'Connected' : 'Offline'}
+          tone={online ? 'var(--s-ok)' : 'var(--s-warn)'}
+          busy={false}
+        />
+        <div
+          data-actrow="1"
+          style={s(
+            'padding:11px 12px 12px;border-radius:11px;background:var(--s-fill);border:1px solid var(--s-line);box-shadow:inset 0 1px 0 var(--s-fill-2)',
+          )}
+        >
+          <div style={s('font-size:11px;color:var(--s-faint)')}>Backend</div>
+          <div style={s('font-size:13.5px;font-weight:600;line-height:1.4;margin-top:3px')}>
+            {runtime.backend}
+          </div>
+        </div>
+        <div style={s('margin-top:8px;border-radius:11px;border:1px solid var(--s-line);overflow:hidden')}>
+          <Quiet label="Content API" value={runtime.configured ? 'Configured' : 'Not configured'} />
+          <Quiet label="Portfolio data" value={runtime.data} divided />
+          <Quiet label="Assistant" value={runtime.assistantShort} divided />
+          <Quiet label="Interface" value={runtime.host} divided />
         </div>
       </div>
     )

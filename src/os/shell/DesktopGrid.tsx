@@ -62,8 +62,20 @@ export function DesktopGrid() {
           <div
             key={id}
             data-dsk="1"
+            data-focusable="1"
+            role="button"
+            tabIndex={0}
+            aria-label={`${label} — double-click to open`}
+            onKeyDown={(e) => {
+              if (e.key !== 'Enter' && e.key !== ' ') return
+              e.preventDefault()
+              setSelected(id)
+              openApp(id)
+            }}
             style={{
-              ...s('width:86px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:default'),
+              ...s(
+                'width:86px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:default;border-radius:10px;padding:4px 0',
+              ),
               animation: reduced ? 'none' : `riseIn .7s ${SPRING} ${0.15 + i * 0.05}s both`,
             }}
             onClick={(e) => {
@@ -79,35 +91,53 @@ export function DesktopGrid() {
               folderMenu(id)(e)
             }}
           >
-            <div style={s('position:relative;width:62px;height:48px;filter:drop-shadow(0 6px 11px rgba(0,0,0,.5))')}>
+            <div
+              data-dskart="1"
+              style={s(
+                'position:relative;width:62px;height:48px;filter:var(--s-icon-shadow);transition:filter .2s ease',
+              )}
+            >
+              {/* Back tab, shaded so it sits behind the front flap instead of beside it. */}
               <div
                 style={{
-                  ...s('position:absolute;left:1px;top:1px;width:28px;height:14px;border-radius:5px 10px 0 0'),
-                  background: c2,
+                  ...s('position:absolute;left:1px;top:1px;width:28px;height:15px;border-radius:5px 10px 0 0'),
+                  background: `linear-gradient(180deg,${c1},${c2})`,
+                  filter: 'brightness(.82)',
                 }}
               />
+              {/* The sheet of paper peeking out. */}
               <div
                 style={s(
-                  'position:absolute;left:6px;top:9px;width:50px;height:11px;border-radius:4px 4px 0 0;background:rgba(255,255,255,.72)',
+                  'position:absolute;left:6px;top:9px;width:50px;height:12px;border-radius:4px 4px 0 0;background:linear-gradient(180deg,rgba(255,255,255,.95),rgba(255,255,255,.7))',
                 )}
               />
               <div
                 style={{
                   ...s(
-                    'position:absolute;left:0;top:13px;width:62px;height:35px;border-radius:5px 9px 9px 9px;box-shadow:inset 0 1px 0 rgba(255,255,255,.6),inset 0 -10px 16px rgba(0,0,0,.14)',
+                    'position:absolute;left:0;top:13px;width:62px;height:35px;border-radius:5px 9px 9px 9px;box-shadow:inset 0 1px 0 rgba(255,255,255,.62),inset 0 -12px 18px rgba(0,0,0,.16),inset 0 0 0 .5px rgba(0,0,0,.12)',
                   ),
                   background: `linear-gradient(180deg,${c1},${c2})`,
                 }}
               />
+              {/* Specular sweep across the front flap — the thing that stops it reading flat. */}
+              <div
+                style={s(
+                  'position:absolute;left:0;top:13px;width:62px;height:35px;border-radius:5px 9px 9px 9px;background:linear-gradient(180deg,rgba(255,255,255,.28),rgba(255,255,255,0) 55%);pointer-events:none',
+                )}
+              />
             </div>
             <span
+              data-dsklabel="1"
+              data-selected={selected === id ? '1' : undefined}
               style={{
                 ...s(
-                  'font-size:11.5px;line-height:1.25;text-align:center;padding:2px 6px;border-radius:6px;backdrop-filter:var(--s-blur-scrim);-webkit-backdrop-filter:var(--s-blur-scrim)',
+                  'font-size:11.5px;line-height:1.25;text-align:center;padding:2px 6px;border-radius:6px;-webkit-backdrop-filter:var(--s-blur-scrim);backdrop-filter:var(--s-blur-scrim);transition:background .16s ease,color .16s ease',
                 ),
                 color: selected === id ? '#fff' : 'var(--s-onwall)',
                 textShadow: selected === id ? 'none' : 'var(--s-onwall-shadow)',
-                background: selected === id ? 'var(--s-onwall-sel)' : 'var(--s-onwall-bg)',
+                // Bare until hovered or selected, the way macOS leaves it. The hover plate is
+                // in os.css so it does not need a second piece of React state per icon.
+                background: selected === id ? 'var(--s-onwall-sel)' : 'transparent',
               }}
             >
               {label}

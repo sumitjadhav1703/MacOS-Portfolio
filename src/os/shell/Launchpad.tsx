@@ -131,6 +131,7 @@ export function Launchpad() {
               <AppIcon
                 spec={spec}
                 size={68}
+                badge={id === 'sumit-ai' ? 'AI' : undefined}
                 initial={titleOf(id)
                   .split(' ')
                   .map((word) => word[0])

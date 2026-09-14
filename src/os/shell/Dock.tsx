@@ -23,7 +23,6 @@ const DOCK_APPS: IconSpec[] = [
   pick('safari'),
   pick('terminal'),
   pick('sumit-ai'),
-  pick('code'),
   pick('contact'),
   pick('settings'),
 ]
@@ -68,7 +67,7 @@ function DockIcon({
           : `transform .78s ${SPRING_B},margin .13s ${EASE}`,
       }}
     >
-      <AppIcon spec={spec} />
+      <AppIcon spec={spec} badge={spec.id === 'sumit-ai' ? 'AI' : undefined} />
       <div
         data-ind={spec.id}
         style={{

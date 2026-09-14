@@ -5,6 +5,7 @@ import { s } from '../css'
 import { PACKS } from '../packs'
 import { useDispatch, useOpenApp, useOs } from '../store'
 import { useReducedMotion, useTheme } from '../useTheme'
+import { useRuntime } from '../runtime'
 import { pickWallpaper } from '../shell/Wallpaper'
 import { useAppCommand } from '../cmd'
 import type { PackId, Prefs, Theme } from '../types'
@@ -137,6 +138,8 @@ export function Settings() {
   const openApp = useOpenApp()
   const reduced = useReducedMotion()
   const { theme, accent } = useTheme()
+  const runtime = useRuntime()
+
   const [tab, setTab] = useState<Tab>('overview')
 
   // The View menu selects a pane by name, the same values the sidebar rows carry.
@@ -453,8 +456,8 @@ export function Settings() {
           <Rows
             rows={[
               ['Interface', 'React and TypeScript on Next.js'],
-              ['Portfolio data', 'Bundled with the page — no backend'],
-              ['Ask Sumit', 'Local keyword lookup, not a language model'],
+              ['Portfolio data', runtime.data],
+              ['Ask Sumit', runtime.assistant],
               ['Storage', 'Preferences and window positions in this browser'],
             ]}
           />
