@@ -6,7 +6,7 @@ import { pressable } from '../pressable'
 import { titleOf } from '../registry'
 import { fuzzy } from '../search/Spotlight'
 import { useContent } from '../content'
-import { folderColorFor } from '../packs'
+import { folderColor } from '../packs'
 import { useDispatch, useOpenApp, useOs } from '../store'
 import { useReducedMotion } from '../useTheme'
 import { AppIcon, iconFor, type IconSpec } from './AppIcon'
@@ -31,8 +31,8 @@ const APPS: AppId[] = [
 ]
 
 /** A published project, wearing the folder colour it has everywhere else. */
-function projectSpec(id: AppId, index: number): IconSpec {
-  const [c1, c2] = folderColorFor(id, index)
+function projectSpec(id: AppId): IconSpec {
+  const [c1, c2] = folderColor()
   return {
     id,
     tip: titleOf(id),
@@ -53,8 +53,6 @@ export function Launchpad() {
   const [query, setQuery] = useState('')
   // Projects sit between the apps and Trash, exactly where the hardcoded list used to put them.
   const projects = useContent().projects
-  // Same index `folderColorFor` is given everywhere else, so a project's colour matches.
-  const projectIndex = new Map(projects.map((project, i) => [project.id as AppId, i]))
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -110,9 +108,9 @@ export function Launchpad() {
       >
         {items.map((id, i) => {
           // A project has no icon of its own, and a two-letter monogram is the one thing in
-          // this grid that looks like a placeholder. Give it the same tinted folder the
-          // desktop and Finder already give it, from the same `folderColorFor`.
-          const spec = iconFor(id) ?? projectSpec(id, projectIndex.get(id) ?? 0)
+          // this grid that looks like a placeholder. Give it the same folder the desktop and
+          // Finder already give it, from the same `folderColor`.
+          const spec = iconFor(id) ?? projectSpec(id)
           return (
             <div
               key={id}

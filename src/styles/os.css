@@ -154,7 +154,8 @@
   --z-desktop-grid: 20;
   --z-wm: 100;
   --z-dock: 150;
-  --z-dock-hint: 160;
+  --z-dock-hint: 90;       /* under the window manager: a first-run hint about the desk has
+                              no business painting over the window a visitor just opened */
   --z-menubar: 200;
   --z-control-center: 210;
   --z-notif-center: 215;

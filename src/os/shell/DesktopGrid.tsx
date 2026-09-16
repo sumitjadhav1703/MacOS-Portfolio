@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { SPRING } from '../anim'
 import { s } from '../css'
-import { FOLDER_TINTS, folderColorFor } from '../packs'
+import { FOLDER_TINTS, folderColor } from '../packs'
 import { useContent } from '../content'
 import { useDispatch, useOpenApp, useOs } from '../store'
 import { useContextMenu } from './ContextMenu'
@@ -57,7 +57,7 @@ export function DesktopGrid() {
         const id = project.id as AppId
         const label = project.desktopLabel
         const tint = prefs.folderTint[id]
-        const [c1, c2] = tint ? FOLDER_TINTS[tint] : folderColorFor(id, i)
+        const [c1, c2] = tint ? FOLDER_TINTS[tint] : folderColor()
         return (
           <div
             key={id}

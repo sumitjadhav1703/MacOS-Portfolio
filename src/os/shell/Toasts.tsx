@@ -1,24 +1,42 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { SPRING } from '../anim'
 import { s } from '../css'
-import { useDispatch, useOs } from '../store'
+import { useOs } from '../store'
 import { useReducedMotion } from '../useTheme'
 
 const LIFETIME = 3200
+/** Two at once. A third would reach the second row of desk icons. */
+const STACK = 2
 
+/**
+ * Transient notifications, top-right under the menu bar.
+ *
+ * Expiry is local state, not a `dismissNotif` dispatch: removing the notification from the
+ * store to hide its toast is what left Notification Center permanently reading "No new
+ * notifications" — the record died with the animation. The toast is a view of the record now,
+ * and Notification Center keeps the record until the visitor clears it.
+ *
+ * A `quiet` notification is recorded and never toasted. Opening an app is the case: the window
+ * appearing is the feedback, and a toast for it sat directly on top of the desk icons a visitor
+ * uses to open the next one.
+ */
 export function Toasts() {
   const { notifications } = useOs()
-  const dispatch = useDispatch()
   const reduced = useReducedMotion()
+  const [expired, setExpired] = useState<number[]>([])
 
-  // Each toast clears itself; the notification stays in the calendar popover list.
+  const loud = notifications.filter((n) => !n.quiet)
+
   useEffect(() => {
-    if (!notifications.length) return
-    const timers = notifications.map((n) =>
-      window.setTimeout(() => dispatch({ type: 'dismissNotif', id: n.id }), LIFETIME),
+    if (!loud.length) return
+    const timers = loud.map((n) =>
+      window.setTimeout(() => setExpired((prev) => (prev.includes(n.id) ? prev : [...prev, n.id])), LIFETIME),
     )
     return () => timers.forEach(window.clearTimeout)
-  }, [notifications, dispatch])
+    // `loud` is derived, so depend on the ids it carries rather than a fresh array each render.
+  }, [loud.map((n) => n.id).join(',')]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const showing = loud.filter((n) => !expired.includes(n.id)).slice(0, STACK)
 
   return (
     <div
@@ -31,12 +49,12 @@ export function Toasts() {
         'position:absolute;top:calc(var(--s-menubar-h) + 16px);right:14px;z-index:var(--z-toast);display:flex;flex-direction:column;gap:8px;pointer-events:none',
       )}
     >
-      {notifications.map((n) => (
+      {showing.map((n) => (
         <div
           key={n.id}
           style={{
             ...s(
-              'padding:10px 12px;border-radius:11px;background:var(--s-pop);backdrop-filter:var(--s-blur);border:1px solid var(--s-line);box-shadow:var(--s-shadow-pop);color:var(--s-text);font-size:12px;width:236px',
+              'padding:10px 12px;border-radius:11px;background:var(--s-pop);-webkit-backdrop-filter:var(--s-blur);backdrop-filter:var(--s-blur);border:1px solid var(--s-line);box-shadow:var(--s-shadow-pop);color:var(--s-text);font-size:12px;width:236px',
             ),
             animation: reduced ? 'none' : `toastIn .4s ${SPRING} both`,
           }}

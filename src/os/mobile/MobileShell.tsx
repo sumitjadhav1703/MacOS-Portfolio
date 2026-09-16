@@ -5,12 +5,18 @@ import { s } from '../css'
 import { ProjectWindow } from '../apps/ProjectWindow'
 import { About, Certificates, Education, Experience, Skills } from '../apps/simple'
 import { Contact } from '../apps/Contact'
+import { SumitAI } from '../apps/SumitAI'
 
+/**
+ * `Resume` is deliberately absent: it is already the primary button in the header, and a
+ * second tile for it diluted the one action that matters. Ask Sumit takes the slot, because
+ * a visitor on a phone previously had no way of knowing the assistant existed at all.
+ */
 const TILES: [string, string][] = [
+  ['ask', 'Ask Sumit'],
   ['projects', 'Projects'],
   ['skills', 'Skills'],
   ['experience', 'Experience'],
-  ['resume', 'Resume'],
   ['education', 'Education'],
   ['contact', 'Contact'],
 ]
@@ -115,6 +121,16 @@ export function MobileShell() {
       </div>
 
       <div id="m-sections" style={s('padding:8px 20px 46px')}>
+        <Section id="ask" title="Ask Sumit">
+          <div
+            style={s(
+              'height:min(68vh,520px);border-radius:16px;background:var(--s-win);border:1px solid var(--s-line);overflow:hidden',
+            )}
+          >
+            <SumitAI />
+          </div>
+        </Section>
+
         <Section id="projects" title="Projects">
           {projects.map((project) => (
             <div

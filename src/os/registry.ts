@@ -57,7 +57,7 @@ export const titleOf = (id: string): string => own(TITLES, id) ?? id
 export const sizeOf = (id: string): [number, number] | undefined =>
   own(SIZE as Record<string, [number, number]>, id)
 
-/** Default window size per app; anything unlisted — every project — opens at 780×520. */
+/** Default window size per app; anything unlisted — every project — opens at DEFAULT_SIZE. */
 export const SIZE: Partial<Record<StaticAppId, [number, number]>> = {
   terminal: [720, 440],
   safari: [900, 600],
@@ -95,4 +95,11 @@ export const DOCK_FOR: Partial<Record<StaticAppId, AppId>> = {
 export const isAppId = (v: string): v is AppId =>
   Object.hasOwn(TITLES, v) || /^project-[a-z0-9-]+$/.test(v)
 
-export const DEFAULT_SIZE: [number, number] = [780, 520]
+/**
+ * Every project opens at this size. 520px tall sliced the `RESULTS` metric tiles — the best
+ * evidence in the portfolio — horizontally in half, with a quarter of the desk empty below the
+ * window. The reducer clamps this to the viewport on open, so a taller default costs nothing on
+ * a small screen. No scroll cue to go with it: macOS uses overlay scrollbars that appear only
+ * once you scroll, so a permanent one would be the less accurate choice.
+ */
+export const DEFAULT_SIZE: [number, number] = [820, 640]

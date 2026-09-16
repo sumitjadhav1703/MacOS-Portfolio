@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { s } from '../css'
 import { EASE } from '../anim'
-import { FOLDER_TINTS, folderColorFor } from '../packs'
+import { FOLDER_TINTS, folderColor } from '../packs'
 import { useContent } from '../content'
 import { useDispatch, useOpenApp, useOs } from '../store'
 import { useTheme } from '../useTheme'
@@ -88,13 +88,13 @@ export function Finder() {
   const openApp = useOpenApp()
   const [selected, setSelected] = useState<AppId | 'finder-projects' | null>(null)
 
-  // The Projects folder lists whatever is published; the six original tints are preserved by
-  // folderColorFor, and a CMS-added project picks up the next colour in the palette.
+  // The Projects folder lists whatever is published. Every folder is Finder blue unless the
+  // visitor has tagged that one, which is what a Mac does.
   const projects = useContent().projects
 
-  const tintOf = (id: AppId, index: number): [string, string] => {
+  const tintOf = (id: AppId): [string, string] => {
     const tint = prefs.folderTint[id]
-    return tint ? FOLDER_TINTS[tint] : folderColorFor(id, index)
+    return tint ? FOLDER_TINTS[tint] : folderColor()
   }
 
   return (
@@ -191,14 +191,14 @@ export function Finder() {
 
         <div style={s('display:flex;flex-wrap:wrap;gap:22px 14px')}>
           {finderPath === 'projects' ? (
-            projects.map((project, index) => {
+            projects.map((project) => {
               const id = project.id as AppId
               return (
               <Folder
                 key={id}
                 id={id}
                 label={project.desktopLabel}
-                colors={tintOf(id, index)}
+                colors={tintOf(id)}
                 selected={selected === id}
                 onSelect={() => setSelected(id)}
                 onOpen={() => openApp(id)}

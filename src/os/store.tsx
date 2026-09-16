@@ -86,7 +86,7 @@ export type Action =
   | { type: 'finderPath'; path: OsState['finderPath'] }
   | { type: 'prefs'; patch: Partial<Prefs> }
   | { type: 'folderTint'; app: AppId; tint: FolderTint }
-  | { type: 'notify'; title: string; msg: string }
+  | { type: 'notify'; title: string; msg: string; quiet?: boolean }
   | { type: 'dismissNotif'; id: number }
   | { type: 'status'; status: string }
   | { type: 'activity'; activity: ActivityState; task?: string }
@@ -291,7 +291,13 @@ export function reducer(state: OsState, action: Action): OsState {
       }
 
     case 'notify': {
-      const note = { id: nextNotifId++, title: action.title, msg: action.msg, at: new Date() }
+      const note = {
+        id: nextNotifId++,
+        title: action.title,
+        msg: action.msg,
+        at: new Date(),
+        quiet: action.quiet,
+      }
       return { ...state, notifications: [note, ...state.notifications].slice(0, 4) }
     }
 
@@ -552,7 +558,8 @@ export function useOpenApp() {
           sub: path,
           viewport: { w: window.innerWidth, h: window.innerHeight },
         })
-        dispatch({ type: 'notify', title: titleOf(app), msg: 'Opened' })
+        // Quiet: the window arriving is the feedback. A toast for it covered the desk icons.
+        dispatch({ type: 'notify', title: titleOf(app), msg: 'Opened', quiet: true })
         dispatch({ type: 'activity', activity: 'Working', task: `Loading ${titleOf(app)}` })
         window.setTimeout(() => dispatch({ type: 'activity', activity: 'Ready', task: 'Idle' }), 900)
       },

@@ -1,4 +1,4 @@
-import type { AppId, FolderTint, PackId } from './types'
+import type { FolderTint, PackId } from './types'
 
 export type Pack = {
   name: string
@@ -100,7 +100,7 @@ export const PACK_BY_NAME: Record<string, PackId> = {
   Daylight: 'daylight',
 }
 
-/** Finder-only folder tinting. Fixed palette, not a colour wheel. */
+/** Finder tag colours. Fixed palette, not a colour wheel; `blue` is also every folder's default. */
 export const FOLDER_TINTS: Record<FolderTint, [string, string]> = {
   blue: ['#4ea3f5', '#1c62c9'],
   green: ['#5cc36a', '#2b8743'],
@@ -110,26 +110,13 @@ export const FOLDER_TINTS: Record<FolderTint, [string, string]> = {
   graphite: ['#8e97a6', '#4c545f'],
 }
 
-/** Default folder colours for the projects the site shipped with. */
-export const FOLDER_COLORS: Partial<Record<AppId, [string, string]>> = {
-  'project-lazarus': ['#5cc36a', '#2b8743'],
-  'project-ai-video': ['#4ea3f5', '#1c62c9'],
-  'project-pm25': ['#f6cd4c', '#cf9611'],
-  'project-sar': ['#f79a3e', '#cd6212'],
-  'project-multi-agent': ['#a97bf0', '#6a3ec0'],
-  'project-airbnb': ['#f26a63', '#c33026'],
-}
-
-const TINT_CYCLE = Object.values(FOLDER_TINTS)
-
 /**
- * The colour a project folder gets. The six original projects keep the exact pairs above; a
- * project added through the CMS takes the next tint in the palette, so it looks deliberate
- * rather than defaulting to grey.
+ * The colour a folder gets when the visitor has not tagged it.
+ *
+ * Every folder on a Mac is the same blue, and six differently-coloured folders was the
+ * loudest remaining tell that this desktop is not one. Project identity lives in the label
+ * and in the window that opens — not in a colour a visitor has to learn. Tagging still
+ * recolours a single folder, through the Finder tag row and the desk context menu, exactly
+ * as macOS Finder tags do.
  */
-export function folderColorFor(id: AppId, index: number): [string, string] {
-  // Object.hasOwn, not a plain lookup: an id like `constructor` finds something on the
-  // prototype chain and hands back a function where a [start, end] colour pair is expected.
-  return (Object.hasOwn(FOLDER_COLORS, id) ? FOLDER_COLORS[id] : undefined) ??
-    TINT_CYCLE[index % TINT_CYCLE.length]!
-}
+export const folderColor = (): [string, string] => FOLDER_TINTS.blue

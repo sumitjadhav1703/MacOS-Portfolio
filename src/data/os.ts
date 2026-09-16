@@ -42,50 +42,113 @@ export const PROJ_ALIAS: Record<string, AppId> = {
 /**
  * Ask Sumit's knowledge base: keyword list → answer. First match wins.
  * Seeds the CMS; the live matcher is `answerFrom` in src/data/content.ts.
+ *
+ * Keys are matched with `question.includes(key)`, so they must be the words a recruiter
+ * actually types, not the words the answers happen to contain. The vocabulary an AI/ML
+ * recruiter arrives with — rag, llm, langchain, pytorch, embeddings — is the whole point
+ * of this index; `os.test.ts` fails if any of it falls through to `AI_FALLBACK`.
+ *
+ * Order matters twice over: the first hit wins, and a short key is a substring of longer
+ * words. Project entries come before the broad ones so `langchain` reaches the project
+ * that used it, and bare `ai` is deliberately absent — it is inside `email`.
  */
 export const KB: [string[], string][] = [
-  [
-    ['stack', 'tech', 'tools', 'language', 'python'],
-    "Python first: PyTorch, TensorFlow, Scikit-learn, OpenCV. For generative AI it's LangChain, Mistral AI, FastAPI, Docker and pgvector. Application work is Electron, React and Vitest.",
-  ],
   [
     ['lazarus', 'sentinel', 'ssh', 'electron'],
     'Lazarus Sentinel is a desktop SSH safety terminal in Electron and React — 278 commits, GitHub Actions CI, a Vitest suite and a live deployment.',
   ],
   [
-    ['ai video', 'video assistant', 'video'],
-    'The AI Video Assistant is a RAG and multi-modal pipeline on LangChain, Mistral AI, FastAPI, Docker and pgvector, with a Streamlit interface. Transcribe, embed, retrieve, answer.',
+    [
+      'ai video',
+      'video assistant',
+      'video',
+      'rag',
+      'retrieval',
+      'langchain',
+      'mistral',
+      'pgvector',
+      'vector db',
+      'vector database',
+      'embedding',
+      'multimodal',
+      'multi-modal',
+      'chunk',
+      'semantic search',
+    ],
+    'The AI Video Assistant is a RAG and multi-modal pipeline on LangChain, Mistral AI, FastAPI, Docker and pgvector, with a Streamlit interface. Transcribe, embed, retrieve, answer. It is the clearest example of retrieval-augmented generation in the portfolio.',
   ],
   [
-    ['pm2.5', 'pm25', 'pollution', 'forecast'],
+    ['pm2.5', 'pm25', 'pollution', 'forecast', 'convlstm', 'fourier', 'neural operator', 'air quality', 'time series', 'spatio'],
     'PM2.5 Forecasting pairs ConvLSTM with a Fourier Neural Operator for grid pollution forecasting. Built for ANRF AISEHack Phase 2 at IIT Delhi and deployed on Hugging Face Spaces.',
   ],
   [
-    ['sar', 'crop', 'gujarat', 'capella', 'satellite'],
+    ['sar', 'crop', 'gujarat', 'capella', 'satellite', 'remote sensing', 'x-band', 'radar', 'unsupervised'],
     'SAR Crop Mapping estimated crop areas — rice, cotton, maize, bajra, groundnut — for 29 Gujarat villages from Capella Space X-band SAR. 26+ documented experiments took MSE from about 3568 to 1348.108.',
   ],
   [
-    ['multi-agent', 'multi agent', 'agent', 'research system'],
+    ['multi-agent', 'multi agent', 'agent', 'research system', 'orchestrat', 'critic'],
     'The Multi-Agent Research System is a four-agent LangChain pipeline — Search, Reader, Writer, Critic. Self-rated 5/10: it was built to understand orchestration, not to ship.',
   ],
   [
-    ['airbnb', 'nyc', 'classification', 'classifier'],
+    ['airbnb', 'nyc', 'classification', 'classifier', 'supervised', 'pandas'],
     'NYC Airbnb Room Type Classification is a Scikit-learn model served through FastAPI with Pandas doing the cleaning. The code is public on GitHub.',
   ],
   [
-    ['education', 'college', 'study', 'degree', 'jnec', 'university'],
+    [
+      'stack',
+      'tech',
+      'tools',
+      'language',
+      'python',
+      'skill',
+      'framework',
+      'librar',
+      'pytorch',
+      'tensorflow',
+      'scikit',
+      'sklearn',
+      'opencv',
+      'numpy',
+    ],
+    "Python first: PyTorch, TensorFlow, Scikit-learn, OpenCV. For generative AI it's LangChain, Mistral AI, FastAPI, Docker and pgvector. Application work is Electron, React and Vitest.",
+  ],
+  [
+    [
+      'generative',
+      'genai',
+      'gen ai',
+      'llm',
+      'large language',
+      'nlp',
+      'transformer',
+      'deep learning',
+      'neural net',
+      'fine-tun',
+      'fine tun',
+      'prompt',
+      'machine learning',
+      ' ml ',
+    ],
+    'Sumit works on generative AI and applied deep learning: RAG pipelines on LangChain and Mistral AI, multi-agent orchestration, and spatio-temporal deep learning (ConvLSTM plus a Fourier Neural Operator). PyTorch and TensorFlow for the modelling, FastAPI and Docker to serve it.',
+  ],
+  [
+    ['deploy', 'docker', 'fastapi', 'hugging face', 'huggingface', 'production', 'hosting', 'cloudflare', 'serve'],
+    'Deployed work: PM2.5 Forecasting on Hugging Face Spaces, the AI Video Assistant behind FastAPI in Docker, and this desktop itself on Vercel with a Cloudflare Worker over D1 and R2 serving its content and Workers AI answering these questions.',
+  ],
+  [
+    ['education', 'college', 'study', 'degree', 'jnec', 'university', 'mgm', 'b.tech', 'btech', 'diploma', 'cgpa', 'graduat'],
     "Third-year B.Tech in AI & Data Science at MGM's Jawaharlal Nehru Engineering College, MGM University, entered by lateral transfer from a Diploma in Computer Engineering.",
   ],
   [
-    ['experience', 'intern', 'internship', 'hire', 'job', 'work'],
+    ['experience', 'intern', 'hire', 'job', 'work', 'available', 'opportunit', 'role', 'position', 'notice period', 'relocat'],
     'Sumit is targeting an AI/ML engineering internship. The track record is competition and independent work: two ANRF AISEHack entries, applied GenAI projects and Lazarus Sentinel.',
   ],
   [
-    ['contact', 'email', 'reach', 'linkedin', 'github', 'kaggle'],
+    ['contact', 'email', 'reach', 'linkedin', 'github', 'kaggle', 'phone', 'call'],
     'Email jadhavsumit534@gmail.com. Also on GitHub (sumitjadhav1703), Kaggle and Hugging Face (sumit1703) and LinkedIn (sumit-jadhav-1703s).',
   ],
   [
-    ['code', 'source', 'how is this built', 'this site', 'desktop'],
+    ['code', 'source', 'how is this built', 'this site', 'desktop', 'next.js', 'nextjs', 'react', 'typescript'],
     'This desktop is a React and TypeScript application built with Next.js — the window manager, dock, Shell and search are all components. Open the Code app to read the sources.',
   ],
   [
