@@ -10,6 +10,28 @@ import { useContextMenu } from './ContextMenu'
 import { useReducedMotion } from '../useTheme'
 import type { AppId, FolderTint } from '../types'
 
+/**
+ * One desk cell, fixed so the column can be divided into whole rows.
+ *
+ * 4 top padding + 48 of folder art + 6 gap + a two-line label (11.5px at 1.25 line-height,
+ * plus 2px of padding each side) + 4 bottom padding. The label is clamped to those two lines
+ * rather than allowed to wrap freely: a three-line title used to make its own row taller than
+ * every other, and once one row is an unpredictable height nothing below it can be placed.
+ */
+const CELL_H = 96
+const CELL_W = 86
+const ROW_GAP = 16
+const LABEL_H = 33
+
+/**
+ * Capacity, for the record: rows come from the measured desk height, columns are however many
+ * the width holds. 1440x900 fits 6 rows x 15 columns, 1280x720 fits 5 x 13, and 1024x640 — the
+ * smallest desktop layout, below which the mobile shell takes over — fits 4 x 10, so 40 icons.
+ * Past that a column starts off the left edge. Six projects ship today and `e2e/desktop.spec.ts`
+ * holds the line at 24 on the smallest desk, so the ceiling is a known quantity rather than the
+ * surprise it was when two fixed columns silently ran off the bottom.
+ */
+
 export function DesktopGrid() {
   const { iconScale, desktopHidden, prefs } = useOs()
   // The desktop folders are the published projects — no second list to keep in step.
@@ -39,16 +61,26 @@ export function DesktopGrid() {
       id="desktop-grid"
       style={{
         ...s(
-          // overflow-y: the grid used to run off the bottom of a container that clips, so past 18
-          // icons at 1440x900 a project simply had no way to be reached from the desktop.
-          // Scrolling is the smallest thing that keeps every project on the desk.
-          'position:absolute;top:calc(var(--s-menubar-h) + 16px);right:22px;display:grid;grid-template-columns:repeat(2,86px);grid-auto-rows:min-content;gap:16px 6px;z-index:var(--z-desktop-grid);transform-origin:top right;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin',
+          // A desk, not a page. Two fixed columns filled top-to-bottom overflowed the box the
+          // moment the project list grew, and scrolling it — the previous fix — is exactly what
+          // a desktop does not do: a folder you cannot see is a folder that does not exist.
+          //
+          // `grid-auto-flow: column` with `repeat(auto-fill, CELL_H)` rows inverts the problem.
+          // The row count is whatever fits the measured height, and the *columns* are what grow,
+          // so adding projects starts a new column instead of pushing the last row off the
+          // bottom. `direction: rtl` puts the first column against the right edge and grows
+          // leftward from there, the way macOS arranges a desk; children set `ltr` back for text.
+          //
+          // The box is content-sized against `right`, so no width needs to be declared for it to
+          // extend leftward as columns are added.
+          'position:absolute;top:calc(var(--s-menubar-h) + 16px);right:22px;display:grid;grid-auto-flow:column;column-gap:6px;z-index:var(--z-desktop-grid);transform-origin:top right;direction:rtl',
         ),
-        // The height is divided by the scale because `transform` does not resize the box layout
-        // gave it: at Large Icons a `bottom:96px` grid still measured the full gap to the dock,
-        // then scaled 1.25x past the bottom of the screen, and the last row scrolled into a
-        // region the desktop clips. The two reserved bands are the real chrome heights now —
-        // the old numbers were 44 and 96, and the menu bar has never been 44px tall.
+        gridTemplateRows: `repeat(auto-fill, ${CELL_H}px)`,
+        rowGap: `${ROW_GAP}px`,
+        // Divided by the scale because `transform` does not resize the box layout gave it: at
+        // Large Icons the grid still measured the full gap to the dock, then scaled 1.25x past
+        // the bottom of the screen. `auto-fill` needs this height to be definite, which it is —
+        // and the two reserved bands are the real chrome heights, not the 44/96 once guessed at.
         height: `calc((100% - var(--s-menubar-h) - 16px - var(--s-dock-h) - 14px) / ${iconScale})`,
         transform: `scale(${iconScale})`,
       }}
@@ -74,8 +106,10 @@ export function DesktopGrid() {
             }}
             style={{
               ...s(
-                'width:86px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:default;border-radius:10px;padding:4px 0',
+                'display:flex;flex-direction:column;align-items:center;gap:6px;cursor:default;border-radius:10px;padding:4px 0;direction:ltr',
               ),
+              width: CELL_W,
+              height: CELL_H,
               animation: reduced ? 'none' : `riseIn .7s ${SPRING} ${0.15 + i * 0.05}s both`,
             }}
             onClick={(e) => {
@@ -129,10 +163,14 @@ export function DesktopGrid() {
             <span
               data-dsklabel="1"
               data-selected={selected === id ? '1' : undefined}
+              title={label}
               style={{
                 ...s(
-                  'font-size:11.5px;line-height:1.25;text-align:center;padding:2px 6px;border-radius:6px;-webkit-backdrop-filter:var(--s-blur-scrim);backdrop-filter:var(--s-blur-scrim);transition:background .16s ease,color .16s ease',
+                  // Two lines, then an ellipsis. Free wrapping made the cell height depend on
+                  // the longest title on the desk, which is what the fixed row track cannot have.
+                  'font-size:11.5px;line-height:1.25;text-align:center;padding:2px 6px;border-radius:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere;-webkit-backdrop-filter:var(--s-blur-scrim);backdrop-filter:var(--s-blur-scrim);transition:background .16s ease,color .16s ease',
                 ),
+                maxHeight: LABEL_H,
                 color: selected === id ? '#fff' : 'var(--s-onwall)',
                 textShadow: selected === id ? 'none' : 'var(--s-onwall-shadow)',
                 // Bare until hovered or selected, the way macOS leaves it. The hover plate is
