@@ -5,7 +5,8 @@ export const TERM: Record<string, string> = {
   help: 'Commands: about, projects, project <name>, skills, education, experience, resume, contact, links, whoami, neofetch, open <app>, clear',
   about:
     'Sumit Jadhav — third-year B.Tech, AI & Data Science, JNEC / MGM University. Focus: generative AI, RAG, applied deep learning.',
-  projects: 'lazarus-sentinel · ai-video · pm25 · sar · multi-agent · airbnb  → try: project sar',
+  projects:
+    'ai-video · pm25 · sar-yield · multi-agent · airbnb · movie-recommendation-system · linkedin-post-agent · emotion-classification-with-bigru · mental-health-score · next-word-prediction · heart-disease-risk-prediction · emotion-classification-pipeline  → try: project sar-yield',
   links:
     'github.com/sumitjadhav1703 · kaggle.com/sumit1703 · huggingface.co/sumit1703 · linkedin.com/in/sumit-jadhav-1703s',
   whoami: 'sumit — AI/ML engineering intern candidate.',
@@ -24,19 +25,35 @@ export const NEOFETCH_ROWS: [string, string][] = [
   ['Focus', 'AI / ML'],
   ['Primary language', 'Python'],
   ['Direction', 'Generative AI'],
-  ['Projects', '6'],
+  ['Projects', '12'],
   ['Status', 'Ready'],
 ]
 
+/**
+ * Short names the Shell's `project <name>` accepts beyond the slug itself.
+ *
+ * The CMS slugs grew long — `emotion-classification-with-bigru` is not something anyone types —
+ * so every project keeps a handle. `project-lazarus` and `project-sar` are gone from here
+ * because they are gone from the CMS; pointing an alias at a project that no longer exists is
+ * how `/projects/sar` came to be the one URL nothing served.
+ */
 export const PROJ_ALIAS: Record<string, AppId> = {
-  'lazarus-sentinel': 'project-lazarus',
-  lazarus: 'project-lazarus',
-  'ai-video': 'project-ai-video',
-  pm25: 'project-pm25',
+  video: 'project-ai-video',
+  rag: 'project-ai-video',
   'pm2.5': 'project-pm25',
-  sar: 'project-sar',
-  'multi-agent': 'project-multi-agent',
-  airbnb: 'project-airbnb',
+  pollution: 'project-pm25',
+  sar: 'project-sar-yield',
+  yield: 'project-sar-yield',
+  agents: 'project-multi-agent',
+  nyc: 'project-airbnb',
+  movies: 'project-movie-recommendation-system',
+  movie: 'project-movie-recommendation-system',
+  linkedin: 'project-linkedin-post-agent',
+  bigru: 'project-emotion-classification-with-bigru',
+  'mental-health': 'project-mental-health-score',
+  'next-word': 'project-next-word-prediction',
+  heart: 'project-heart-disease-risk-prediction',
+  'emotion-pipeline': 'project-emotion-classification-pipeline',
 }
 
 /**
@@ -53,10 +70,6 @@ export const PROJ_ALIAS: Record<string, AppId> = {
  * that used it, and bare `ai` is deliberately absent — it is inside `email`.
  */
 export const KB: [string[], string][] = [
-  [
-    ['lazarus', 'sentinel', 'ssh', 'electron'],
-    'Lazarus Sentinel is a desktop SSH safety terminal in Electron and React — 278 commits, GitHub Actions CI, a Vitest suite and a live deployment.',
-  ],
   [
     [
       'ai video',
@@ -82,11 +95,35 @@ export const KB: [string[], string][] = [
     'PM2.5 Forecasting pairs ConvLSTM with a Fourier Neural Operator for grid pollution forecasting. Built for ANRF AISEHack Phase 2 at IIT Delhi and deployed on Hugging Face Spaces.',
   ],
   [
-    ['sar', 'crop', 'gujarat', 'capella', 'satellite', 'remote sensing', 'x-band', 'radar', 'unsupervised'],
-    'SAR Crop Mapping estimated crop areas — rice, cotton, maize, bajra, groundnut — for 29 Gujarat villages from Capella Space X-band SAR. 26+ documented experiments took MSE from about 3568 to 1348.108.',
+    ['sar', 'crop', 'yield', 'gujarat', 'sokhda', 'capella', 'satellite', 'remote sensing', 'x-band', 'radar', 'unsupervised', 'gdal', 'sentinel-2'],
+    'SAR Crop Yield Forecasting is a validation-first yield pipeline for 966 farm plots in Sokhda, Gujarat, built on six Capella Space X-band SAR passes: they derive a season-complete canopy signal that modulates the yield estimate over 447.5 hectares — groundnut, maize, rice, bajra and cotton.',
   ],
   [
-    ['multi-agent', 'multi agent', 'agent', 'research system', 'orchestrat', 'critic'],
+    ['movie', 'recommend', 'tf-idf', 'tfidf', 'cosine', 'similarity', 'content-based', 'collaborative'],
+    'The Movie Recommendation System is content-based: TF-IDF over movie metadata with cosine similarity, served through FastAPI behind a Streamlit interface. Live demo, GitHub and API docs are all published.',
+  ],
+  [
+    ['linkedin post', 'post agent', 'langgraph', 'human-in-the-loop', 'human in the loop', 'autonomous', 'content generation'],
+    'The LinkedIn Post Agent is a LangGraph agent with two execution modes — human-in-the-loop, where a person approves or revises each draft, and fully autonomous generation. FastAPI behind a React and TypeScript front end, deployed and public.',
+  ],
+  [
+    ['bigru', 'gru', 'emotion', 'sentiment', 'six-class', 'keras', 'text classification'],
+    'Two emotion classifiers, deliberately: one is a Bidirectional GRU in TensorFlow/Keras serving six-class emotion over FastAPI, the other a TF-IDF and Logistic Regression pipeline with NLTK preprocessing on Streamlit. Same task, a deep model against a classical baseline.',
+  ],
+  [
+    ['mental health', 'wellness', 'random forest', 'regression', 'student'],
+    'Mental Health Score estimates a continuous student wellness score from demographic, social-media and lifestyle inputs using a tuned Random Forest regressor, served over FastAPI with Pydantic validation.',
+  ],
+  [
+    ['next word', 'next-word', 'lstm', 'n-gram', 'ngram', 'autocomplete', 'language model'],
+    'Next Word Prediction compares two approaches on the same corpus — an LSTM sequence model in TensorFlow and a lightweight n-gram model — over 3,038 quotes and an 8,978-word vocabulary, deployed on Streamlit.',
+  ],
+  [
+    ['heart', 'disease', 'knn', 'k-nearest', 'clinical', 'risk prediction', 'medical'],
+    'Heart Disease Risk Prediction classifies a case as low or high risk from clinical and exercise features with a K-Nearest Neighbours model on Streamlit. It is labelled educational on the card, because it is.',
+  ],
+  [
+    ['multi-agent', 'multi agent', 'agent', 'research system', 'research ai', 'orchestrat', 'critic'],
     'The Multi-Agent Research System is a four-agent LangChain pipeline — Search, Reader, Writer, Critic. Self-rated 5/10: it was built to understand orchestration, not to ship.',
   ],
   [
@@ -141,7 +178,7 @@ export const KB: [string[], string][] = [
   ],
   [
     ['experience', 'intern', 'hire', 'job', 'work', 'available', 'opportunit', 'role', 'position', 'notice period', 'relocat'],
-    'Sumit is targeting an AI/ML engineering internship. The track record is competition and independent work: two ANRF AISEHack entries, applied GenAI projects and Lazarus Sentinel.',
+    'Sumit is targeting an AI/ML engineering internship. The track record is competition and independent work: two ANRF AISEHack entries and twelve published projects, most of them deployed — RAG, multi-agent, NLP classifiers and spatio-temporal forecasting.',
   ],
   [
     ['contact', 'email', 'reach', 'linkedin', 'github', 'kaggle', 'phone', 'call'],
@@ -157,12 +194,17 @@ export const KB: [string[], string][] = [
   ],
   [
     ['project', 'portfolio', 'what have you built', 'show me'],
-    'Six projects: Lazarus Sentinel, AI Video Assistant, PM2.5 Forecasting, SAR Crop Mapping, the Multi-Agent Research System and the NYC Airbnb classifier. Ask about any of them.',
+    'Twelve published projects: the AI Video Assistant (RAG), PM2.5 Forecasting, SAR Crop Yield Forecasting, the Multi-Agent Research System, the LinkedIn Post Agent, the NYC Airbnb classifier, a movie recommender, two emotion classifiers, Mental Health Score, Next Word Prediction and Heart Disease Risk Prediction. Ask about any of them.',
   ],
 ]
 
+/**
+ * The reply when nothing matches. It names real projects on purpose: the previous version
+ * offered "Lazarus Sentinel" and "SAR crop mapping", neither of which is in the portfolio any
+ * more, so the one message whose whole job is to redirect was sending people nowhere.
+ */
 export const AI_FALLBACK =
-  "I only know Sumit's portfolio. Try asking about Lazarus Sentinel, the AI Video Assistant, PM2.5 forecasting, SAR crop mapping, the multi-agent system, his stack, education or how to reach him."
+  "I only know Sumit's portfolio. Try asking about the AI Video Assistant's RAG pipeline, PM2.5 forecasting, SAR crop-yield forecasting, the multi-agent research system, the LinkedIn post agent, the emotion classifiers, his stack, education or how to reach him."
 
 /**
  * The chips shown before the first question. Seed values only — the live list comes from
@@ -173,10 +215,10 @@ export const AI_FALLBACK =
  * portfolio is worth more of their time.
  */
 export const AI_SUGGESTIONS = [
-  "What are Sumit's strongest AI projects?",
+  'What has Sumit built with RAG?',
+  'Which projects are deployed and public?',
   'What ML technologies does Sumit use?',
-  'Tell me about SAR Crop Mapping',
-  "What is Sumit's education?",
+  'Tell me about the SAR crop-yield work',
   'How do I contact him?',
 ]
 

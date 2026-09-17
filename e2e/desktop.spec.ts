@@ -96,7 +96,7 @@ test('opens a context menu on the desk', async ({ page }) => {
 test.describe('project deep links', () => {
   // These six slugs are prerendered from FALLBACK, so this runs without the Worker — which is the
   // property that lets the build never need a database.
-  for (const slug of ['pm25', 'lazarus', 'ai-video']) {
+  for (const slug of ['pm25', 'sar-yield', 'ai-video']) {
     test(`/projects/${slug} opens that project's window`, async ({ page }) => {
       const problems = watchConsole(page)
       await boot(page, `/projects/${slug}`)
