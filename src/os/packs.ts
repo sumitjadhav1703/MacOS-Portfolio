@@ -26,13 +26,32 @@ const BLOOM = {
   light: 'radial-gradient(130% 80% at 50% -12%,rgba(255,255,255,.55) 0%,rgba(255,255,255,0) 58%)',
 }
 const FALLOFF = {
-  dark: 'radial-gradient(120% 66% at 50% 116%,rgba(0,0,0,.5) 0%,rgba(0,0,0,0) 62%)',
-  light: 'radial-gradient(120% 66% at 50% 116%,rgba(20,26,36,.16) 0%,rgba(20,26,36,0) 62%)',
+  dark: 'radial-gradient(128% 56% at 50% 122%,rgba(0,0,0,.34) 0%,rgba(0,0,0,0) 66%)',
+  light: 'radial-gradient(128% 56% at 50% 122%,rgba(20,26,36,.13) 0%,rgba(20,26,36,0) 66%)',
 }
 
-/** Bloom on top, the pack's own layers in the middle, fall-off underneath. */
+/**
+ * The floor the dock stands on.
+ *
+ * Glass only reads when there is something behind it to bend, and every pack's base layer
+ * bottoms out near-black — so `blur(32px) saturate(190%)` on the dock was correct and
+ * completely invisible. One wide, low glow behind the dock is what the blur refracts.
+ */
+const GLOW = {
+  dark: 'radial-gradient(58% 34% at 50% 103%,rgba(158,188,240,.16) 0%,rgba(158,188,240,0) 72%)',
+  light: 'radial-gradient(58% 34% at 50% 103%,rgba(255,255,255,.55) 0%,rgba(255,255,255,0) 72%)',
+}
+
+/**
+ * Bloom and fall-off on top, the pack's own layers underneath.
+ *
+ * Order is load-bearing and was wrong: in `background-image` the FIRST layer paints on top,
+ * and every pack's own stack ends in an opaque `linear-gradient`. With the fall-off listed
+ * last it sat *behind* that opaque layer and never rendered at all — which is why the bottom
+ * of the desk was flat rather than deep.
+ */
 const desk = (theme: 'dark' | 'light', layers: string) =>
-  `${BLOOM[theme]},${layers},${FALLOFF[theme]}`
+  `${BLOOM[theme]},${GLOW[theme]},${FALLOFF[theme]},${layers}`
 
 export const PACKS: Record<PackId, Pack> = {
   graphite: {

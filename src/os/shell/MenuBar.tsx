@@ -59,15 +59,42 @@ function Clock() {
   }, [])
   return (
     <span id="clock" style={s('font-variant-numeric:tabular-nums')} suppressHydrationWarning>
-      {now
-        ? `${now.toLocaleDateString([], {
-            weekday: 'short',
-            day: 'numeric',
-            month: 'short',
-          })} ${now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`
-        : '—'}
+      {now ? `${deskDate(now)} ${now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}` : '—'}
     </span>
   )
+}
+
+/** One switch of the Control Center glyph: a pill track with the knob at one end. */
+function Toggle({ knob }: { knob: 'left' | 'right' }) {
+  return (
+    <span
+      style={s(
+        'position:relative;display:block;width:15px;height:6.5px;border-radius:999px;border:1.2px solid currentColor;opacity:.9',
+      )}
+    >
+      <span
+        style={{
+          ...s('position:absolute;top:1px;width:2.5px;height:2.5px;border-radius:50%;background:currentColor'),
+          [knob]: '1px',
+        }}
+      />
+    </span>
+  )
+}
+
+/**
+ * The date, the way the menu bar writes it: `Wed Sep 16`, no comma.
+ *
+ * `toLocaleDateString` punctuates for prose — en-US returns `Wed, Sep 16` — and macOS never
+ * puts a comma after the weekday. Dropping the formatter's literal separators keeps the
+ * locale's own field *order* (a de-DE visitor still gets `Mi 16 Sept`) without its commas.
+ */
+function deskDate(now: Date): string {
+  return new Intl.DateTimeFormat([], { weekday: 'short', day: 'numeric', month: 'short' })
+    .formatToParts(now)
+    .filter((part) => part.type !== 'literal')
+    .map((part) => part.value)
+    .join(' ')
 }
 
 
@@ -243,35 +270,41 @@ export function MenuBar() {
               dispatch({ type: 'popover', name: 'activity' })
             }}
           >
-            <span
-              style={s(
-                'position:relative;display:inline-block;width:23px;height:12px;border:1.4px solid currentColor;border-radius:3px;opacity:.85',
-              )}
-            >
+            {/* The cap is flush against the body. As a sibling of the row's 5px gap it read
+                as a stray tick floating beside the battery rather than part of it. */}
+            <span style={s('display:flex;align-items:center;gap:1px')}>
               <span
-                id="act-fill"
-                style={{
-                  ...s(
-                    'position:absolute;left:1.5px;top:1.5px;bottom:1.5px;border-radius:1.5px;background:currentColor;transition:width .5s cubic-bezier(.32,.72,0,1)',
-                  ),
-                  width: activity === 'Idle' ? '34%' : activity === 'Ready' ? '70%' : activity === 'Working' ? '88%' : '100%',
-                }}
-              />
+                style={s(
+                  'position:relative;display:inline-block;width:23px;height:12px;border:1.4px solid currentColor;border-radius:3px;opacity:.85',
+                )}
+              >
+                <span
+                  id="act-fill"
+                  style={{
+                    ...s(
+                      'position:absolute;left:1.5px;top:1.5px;bottom:1.5px;border-radius:1.5px;background:currentColor;transition:width .5s cubic-bezier(.32,.72,0,1)',
+                    ),
+                    width: activity === 'Idle' ? '34%' : activity === 'Ready' ? '70%' : activity === 'Working' ? '88%' : '100%',
+                  }}
+                />
+              </span>
+              <span style={s('width:2px;height:5px;border-radius:0 2px 2px 0;background:currentColor;opacity:.6')} />
             </span>
-            <span style={s('width:2px;height:5px;border-radius:0 2px 2px 0;background:currentColor;opacity:.6')} />
           </div>
         ) : null}
 
         <Wifi onOpen={() => dispatch({ type: 'popover', name: 'net' })} />
 
+        {/* Two stacked toggle switches, which is what macOS draws. Two plain bars read as a
+            hamburger menu — the one glyph in this bar that promised the wrong thing. */}
         <div
-          style={s('cursor:default;display:flex;flex-direction:column;gap:3px;padding:3px 2px')}
+          style={s('cursor:default;display:flex;flex-direction:column;gap:2.5px;padding:2px')}
           {...pressable('Control Center', () => dispatch({ type: 'overlay', name: 'controlCenter' }), {
             stopPropagation: true,
           })}
         >
-          <div style={s('width:16px;height:2.5px;border-radius:2px;background:currentColor;opacity:.9')} />
-          <div style={s('width:16px;height:2.5px;border-radius:2px;background:currentColor;opacity:.9')} />
+          <Toggle knob="right" />
+          <Toggle knob="left" />
         </div>
 
         <div

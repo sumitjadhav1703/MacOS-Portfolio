@@ -43,7 +43,7 @@
     --s-shadow-rest:0 12px 26px rgba(20,24,32,.16);
     --s-term-bg:#14161a;--s-paper:#ffffff;--s-paper-ink:#16181c;--s-paper-desk:#b6bcc4;
     --s-menu-dim:rgba(26,28,32,.78);--s-menu-line:rgba(0,0,0,.04);
-    --s-glass-icon:rgba(255,255,255,.86);--s-glass-icon-ring:rgba(0,0,0,.14);--s-glass-icon-ink:rgba(46,50,58,.7);
+    --s-glass-icon:rgba(255,255,255,.86);--s-glass-icon-ring:rgba(0,0,0,.14);--s-glass-icon-ink:rgba(46,50,58,.86);
     --s-onwall:#16181c;--s-onwall-bg:rgba(255,255,255,.74);--s-onwall-shadow:0 1px 2px rgba(255,255,255,.6);--s-onwall-sel:rgba(58,109,240,.95);
     --s-glass-ring:rgba(255,255,255,.85);--s-glass-edge:rgba(0,0,0,.12);
     --s-dock-glass:linear-gradient(180deg,rgba(255,255,255,.6),rgba(255,255,255,.34));

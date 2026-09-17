@@ -102,8 +102,10 @@ export const ICONS: IconSpec[] = [
     tip: 'Trash',
     grad: 'linear-gradient(180deg,var(--s-glass-icon),var(--s-glass-icon))',
     inks: [
-      ['left:23px;top:10px;width:8px;height:3px;border-radius:2px 2px 0 0;background:var(--s-glass-icon-ink);opacity:.85', 'ink'],
-      ['left:17px;top:19px;width:20px;height:24px;border-radius:2px 2px 6px 6px;border:1.6px solid var(--s-glass-icon-ink);opacity:.85', 'inkline'],
+      // Full opacity, not .85: the token already carries an alpha, and the two multiplied out
+      // to a grey the light packs rendered as a barely-visible outline on a light glass dock.
+      ['left:23px;top:10px;width:8px;height:3px;border-radius:2px 2px 0 0;background:var(--s-glass-icon-ink)', 'ink'],
+      ['left:17px;top:19px;width:20px;height:24px;border-radius:2px 2px 6px 6px;border:1.7px solid var(--s-glass-icon-ink)', 'inkline'],
     ],
   },
 ]
@@ -248,9 +250,11 @@ export function AppIcon({
             ),
             right: -2 * scale,
             top: -2 * scale,
-            height: 17 * scale,
-            padding: `0 ${5.5 * scale}px`,
-            fontSize: 9.5 * scale,
+            height: 19 * scale,
+            padding: `0 ${6 * scale}px`,
+            // 11px is the floor two letters stay legible at. At 9.5 the one element on this
+            // desktop advertising the assistant was the least readable thing on it.
+            fontSize: 11 * scale,
           }}
         >
           {badge}
