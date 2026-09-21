@@ -9,7 +9,9 @@ export function Resume() {
   const resumeUrl = useContent().site.resumeUrl
   // null = fit width; a number is a percentage zoom, both passed to the PDF viewer.
   const [zoom, setZoom] = useState<number | null>(null)
-  const fragment = zoom === null ? 'view=FitH' : `zoom=${zoom}`
+  // `toolbar=0&navpanes=0` hides Chrome's own viewer chrome. Without them the window carried
+  // two toolbars and a thumbnail rail — its own, and the browser's on top of it.
+  const fragment = `toolbar=0&navpanes=0&${zoom === null ? 'view=FitH' : `zoom=${zoom}`}`
 
   return (
     <div style={s('height:100%;display:flex;flex-direction:column')}>
@@ -91,39 +93,44 @@ export function Resume() {
   )
 }
 
-/** Shown when the browser refuses to display PDFs inline. */
+/**
+ * Shown when the browser refuses to display PDFs inline.
+ *
+ * Every word of it used to be typed into this file, and it rotted exactly as you would expect:
+ * it still said "third year" and still listed Lazarus Sentinel and SAR Crop Mapping, two
+ * projects the CMS had long since deleted. It reads `useContent()` now, so the page a visitor
+ * without a PDF viewer sees is the same portfolio as everyone else's.
+ */
 function ResumeFallback() {
+  const { site, education, projects, socialLinks } = useContent()
   return (
     <div style={s('position:absolute;inset:0;overflow:auto;padding:26px;display:flex;justify-content:center')}>
       <div
         style={s(
-          'width:100%;max-width:660px;height:max-content;background:var(--s-paper);color:var(--s-paper-ink);padding:44px 46px;box-shadow:0 20px 50px rgba(0,0,0,.4);font-size:12.5px;line-height:1.65',
+          'width:100%;max-width:660px;height:max-content;background:var(--s-paper);color:var(--s-paper-ink);padding:44px 46px;box-shadow:var(--s-shadow-pop);font-size:12.5px;line-height:1.65',
         )}
       >
-        <div style={s('font-size:24px;font-weight:700;letter-spacing:-.01em')}>Sumit Jadhav</div>
-        <div style={s('color:#4a4f57;margin-top:4px')}>
-          AI &amp; Data Science · Chhatrapati Sambhajinagar, Maharashtra · jadhavsumit534@gmail.com
+        <div style={s('font-size:24px;font-weight:700;letter-spacing:-.01em')}>{site.name}</div>
+        <div style={s('opacity:.7;margin-top:4px')}>
+          {site.subtitle} · {site.email}
         </div>
-        <div style={s('height:1px;background:#d8dbe0;margin:18px 0')} />
+        <div style={s('height:1px;background:currentColor;opacity:.14;margin:18px 0')} />
+
         <div style={s('font-weight:700;margin-bottom:6px')}>Education</div>
-        <div>
-          B.Tech, AI &amp; Data Science — MGM's Jawaharlal Nehru Engineering College, MGM University
-          (third year, lateral entry)
-        </div>
-        <div>Diploma in Computer Engineering</div>
-        <div style={s('font-weight:700;margin:16px 0 6px')}>Focus</div>
-        <div>Generative AI, RAG systems, applied deep learning.</div>
+        {education.map((entry) => (
+          <div key={entry.title}>
+            {entry.title} — {entry.detail}
+            {entry.hint ? <span style={s('opacity:.7')}> · {entry.hint}</span> : null}
+          </div>
+        ))}
+
         <div style={s('font-weight:700;margin:16px 0 6px')}>Selected projects</div>
-        <div>
-          Lazarus Sentinel · AI Video Assistant · PM2.5 Forecasting · SAR Crop Mapping · Multi-Agent
-          Research System · NYC Airbnb Room Type Classification
-        </div>
+        <div>{projects.map((project) => project.title).join(' · ')}</div>
+
         <div style={s('font-weight:700;margin:16px 0 6px')}>Links</div>
-        <div>
-          github.com/sumitjadhav1703 · kaggle.com/sumit1703 · huggingface.co/sumit1703 ·
-          linkedin.com/in/sumit-jadhav-1703s
-        </div>
-        <div style={s('margin-top:20px;color:#6a7078;font-size:11.5px')}>
+        <div>{socialLinks.map((link) => link.handle).join(' · ')}</div>
+
+        <div style={s('margin-top:20px;opacity:.6;font-size:11.5px')}>
           Your browser could not display the PDF inline. Use Download above for the full document.
         </div>
       </div>
