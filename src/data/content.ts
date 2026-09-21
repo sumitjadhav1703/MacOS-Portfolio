@@ -10,7 +10,7 @@ import { PROJECTS, slugOf } from './projects'
 import type { Project as BaseProject } from './projects'
 import { PROFILE_LINKS, EMAIL } from './profile'
 import type { ProfileLink } from './profile'
-import { PROFILE, SKILL_GROUPS, EXPERIENCE, EDUCATION, RESUME_FILE } from './sections'
+import { PROFILE, SKILL_GROUPS, EXPERIENCE, EDUCATION, CERTIFICATES, RESUME_FILE } from './sections'
 import type { Entry, SkillGroup } from './sections'
 import {
   TERM,
@@ -128,7 +128,7 @@ export const FALLBACK: Content = {
     featured: i === 0,
     aliases: aliasesFor(p.id, slugOf(p)),
   })),
-  certificates: [],
+  certificates: CERTIFICATES,
   experience: EXPERIENCE,
   education: EDUCATION,
   skills: SKILL_GROUPS,

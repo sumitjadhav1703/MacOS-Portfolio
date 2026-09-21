@@ -106,6 +106,32 @@ test.describe('project deep links', () => {
     })
   }
 
+  test('puts the project links with the title, not below the write-up', async ({ page }) => {
+    // They used to sit after every section, so reaching the demo meant scrolling past the whole
+    // case study. Nothing here depends on window height: the assertion is the order in the flow
+    // and that the buttons are inside the body's first screenful.
+    await boot(page, '/projects/pm25')
+    const body = windowFor(page, 'project-pm25').locator('[data-appbody="1"]')
+    await expect(body.locator('a[data-btn]').first()).toBeVisible()
+
+    const geometry = await body.evaluate((el) => {
+      const link = el.querySelector('a[data-btn]')!.getBoundingClientRect()
+      const heading = el.querySelector('h2')!.getBoundingClientRect()
+      const firstSection = [...el.querySelectorAll('div')].find(
+        (d) => getComputedStyle(d).textTransform === 'uppercase',
+      )!.getBoundingClientRect()
+      const box = el.getBoundingClientRect()
+      return {
+        afterTitle: link.top > heading.top,
+        beforeSections: link.top < firstSection.top,
+        inView: link.top >= box.top && link.bottom <= box.bottom,
+        scrolled: el.scrollTop,
+      }
+    })
+
+    expect(geometry).toEqual({ afterTitle: true, beforeSections: true, inView: true, scrolled: 0 })
+  })
+
   test('a slug that does not exist does not break the desktop', async ({ page }) => {
     const response = await page.goto('/projects/no-such-project')
     // Either a 404 route or the desktop with nothing opened; a blank page or a crash is not ok.

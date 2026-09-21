@@ -17,7 +17,7 @@ export const PROFILE_LINKS: ProfileLink[] = [
     label: 'Email',
     handle: 'jadhavsumit534@gmail.com',
     url: 'mailto:jadhavsumit534@gmail.com',
-    pill: false,
+    pill: true,
   },
   {
     slug: 'github',

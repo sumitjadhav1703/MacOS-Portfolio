@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { EASE } from '../anim'
+import { useContent } from '../content'
 import { s } from '../css'
 import { pressable } from '../pressable'
 import { useDispatch, useOpenApp, useOs } from '../store'
@@ -15,6 +16,8 @@ export function NotificationCenter() {
   const { notifCenter, notifications, status, activity, wins } = useOs()
   const dispatch = useDispatch()
   const openApp = useOpenApp()
+  // Was the literal '6', which stopped being true the moment the CMS published a seventh.
+  const projects = useContent().projects
   const { accent } = useTheme()
   const [now, setNow] = useState(() => new Date())
 
@@ -66,7 +69,7 @@ export function NotificationCenter() {
             ['Status', status],
             ['Activity', activity],
             ['Windows', String(Object.keys(wins).length)],
-            ['Projects', '6'],
+            ['Projects', String(projects.length)],
           ].map(([label, value]) => (
             <div
               key={label}
@@ -92,8 +95,15 @@ export function NotificationCenter() {
         </div>
       </div>
 
+      {/* This row is the one thing in the panel with no card behind it, so it reads against the
+          wallpaper through the scrim, not against a window. `--s-dim` and `--s-faint` are window
+          inks and measured under 4:1 here; `--s-onwall` is the pair the desk labels already use. */}
       <div style={s('display:flex;align-items:center;gap:10px;padding:2px 6px')}>
-        <div style={s('font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--s-faint)')}>
+        <div
+          style={s(
+            'font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--s-onwall);text-shadow:var(--s-onwall-shadow)',
+          )}
+        >
           Notifications
         </div>
         <div style={s('flex:1')} />
@@ -102,7 +112,9 @@ export function NotificationCenter() {
             {...pressable('Clear notifications', () =>
               notifications.forEach((n) => dispatch({ type: 'dismissNotif', id: n.id })),
             )}
-            style={s('font-size:11.5px;color:var(--s-dim);cursor:default')}
+            style={s(
+              'font-size:11.5px;color:var(--s-onwall);text-shadow:var(--s-onwall-shadow);cursor:default',
+            )}
           >
             Clear
           </span>

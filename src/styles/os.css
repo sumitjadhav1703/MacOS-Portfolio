@@ -6,8 +6,11 @@
   html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#0b0d0f}
   a{color:var(--s-accent);text-decoration:none}
   a:hover{color:var(--s-accent-hi);text-decoration:underline}
+  /* `--s-faint` carries every section heading, hint and caption in the app. At .44/.45 it
+     measured 4.0:1 on the dark window and 2.8:1 on the light one — under AA for text that
+     small, and the reason the write-ups read as half-printed. .5/.62 puts both over 4.5:1. */
   [data-root]{
-    --s-desk:#0e1013;--s-text:#f2f3f5;--s-dim:rgba(242,243,245,.66);--s-faint:rgba(242,243,245,.44);
+    --s-desk:#0e1013;--s-text:#f2f3f5;--s-dim:rgba(242,243,245,.66);--s-faint:rgba(242,243,245,.5);
     --s-line:rgba(255,255,255,.12);--s-line-2:rgba(255,255,255,.2);
     --s-fill:rgba(255,255,255,.05);--s-fill-2:rgba(255,255,255,.09);--s-fill-3:rgba(255,255,255,.15);
     --s-side:rgba(255,255,255,.035);--s-win:#16181c;--s-chrome:#1b1e23;--s-bubble:#1c2128;--s-input:rgba(0,0,0,.28);
@@ -29,7 +32,7 @@
     --s-icon-spec:linear-gradient(180deg,rgba(255,255,255,.3),rgba(255,255,255,0) 48%);
   }
   [data-root][data-theme="light"]{
-    --s-desk:#dfe3e8;--s-text:#1a1c20;--s-dim:rgba(26,28,32,.66);--s-faint:rgba(26,28,32,.45);
+    --s-desk:#dfe3e8;--s-text:#1a1c20;--s-dim:rgba(26,28,32,.66);--s-faint:rgba(26,28,32,.62);
     --s-line:rgba(0,0,0,.12);--s-line-2:rgba(0,0,0,.2);
     --s-fill:rgba(0,0,0,.045);--s-fill-2:rgba(0,0,0,.07);--s-fill-3:rgba(0,0,0,.12);
     --s-side:rgba(0,0,0,.03);--s-win:#f6f7f9;--s-chrome:#eaecef;--s-bubble:#e7eaf0;--s-input:rgba(0,0,0,.05);

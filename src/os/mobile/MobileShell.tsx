@@ -70,18 +70,17 @@ export function MobileShell() {
               'width:52px;height:52px;flex:none;border-radius:13px;background:var(--s-fill-2);box-shadow:inset 0 0 0 1px var(--s-line);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:600;letter-spacing:.04em',
             )}
           >
-            SJ
+            {site.initials}
           </div>
           <div style={s('min-width:0')}>
-            <div style={s('font-size:20px;font-weight:700;letter-spacing:-.02em')}>Sumit Jadhav</div>
-            <div style={s('color:var(--s-dim);font-size:13px;margin-top:2px')}>
-              AI &amp; Data Science · B.Tech, JNEC
-            </div>
+            <div style={s('font-size:20px;font-weight:700;letter-spacing:-.02em')}>{site.name}</div>
+            {/* Was hand-written here and drifted the moment the CMS was edited — it still said
+                "third year" after the About window had moved on to the fourth. */}
+            <div style={s('color:var(--s-dim);font-size:13px;margin-top:2px')}>{site.subtitle}</div>
           </div>
         </div>
         <div style={s('color:var(--s-dim);font-size:13.5px;line-height:1.6;margin-top:14px')}>
-          Generative AI, RAG systems and applied deep learning. Looking for an AI/ML engineering
-          internship.
+          {site.paragraphs[0]}
         </div>
         <div style={s('display:flex;gap:8px;margin-top:16px')}>
           <a
