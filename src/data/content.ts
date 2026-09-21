@@ -90,12 +90,18 @@ export type Content = {
  * them. Kept here as seed values so those surfaces look exactly as they did.
  */
 const DESKTOP_LABELS: Record<string, string> = {
-  'project-lazarus': 'Lazarus Sentinel',
   'project-ai-video': 'AI Video Assistant',
   'project-pm25': 'PM2.5 Forecasting',
-  'project-sar': 'SAR Crop Mapping',
-  'project-multi-agent': 'Multi-Agent Research',
+  'project-sar-yield': 'SAR Yield',
+  'project-multi-agent': 'Research AI',
   'project-airbnb': 'NYC Airbnb Classifier',
+  'project-movie-recommendation-system': 'Movie Recommendation System',
+  'project-linkedin-post-agent': 'LinkedIn Post Agent',
+  'project-emotion-classification-with-bigru': 'Emotion AI',
+  'project-mental-health-score': 'Mental Health Score',
+  'project-next-word-prediction': 'Next Word Prediction',
+  'project-heart-disease-risk-prediction': 'Heart Disease Risk Prediction',
+  'project-emotion-classification-pipeline': 'Emotion Classification Pipeline',
 }
 
 /** The aliases in src/data/os.ts, inverted onto the project they point at. */

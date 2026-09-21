@@ -88,7 +88,11 @@ const view = (ctx: MenuCtx, extra: MenuEntry[] = []): BarMenu => ({
     { label: 'Large Icons', onPick: () => ctx.dispatch({ type: 'iconScale', scale: 1.25 }) },
     divider,
     { label: 'Show / Hide Desktop Items', onPick: () => ctx.dispatch({ type: 'toggleDesktop' }) },
-    { label: 'Show / Hide Dock', onPick: () => ctx.dispatch({ type: 'toggleDock' }) },
+    {
+      label: 'Show / Hide Dock',
+      onPick: () =>
+        ctx.dispatch({ type: 'toggleDock', viewport: { w: window.innerWidth, h: window.innerHeight } }),
+    },
   ],
 })
 

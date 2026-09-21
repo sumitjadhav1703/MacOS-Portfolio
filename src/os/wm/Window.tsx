@@ -1,8 +1,10 @@
 'use client'
 
-import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
+import { useEffect, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
 import { WIN_T } from '../anim'
 import { s } from '../css'
+import { DOCK_H, MENUBAR_H } from '../metrics'
+import { pressable } from '../pressable'
 import { titleOf } from '../registry'
 import { useDispatch, useOs } from '../store'
 import { useReducedMotion } from '../useTheme'
@@ -31,7 +33,11 @@ export function zoneFor(x: number, y: number, vw: number, vh: number): SnapZone 
 
 const MIN_W = 360
 const MIN_H = 240
-const MENUBAR_H = 28
+
+/** macOS: 28pt for a plain title bar, 52pt for one carrying a toolbar. */
+const TITLEBAR_H = 28
+/** macOS window corner radius, Big Sur through Sequoia. */
+const RADIUS = 10
 
 type Dir = 'n' | 's' | 'e' | 'w' | 'nw' | 'ne' | 'sw' | 'se'
 
@@ -46,39 +52,53 @@ const EDGES: [Dir, string][] = [
   ['se', 'top:auto;right:-3px;bottom:-3px;left:auto;width:14px;height:14px;cursor:nwse-resize;z-index:6'],
 ]
 
+/**
+ * One of the three buttons.
+ *
+ * `active` is the whole point: macOS greys all three out the moment a window loses focus,
+ * and a row of saturated red/amber/green on every window at once is the single loudest
+ * thing telling a visitor this is not a Mac.
+ */
 function TrafficLight({
   color,
   glyph,
   label,
+  active,
   onClick,
 }: {
   color: string
-  glyph: string
+  glyph: ReactNode
   label: string
+  active: boolean
   onClick: () => void
 }) {
   return (
     <div
       data-tl="1"
-      role="button"
-      aria-label={label}
+      {...pressable(label, onClick, { stopPropagation: true })}
       title={label}
       style={{
         ...s(
-          'width:12px;height:12px;border-radius:50%;box-shadow:inset 0 0 0 .5px rgba(0,0,0,.22);cursor:default;display:flex;align-items:center;justify-content:center;font-size:8px;line-height:1;color:rgba(0,0,0,.55)',
+          'width:12px;height:12px;border-radius:50%;box-shadow:inset 0 0 0 .5px var(--s-tl-rim);cursor:default;display:flex;align-items:center;justify-content:center;font-size:8px;line-height:1;color:rgba(0,0,0,.55);transition:background .18s ease',
         ),
-        background: color,
+        background: active ? color : 'var(--s-tl-idle)',
       }}
       onPointerDown={(e) => e.stopPropagation()}
-      onClick={(e) => {
-        e.stopPropagation()
-        onClick()
-      }}
     >
       <span data-glyph="1" style={s('opacity:0;transition:opacity .15s ease')}>
         {glyph}
       </span>
     </div>
+  )
+}
+
+/** The zoom button's two filled triangles, the way macOS draws them. */
+function ZoomGlyph() {
+  return (
+    <svg viewBox="0 0 10 10" width="7.5" height="7.5" aria-hidden="true">
+      <path d="M1 1h4L1 5z" fill="currentColor" />
+      <path d="M9 9H5l4-4z" fill="currentColor" />
+    </svg>
   )
 }
 
@@ -98,10 +118,11 @@ export function Window({
 }) {
   const dispatch = useDispatch()
   const reduced = useReducedMotion()
-  const { finderPath } = useOs()
+  const { finderPath, dockHidden } = useOs()
   const [entering, setEntering] = useState(!reduced)
   const [dragging, setDragging] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
+  // Where this window's own dock icon sits, so minimising can aim at it.
+  const [dockX, setDockX] = useState<number | null>(null)
   const contextMenu = useContextMenu()
 
   useEffect(() => {
@@ -109,6 +130,16 @@ export function Window({
     const t = window.setTimeout(() => setEntering(false), 20)
     return () => window.clearTimeout(t)
   }, [entering])
+
+  // Measured after mount, never during render. One frame of the old centre-bottom target is
+  // possible on the very first minimise; the transition simply re-aims, which is invisible.
+  useEffect(() => {
+    if (!win.min || dockHidden) return
+    const el = document.querySelector<HTMLElement>(`#dock [data-item="${id}"]`)
+    if (!el) return
+    const rect = el.getBoundingClientRect()
+    setDockX(rect.left + rect.width / 2)
+  }, [win.min, dockHidden, id])
 
   const mobile = useIsMobile()
 
@@ -120,7 +151,7 @@ export function Window({
     const ox = win.x
     const oy = win.y
     setDragging(true)
-    ;(e.target as HTMLElement).setPointerCapture?.(e.pointerId)
+    e.currentTarget.setPointerCapture?.(e.pointerId)
 
     let zone: SnapZone | null = null
 
@@ -144,11 +175,23 @@ export function Window({
           viewport: { w: window.innerWidth, h: window.innerHeight },
         })
       }
+      stop()
+    }
+    // pointercancel is the one nobody remembers: a touch interruption or a context menu
+    // ends the gesture without a pointerup, and the window stays glued to the cursor.
+    const stop = () => {
       window.removeEventListener('pointermove', move)
       window.removeEventListener('pointerup', up)
+      window.removeEventListener('pointercancel', cancel)
+    }
+    const cancel = () => {
+      setDragging(false)
+      onZone(null)
+      stop()
     }
     window.addEventListener('pointermove', move)
     window.addEventListener('pointerup', up)
+    window.addEventListener('pointercancel', cancel)
     e.preventDefault()
   }
 
@@ -162,43 +205,61 @@ export function Window({
     const move = (ev: PointerEvent) => {
       const dx = ev.clientX - sx
       const dy = ev.clientY - sy
+      const vw = window.innerWidth
+      const vh = window.innerHeight
       let w = ow
       let h = oh
       let x = ox
       let y = oy
-      if (dir.includes('e')) w = Math.max(MIN_W, ow + dx)
-      if (dir.includes('s')) h = Math.max(MIN_H, oh + dy)
+      // Every edge is clamped to the viewport. Without this a window can be dragged out
+      // past the right or bottom edge with no way back except Zoom.
+      if (dir.includes('e')) w = Math.min(Math.max(MIN_W, ow + dx), vw - ox)
+      if (dir.includes('s')) h = Math.min(Math.max(MIN_H, oh + dy), vh - oy)
       if (dir.includes('w')) {
-        w = Math.max(MIN_W, ow - dx)
+        w = Math.min(Math.max(MIN_W, ow - dx), ox + ow)
         x = ox + (ow - w)
       }
       if (dir.includes('n')) {
-        h = Math.max(MIN_H, oh - dy)
-        y = Math.max(MENUBAR_H, oy + (oh - h))
+        // Derive the height from the clamped top edge, not from dy. Computing the two
+        // independently meant that once the top hit the menu bar the height kept growing,
+        // so the bottom edge marched down the screen while the pointer moved up.
+        y = Math.min(Math.max(MENUBAR_H, oy + dy), oy + oh - MIN_H)
+        h = oy + oh - y
       }
       dispatch({ type: 'geometry', app: id, geom: { x, y, w, h } })
     }
-    const up = () => {
+    const stop = () => {
       window.removeEventListener('pointermove', move)
-      window.removeEventListener('pointerup', up)
+      window.removeEventListener('pointerup', stop)
+      window.removeEventListener('pointercancel', stop)
     }
     window.addEventListener('pointermove', move)
-    window.addEventListener('pointerup', up)
+    window.addEventListener('pointerup', stop)
+    window.addEventListener('pointercancel', stop)
     e.preventDefault()
   }
 
   const geometry = win.max
     ? { left: 0, top: MENUBAR_H, width: '100%', height: `calc(100% - ${MENUBAR_H}px)`, borderRadius: 0 }
     : mobile
-      ? { left: 0, top: MENUBAR_H, width: '100%', height: 'calc(100% - 96px)', borderRadius: 0 }
-      : { left: win.x, top: win.y, width: win.w, height: win.h, borderRadius: 13 }
+      ? { left: 0, top: MENUBAR_H, width: '100%', height: `calc(100% - ${MENUBAR_H + DOCK_H}px)`, borderRadius: 0 }
+      : { left: win.x, top: win.y, width: win.w, height: win.h, borderRadius: RADIUS }
 
   const title = titleOf(id) + (id === 'finder' && finderPath !== '/' ? ' — Projects' : '')
+
+  // macOS sucks a minimised window into its own dock icon. The real genie is a fifty-row
+  // mesh deformation; aiming the scale at the right icon is the part that reads.
+  // `dockX` is measured in an effect, so this stays free of browser globals during render.
+  const minimised =
+    dockX === null
+      ? 'translateY(60vh) scale(.06)'
+      : `translate(${Math.round(dockX - (win.x + win.w / 2))}px, 60vh) scale(.06)`
 
   return (
     <div
       id={`win-${id}`}
-      ref={ref}
+      role="dialog"
+      aria-label={title}
       style={{
         ...s(
           'position:absolute;pointer-events:auto;display:flex;flex-direction:column;overflow:hidden;background:var(--s-win);border:1px solid var(--s-win-border)',
@@ -207,11 +268,8 @@ export function Window({
         zIndex: win.z,
         boxShadow: active ? 'var(--s-shadow-focus)' : 'var(--s-shadow-rest)',
         opacity: win.min ? 0 : entering ? 0 : active ? 1 : 0.965,
-        transform: win.min
-          ? 'translateY(60vh) scale(.06)'
-          : entering
-            ? 'scale(.94) translateY(10px)'
-            : 'none',
+        transformOrigin: 'bottom center',
+        transform: win.min ? minimised : entering ? 'scale(.94) translateY(10px)' : 'none',
         pointerEvents: win.min ? 'none' : 'auto',
         transition: reduced || dragging ? 'none' : WIN_T,
         visibility: win.min ? 'hidden' : 'visible',
@@ -223,7 +281,7 @@ export function Window({
         data-titlebar={id}
         style={{
           ...s(
-            'height:38px;flex:none;display:flex;align-items:center;padding:0 12px;gap:8px;border-bottom:1px solid var(--s-line);background:var(--s-chrome)',
+            `height:${TITLEBAR_H}px;flex:none;display:flex;align-items:center;padding:0 13px;gap:8px;border-bottom:1px solid var(--s-line);background:var(--s-chrome);position:relative`,
           ),
           cursor: dragging ? 'grabbing' : 'grab',
         }}
@@ -257,29 +315,35 @@ export function Window({
           { label: 'Close', hint: '⌘W', onPick: () => dispatch({ type: 'close', app: id }) },
         ])}
       >
-        <div data-tlgroup="1" style={s('display:flex;gap:8px')}>
+        <div data-tlgroup="1" style={s('display:flex;gap:8px;position:relative;z-index:1')}>
           <TrafficLight
-            color="#d0655b"
+            color="var(--s-tl-red)"
             glyph="✕"
+            active={active}
             label={`Close ${titleOf(id)}`}
             onClick={() => dispatch({ type: 'close', app: id })}
           />
           <TrafficLight
-            color="#cfa04a"
+            color="var(--s-tl-yellow)"
             glyph="−"
+            active={active}
             label={`Minimise ${titleOf(id)}`}
             onClick={() => dispatch({ type: 'minimize', app: id })}
           />
           <TrafficLight
-            color="#5c9c63"
-            glyph="⤡"
+            color="var(--s-tl-green)"
+            glyph={<ZoomGlyph />}
+            active={active}
             label={`Zoom ${titleOf(id)}`}
             onClick={() => dispatch({ type: 'toggleMax', app: id })}
           />
         </div>
+        {/* Centred on the window, not on what is left after the buttons. The old
+            `flex:1;margin-left:-56px` put it a few pixels off and drifted the moment the
+            button group changed width. */}
         <div
           style={s(
-            'flex:1;text-align:center;font-size:12.5px;font-weight:600;color:var(--s-text);pointer-events:none;margin-left:-56px',
+            'position:absolute;left:0;right:0;text-align:center;font-size:12.5px;font-weight:600;color:var(--s-text);pointer-events:none;padding:0 84px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap',
           )}
         >
           {title}

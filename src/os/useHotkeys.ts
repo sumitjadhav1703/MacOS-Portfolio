@@ -17,7 +17,10 @@ export function useHotkeys() {
 
       const meta = e.metaKey || e.ctrlKey
 
-      if (meta && e.key.toLowerCase() === 'k') {
+      // ⌘K, ⌘W and ⌘M are window-scoped, and the visitor types into the Shell, the Contact
+      // form and the Ask Sumit box. Before this guard reached them, ⌘W closed the window
+      // out from under a half-written sentence.
+      if (meta && e.key.toLowerCase() === 'k' && !typing) {
         e.preventDefault()
         dispatch({ type: 'overlay', name: 'spotlight' })
         return
@@ -65,12 +68,12 @@ export function useHotkeys() {
         openApp('settings')
         return
       }
-      if (meta && e.key.toLowerCase() === 'w' && active) {
+      if (meta && e.key.toLowerCase() === 'w' && active && !typing) {
         e.preventDefault()
         dispatch({ type: 'close', app: active })
         return
       }
-      if (meta && e.key.toLowerCase() === 'm' && active) {
+      if (meta && e.key.toLowerCase() === 'm' && active && !typing) {
         e.preventDefault()
         dispatch({ type: 'minimize', app: active })
         return

@@ -1,15 +1,22 @@
 import { useState, type ReactNode } from 'react'
 import { useContent } from '../content'
+import { FOLDER_TINTS } from '../packs'
 import { s } from '../css'
 import { ProjectWindow } from '../apps/ProjectWindow'
 import { About, Certificates, Education, Experience, Skills } from '../apps/simple'
 import { Contact } from '../apps/Contact'
+import { SumitAI } from '../apps/SumitAI'
 
+/**
+ * `Resume` is deliberately absent: it is already the primary button in the header, and a
+ * second tile for it diluted the one action that matters. Ask Sumit takes the slot, because
+ * a visitor on a phone previously had no way of knowing the assistant existed at all.
+ */
 const TILES: [string, string][] = [
+  ['ask', 'Ask Sumit'],
   ['projects', 'Projects'],
   ['skills', 'Skills'],
   ['experience', 'Experience'],
-  ['resume', 'Resume'],
   ['education', 'Education'],
   ['contact', 'Contact'],
 ]
@@ -53,7 +60,7 @@ export function MobileShell() {
     <div
       id="mobile"
       style={s(
-        'position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;z-index:400;background:var(--s-desk);color:var(--s-text);user-select:text;-webkit-overflow-scrolling:touch',
+        'position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;z-index:var(--z-mobile);background:var(--s-desk);color:var(--s-text);user-select:text;-webkit-overflow-scrolling:touch',
       )}
     >
       <div style={s('padding:26px 20px 20px;border-bottom:1px solid var(--s-line);background:var(--s-win)')}>
@@ -114,6 +121,16 @@ export function MobileShell() {
       </div>
 
       <div id="m-sections" style={s('padding:8px 20px 46px')}>
+        <Section id="ask" title="Ask Sumit">
+          <div
+            style={s(
+              'height:min(68vh,520px);border-radius:16px;background:var(--s-win);border:1px solid var(--s-line);overflow:hidden',
+            )}
+          >
+            <SumitAI />
+          </div>
+        </Section>
+
         <Section id="projects" title="Projects">
           {projects.map((project) => (
             <div
@@ -131,9 +148,10 @@ export function MobileShell() {
                 )}
               >
                 <span
-                  style={s(
-                    'width:26px;height:20px;flex:none;border-radius:4px 7px 4px 4px;background:linear-gradient(180deg,#4ea3f5,#1c62c9)',
-                  )}
+                  style={{
+                    ...s('width:26px;height:20px;flex:none;border-radius:4px 7px 4px 4px'),
+                    background: `linear-gradient(180deg,${FOLDER_TINTS.blue[0]},${FOLDER_TINTS.blue[1]})`,
+                  }}
                 />
                 <span style={s('flex:1;font-weight:600;font-size:14px')}>{project.title}</span>
                 <span

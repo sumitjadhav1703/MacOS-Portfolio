@@ -96,7 +96,7 @@ test('opens a context menu on the desk', async ({ page }) => {
 test.describe('project deep links', () => {
   // These six slugs are prerendered from FALLBACK, so this runs without the Worker — which is the
   // property that lets the build never need a database.
-  for (const slug of ['pm25', 'lazarus', 'ai-video']) {
+  for (const slug of ['pm25', 'sar-yield', 'ai-video']) {
     test(`/projects/${slug} opens that project's window`, async ({ page }) => {
       const problems = watchConsole(page)
       await boot(page, `/projects/${slug}`)
@@ -132,4 +132,91 @@ test('runs standalone when the API is unreachable — FALLBACK is what renders',
   await boot(page)
   await expect(page.locator('#dock')).toBeVisible()
   expectCleanConsole(problems)
+})
+
+/**
+ * The desk is a fixed workspace, not a page that grows.
+ *
+ * Two fixed columns filled top-to-bottom used to push the lower folders past the bottom of the
+ * desk, and the fix before this one was to let that box scroll — which hides folders behind an
+ * edge and is exactly what a desktop does not do. Rows now come from the measured height and
+ * the columns are what grow, so this asserts the property that matters at four times the real
+ * project count: every icon whole, on the desk, overlapping nothing.
+ *
+ * Extra tiles are cloned into the grid rather than published through the CMS. The layout is pure
+ * CSS, so a cloned child is placed by the same rules a real one would be — and it lets the check
+ * run against the shipped build with no fixture server.
+ */
+test.describe('the desk holds every project without scrolling', () => {
+  for (const viewport of [
+    { width: 1440, height: 900 },
+    { width: 1280, height: 720 },
+    { width: 1024, height: 640 },
+  ]) {
+    test(`reflows into columns at ${viewport.width}x${viewport.height}`, async ({ page }) => {
+      const problems = watchConsole(page)
+      await page.setViewportSize(viewport)
+      await boot(page)
+      await expect(page.locator('#desktop-grid')).toBeVisible()
+
+      for (const count of [0, 18]) {
+        if (count) {
+          await page.evaluate((n) => {
+            const grid = document.getElementById('desktop-grid')!
+            const source = grid.querySelector('[data-dsk]')!
+            for (let i = 0; i < n; i++) {
+              const clone = source.cloneNode(true) as HTMLElement
+              clone.style.animation = 'none'
+              clone.querySelector('[data-dsklabel]')!.textContent =
+                i % 3 === 0 ? 'A Deliberately Long Project Title That Wraps' : `Mock Project ${i + 1}`
+              grid.appendChild(clone)
+            }
+          }, count)
+        }
+
+        const geometry = await page.evaluate(() => {
+          const grid = document.getElementById('desktop-grid')!
+          const tiles = [...grid.querySelectorAll('[data-dsk]')].map((el) => el.getBoundingClientRect())
+          const dock = document.getElementById('dock')!.getBoundingClientRect()
+          const menubar = document.getElementById('menubar')!.getBoundingClientRect()
+
+          let overlaps = 0
+          for (let i = 0; i < tiles.length; i++) {
+            for (let j = i + 1; j < tiles.length; j++) {
+              const a = tiles[i]!
+              const b = tiles[j]!
+              if (a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom) overlaps++
+            }
+          }
+
+          return {
+            tiles: tiles.length,
+            rowsUsed: new Set(tiles.map((t) => Math.round(t.top))).size,
+            trackRows: getComputedStyle(grid).gridTemplateRows.split(' ').length,
+            offDesk: tiles.filter(
+              (t) =>
+                t.bottom > window.innerHeight ||
+                t.left < 0 ||
+                t.right > window.innerWidth ||
+                t.top < menubar.bottom ||
+                (t.bottom > dock.top && t.right > dock.left && t.left < dock.right),
+            ).length,
+            overlaps,
+            scrolls: grid.scrollHeight > grid.clientHeight + 1,
+            pageScrolls:
+              document.documentElement.scrollHeight > document.documentElement.clientHeight,
+          }
+        })
+
+        expect(geometry.offDesk, 'icons clipped by the viewport, menu bar or dock').toBe(0)
+        expect(geometry.overlaps, 'icons overlapping each other').toBe(0)
+        expect(geometry.scrolls, 'the desk grid scrolls instead of reflowing').toBe(false)
+        expect(geometry.pageScrolls, 'the page itself scrolls').toBe(false)
+        // Columns absorb the growth: the rows in use never exceed the tracks the height allows.
+        expect(geometry.rowsUsed).toBeLessThanOrEqual(geometry.trackRows)
+      }
+
+      expectCleanConsole(problems)
+    })
+  }
 })

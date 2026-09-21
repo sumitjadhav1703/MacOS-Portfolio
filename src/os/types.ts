@@ -72,9 +72,10 @@ export type Prefs = {
 
 export type ActivityState = 'Idle' | 'Ready' | 'Working' | 'Processing'
 
-export type Notification = { id: number; title: string; msg: string; at: Date }
+/** `quiet` is recorded in Notification Center but never toasted — see Toasts.tsx. */
+export type Notification = { id: number; title: string; msg: string; at: Date; quiet?: boolean }
 
-export type PopoverName = 'status' | 'activity' | 'cal' | null
+export type PopoverName = 'status' | 'activity' | 'cal' | 'net' | null
 
 /** One row of a context menu; `divider` rows carry no label. */
 export type MenuEntry =

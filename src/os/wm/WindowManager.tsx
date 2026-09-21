@@ -4,50 +4,39 @@ import { useState } from 'react'
 import { appContentFor } from '../apps'
 import { useContent } from '../content'
 import { s } from '../css'
-import { useOs } from '../store'
+import { snapBox, useOs } from '../store'
+import { useIsClient } from '../useMedia'
 import type { AppId, SnapZone } from '../types'
 import { Window } from './Window'
 
-const MENUBAR_H = 28
-
-/** Where a released window would land — drawn behind the drag as a translucent plate. */
-function zoneBox(zone: SnapZone) {
-  const full = `calc(100% - ${MENUBAR_H}px)`
-  const half = 'calc(50% - 14px)'
-  switch (zone) {
-    case 'left':
-      return { left: 0, top: MENUBAR_H, width: '50%', height: full }
-    case 'right':
-      return { left: '50%', top: MENUBAR_H, width: '50%', height: full }
-    case 'top':
-      return { left: 0, top: MENUBAR_H, width: '100%', height: full }
-    case 'top-left':
-      return { left: 0, top: MENUBAR_H, width: '50%', height: half }
-    case 'top-right':
-      return { left: '50%', top: MENUBAR_H, width: '50%', height: half }
-    case 'bottom-left':
-      return { left: 0, top: `calc(${MENUBAR_H}px + ${half})`, width: '50%', height: half }
-    case 'bottom-right':
-      return { left: '50%', top: `calc(${MENUBAR_H}px + ${half})`, width: '50%', height: half }
-  }
-}
-
 export function WindowManager() {
-  const { wins, active, activeSpace } = useOs()
+  const { wins, active, activeSpace, dockHidden } = useOs()
   const content = useContent()
+  const client = useIsClient()
   const [zone, setZone] = useState<SnapZone | null>(null)
   const ids = (Object.keys(wins) as AppId[]).filter((id) => wins[id]!.space === activeSpace)
 
+  // The preview reads the same helper the reducer does, so the plate is drawn exactly where
+  // the window lands. It used to recompute the boxes in percentages with its own
+  // half-height fudge, and the two quietly disagreed.
+  const preview =
+    zone && client
+      ? snapBox(zone, { w: window.innerWidth, h: window.innerHeight }, !dockHidden)
+      : null
+
   return (
-    <div id="wm" style={s('position:absolute;inset:0;pointer-events:none;z-index:100')}>
-      {zone ? (
+    <div id="wm" style={s('position:absolute;inset:0;pointer-events:none;z-index:var(--z-wm)')}>
+      {preview ? (
         <div
           data-snapzone={zone}
           style={{
             ...s(
-              'position:absolute;border-radius:12px;background:rgba(255,255,255,.16);border:1px solid var(--s-glass-ring);backdrop-filter:blur(6px);transition:all .12s ease',
+              'position:absolute;border-radius:12px;background:rgba(255,255,255,.16);border:1px solid var(--s-glass-ring);backdrop-filter:var(--s-blur-scrim);transition:all .12s ease',
             ),
-            ...zoneBox(zone),
+            left: preview.x,
+            top: preview.y,
+            width: preview.w,
+            height: preview.h,
           }}
         />
       ) : null}

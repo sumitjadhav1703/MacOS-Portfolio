@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react'
 import { EASE, SPRING_B } from '../anim'
 import { s } from '../css'
+import { pressable } from '../pressable'
 import { titleOf } from '../registry'
 import { useDispatch, useOpenApp, useOs } from '../store'
 import { useReducedMotion } from '../useTheme'
@@ -11,7 +12,6 @@ import { useContextMenu } from './ContextMenu'
 import type { AppId } from '../types'
 
 const MAGNIFY = 1.5
-const SIGMA = 60
 const RADIUS = 190
 
 const pick = (id: string) => ICONS.find((icon) => icon.id === id)!
@@ -23,7 +23,6 @@ const DOCK_APPS: IconSpec[] = [
   pick('safari'),
   pick('terminal'),
   pick('sumit-ai'),
-  pick('code'),
   pick('contact'),
   pick('settings'),
 ]
@@ -37,6 +36,7 @@ function DockIcon({
   bouncing,
   running,
   onOpen,
+  onHover,
   onContextMenu,
 }: {
   spec: IconSpec
@@ -45,17 +45,17 @@ function DockIcon({
   bouncing: boolean
   running: boolean
   onOpen: () => void
+  onHover: (on: boolean) => void
   onContextMenu?: (e: React.MouseEvent) => void
 }) {
   return (
     <div
       data-item={spec.id}
-      role="button"
-      aria-label={spec.tip}
-      onClick={(e) => {
-        e.stopPropagation()
-        onOpen()
-      }}
+      {...pressable(spec.tip, onOpen, { stopPropagation: true })}
+      onPointerEnter={() => onHover(true)}
+      onPointerLeave={() => onHover(false)}
+      onFocus={() => onHover(true)}
+      onBlur={() => onHover(false)}
       onContextMenu={onContextMenu}
       style={{
         ...s('position:relative;width:54px;height:54px;transform-origin:bottom center;will-change:transform;cursor:default'),
@@ -67,7 +67,7 @@ function DockIcon({
           : `transform .78s ${SPRING_B},margin .13s ${EASE}`,
       }}
     >
-      <AppIcon spec={spec} />
+      <AppIcon spec={spec} badge={spec.id === 'sumit-ai' ? 'AI' : undefined} />
       <div
         data-ind={spec.id}
         style={{
@@ -81,7 +81,7 @@ function DockIcon({
         data-tip={spec.tip}
         style={{
           ...s(
-            'position:absolute;left:50%;top:-38px;transform:translateX(-50%);padding:4px 9px;border-radius:8px;background:var(--s-tip);backdrop-filter:blur(20px);border:1px solid var(--s-line);color:var(--s-text);font-size:11.5px;white-space:nowrap;pointer-events:none;transition:opacity .18s ease',
+            'position:absolute;left:50%;top:-38px;transform:translateX(-50%);padding:4px 9px;border-radius:8px;background:var(--s-tip);backdrop-filter:var(--s-blur);-webkit-backdrop-filter:var(--s-blur);border:1px solid var(--s-line);color:var(--s-text);font-size:11.5px;white-space:nowrap;pointer-events:none;transition:opacity .18s ease',
           ),
           opacity: labelled ? 1 : 0,
           // backdrop-filter keeps painting an opacity:0 layer in Chromium, so the
@@ -102,6 +102,7 @@ export function Dock() {
   const reduced = useReducedMotion()
   const contextMenu = useContextMenu()
   const [pointerX, setPointerX] = useState<number | null>(null)
+  const [hovered, setHovered] = useState<string | null>(null)
   const [bounce, setBounce] = useState<string | null>(null)
   const listRef = useRef<HTMLDivElement>(null)
 
@@ -114,7 +115,10 @@ export function Dock() {
     const rect = el.getBoundingClientRect()
     const dist = Math.abs(pointerX - (rect.left + rect.width / 2))
     if (dist >= RADIUS) return 1
-    return 1 + (MAGNIFY - 1) * Math.exp(-(dist * dist) / (2 * SIGMA * SIGMA))
+    // Cosine falloff rather than a Gaussian: it reaches exactly 1 at the edge of the
+    // radius instead of asymptotically approaching it, so there is no kink where an icon
+    // enters the field. This is the shape macOS's own curve is usually fitted to.
+    return 1 + (MAGNIFY - 1) * Math.cos((dist / RADIUS) * (Math.PI / 2))
   }
 
   function launch(spec: IconSpec) {
@@ -159,10 +163,11 @@ export function Dock() {
         key={spec.id}
         spec={spec}
         scale={scale}
-        labelled={prefs.dockLabels && scale > 1.22}
+        labelled={prefs.dockLabels && hovered === spec.id}
         bouncing={bounce === spec.id}
         running={spec.id !== 'launchpad' && Boolean(wins[spec.id as AppId])}
         onOpen={() => launch(spec)}
+        onHover={(on) => setHovered(on ? spec.id : (cur) => (cur === spec.id ? null : cur))}
         onContextMenu={menuFor(spec)}
       />
     )
@@ -173,7 +178,7 @@ export function Dock() {
       data-dock="1"
       id="dock"
       style={s(
-        'position:absolute;left:50%;bottom:8px;transform:translateX(-50%);display:flex;align-items:flex-end;padding:6px 10px 8px;border-radius:20px;background:var(--s-dock,rgba(18,20,24,.72));backdrop-filter:blur(24px) saturate(130%);-webkit-backdrop-filter:blur(24px) saturate(130%);border:1px solid var(--s-line);box-shadow:var(--s-shadow-pop);z-index:150',
+        'position:absolute;left:50%;bottom:8px;transform:translateX(-50%);display:flex;align-items:flex-end;padding:6px 10px 13px;border-radius:20px;background:var(--s-dock,rgba(18,20,24,.72));border:1px solid var(--s-line);box-shadow:var(--s-shadow-pop);z-index:var(--z-dock)',
       )}
       onClick={(e) => e.stopPropagation()}
     >
@@ -181,8 +186,11 @@ export function Dock() {
         id="dock-list"
         ref={listRef}
         style={s('display:flex;align-items:flex-end')}
-        onMouseMove={(e) => !flat && setPointerX(e.clientX)}
-        onMouseLeave={() => setPointerX(null)}
+        onPointerMove={(e) => !flat && setPointerX(e.clientX)}
+        onPointerLeave={() => {
+          setPointerX(null)
+          setHovered(null)
+        }}
       >
         {DOCK_APPS.map(render)}
         <div style={s('width:1px;height:44px;background:var(--s-line-2);margin:0 9px 4px')} />

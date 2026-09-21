@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { s } from '../css'
+import { pressable } from '../pressable'
 import { useIsMobile } from '../useMedia'
 import type { AppId } from '../types'
 import { MobileShell } from '../mobile/MobileShell'
@@ -36,20 +37,23 @@ function DockHint() {
     <div
       id="dock-hint"
       style={s(
-        'position:absolute;left:50%;bottom:82px;transform:translateX(-50%);z-index:160;display:flex;align-items:center;gap:12px;padding:8px 10px 8px 15px;border-radius:12px;background:var(--s-pop);backdrop-filter:var(--s-blur);-webkit-backdrop-filter:var(--s-blur);border:1px solid var(--s-line);box-shadow:var(--s-shadow-pop);font-size:12.5px;color:var(--s-text)',
+        'position:absolute;left:50%;bottom:calc(var(--s-dock-h) + 96px);transform:translateX(-50%);z-index:var(--z-dock-hint);display:flex;align-items:center;gap:12px;padding:8px 10px 8px 15px;border-radius:12px;background:var(--s-pop);backdrop-filter:var(--s-blur);-webkit-backdrop-filter:var(--s-blur);border:1px solid var(--s-line);box-shadow:var(--s-shadow-pop);font-size:12.5px;color:var(--s-text)',
       )}
     >
       <span>
         Press <b style={s('font-family:ui-monospace,Menlo,monospace')}>⌘K</b> to search ·{' '}
-        <b style={s('font-family:ui-monospace,Menlo,monospace')}>?</b> for shortcuts
+        <b style={s('font-family:ui-monospace,Menlo,monospace')}>?</b> for shortcuts · the{' '}
+        <b>AI</b> badge in the dock is a grounded assistant
       </span>
       <span
-        role="button"
-        onClick={(e) => {
-          e.stopPropagation()
-          localStorage.setItem(HINT_KEY, '1')
-          setSeen(true)
-        }}
+        {...pressable(
+          'Dismiss hint',
+          () => {
+            localStorage.setItem(HINT_KEY, '1')
+            setSeen(true)
+          },
+          { stopPropagation: true },
+        )}
         style={s(
           'padding:4px 11px;border-radius:8px;background:var(--s-fill-2);border:1px solid var(--s-line);cursor:default;font-size:11.5px',
         )}
@@ -75,7 +79,11 @@ export function Desktop({ initialApp }: { initialApp?: AppId }) {
     { divider: true },
     { label: 'Change Wallpaper…', onPick: pickWallpaper },
     { label: 'Show / Hide Desktop Items', onPick: () => dispatch({ type: 'toggleDesktop' }) },
-    { label: 'Show / Hide Dock', onPick: () => dispatch({ type: 'toggleDock' }) },
+    {
+      label: 'Show / Hide Dock',
+      onPick: () =>
+        dispatch({ type: 'toggleDock', viewport: { w: window.innerWidth, h: window.innerHeight } }),
+    },
     { divider: true },
     { label: 'Mission Control', hint: '⌘↑', onPick: () => dispatch({ type: 'overlay', name: 'mission', on: true }) },
   ])
@@ -95,7 +103,7 @@ export function Desktop({ initialApp }: { initialApp?: AppId }) {
       {...rootProps}
       style={{
         ...s(
-          "position:fixed;inset:0;overflow:hidden;background:var(--s-desk);color:var(--s-text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;font-size:13px;user-select:none",
+          "position:fixed;inset:0;overflow:hidden;background:var(--s-desk);color:var(--s-text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',Inter,system-ui,'Helvetica Neue',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;font-size:13px;user-select:none",
         ),
         ...rootVars,
       }}

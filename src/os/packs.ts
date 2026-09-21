@@ -1,4 +1,4 @@
-import type { AppId, FolderTint, PackId } from './types'
+import type { FolderTint, PackId } from './types'
 
 export type Pack = {
   name: string
@@ -12,6 +12,47 @@ export type Pack = {
   swatch: [string, string]
 }
 
+/**
+ * Depth, layered over every pack's own colour.
+ *
+ * A real desktop picture has a bright bloom and a dark fall-off, and that is what makes the
+ * menu bar and dock read as glass floating over something rather than as panels pasted onto
+ * a flat gradient. Two extra stops per pack buy most of it and cost no bytes — the packaged
+ * photograph is still deliberately absent (it sat on top of all three packs and made them
+ * invisible).
+ */
+const BLOOM = {
+  dark: 'radial-gradient(130% 80% at 50% -12%,rgba(255,255,255,.07) 0%,rgba(255,255,255,0) 58%)',
+  light: 'radial-gradient(130% 80% at 50% -12%,rgba(255,255,255,.55) 0%,rgba(255,255,255,0) 58%)',
+}
+const FALLOFF = {
+  dark: 'radial-gradient(128% 56% at 50% 122%,rgba(0,0,0,.34) 0%,rgba(0,0,0,0) 66%)',
+  light: 'radial-gradient(128% 56% at 50% 122%,rgba(20,26,36,.13) 0%,rgba(20,26,36,0) 66%)',
+}
+
+/**
+ * The floor the dock stands on.
+ *
+ * Glass only reads when there is something behind it to bend, and every pack's base layer
+ * bottoms out near-black — so `blur(32px) saturate(190%)` on the dock was correct and
+ * completely invisible. One wide, low glow behind the dock is what the blur refracts.
+ */
+const GLOW = {
+  dark: 'radial-gradient(58% 34% at 50% 103%,rgba(158,188,240,.16) 0%,rgba(158,188,240,0) 72%)',
+  light: 'radial-gradient(58% 34% at 50% 103%,rgba(255,255,255,.55) 0%,rgba(255,255,255,0) 72%)',
+}
+
+/**
+ * Bloom and fall-off on top, the pack's own layers underneath.
+ *
+ * Order is load-bearing and was wrong: in `background-image` the FIRST layer paints on top,
+ * and every pack's own stack ends in an opaque `linear-gradient`. With the fall-off listed
+ * last it sat *behind* that opaque layer and never rendered at all — which is why the bottom
+ * of the desk was flat rather than deep.
+ */
+const desk = (theme: 'dark' | 'light', layers: string) =>
+  `${BLOOM[theme]},${GLOW[theme]},${FALLOFF[theme]},${layers}`
+
 export const PACKS: Record<PackId, Pack> = {
   graphite: {
     name: 'Graphite',
@@ -20,8 +61,10 @@ export const PACKS: Record<PackId, Pack> = {
     icons: 'tinted',
     prefers: 'dark',
     wall: {
-      dark: 'radial-gradient(74% 54% at 78% 6%,rgba(93,141,246,.17) 0%,rgba(93,141,246,0) 62%),radial-gradient(58% 48% at 10% 90%,rgba(126,182,222,.09) 0%,rgba(126,182,222,0) 68%),linear-gradient(178deg,#1c222b 0%,#141a22 48%,#0c1016 100%)',
-      light: 'radial-gradient(74% 54% at 78% 4%,rgba(255,255,255,.75) 0%,rgba(255,255,255,0) 60%),radial-gradient(60% 50% at 8% 94%,rgba(93,141,246,.11) 0%,rgba(93,141,246,0) 68%),linear-gradient(178deg,#eaeef3 0%,#dde4ec 48%,#cbd4df 100%)',
+      dark: desk('dark',
+        'radial-gradient(74% 54% at 78% 6%,rgba(93,141,246,.17) 0%,rgba(93,141,246,0) 62%),radial-gradient(58% 48% at 10% 90%,rgba(126,182,222,.09) 0%,rgba(126,182,222,0) 68%),linear-gradient(178deg,#1c222b 0%,#141a22 48%,#0c1016 100%)'),
+      light: desk('light',
+        'radial-gradient(74% 54% at 78% 4%,rgba(255,255,255,.75) 0%,rgba(255,255,255,0) 60%),radial-gradient(60% 50% at 8% 94%,rgba(93,141,246,.11) 0%,rgba(93,141,246,0) 68%),linear-gradient(178deg,#eaeef3 0%,#dde4ec 48%,#cbd4df 100%)'),
     },
     dock: { dark: 'rgba(18,21,27,.72)', light: 'rgba(250,251,252,.7)' },
     glass: {
@@ -37,8 +80,10 @@ export const PACKS: Record<PackId, Pack> = {
     icons: 'tinted',
     prefers: 'dark',
     wall: {
-      dark: 'radial-gradient(54% 42% at 84% 76%,rgba(123,92,240,.22) 0%,rgba(123,92,240,0) 68%),radial-gradient(46% 38% at 6% 32%,rgba(72,190,220,.10) 0%,rgba(72,190,220,0) 70%),radial-gradient(120% 92% at 24% 10%,#2c2456 0%,#181640 44%,#0a0b1c 100%)',
-      light: 'radial-gradient(54% 42% at 84% 78%,rgba(123,92,240,.13) 0%,rgba(123,92,240,0) 70%),radial-gradient(52% 44% at 4% 26%,rgba(255,255,255,.7) 0%,rgba(255,255,255,0) 64%),radial-gradient(120% 92% at 24% 10%,#eae5fb 0%,#dcdcf3 46%,#c9cee9 100%)',
+      dark: desk('dark',
+        'radial-gradient(54% 42% at 84% 76%,rgba(123,92,240,.22) 0%,rgba(123,92,240,0) 68%),radial-gradient(46% 38% at 6% 32%,rgba(72,190,220,.10) 0%,rgba(72,190,220,0) 70%),radial-gradient(120% 92% at 24% 10%,#2c2456 0%,#181640 44%,#0a0b1c 100%)'),
+      light: desk('light',
+        'radial-gradient(54% 42% at 84% 78%,rgba(123,92,240,.13) 0%,rgba(123,92,240,0) 70%),radial-gradient(52% 44% at 4% 26%,rgba(255,255,255,.7) 0%,rgba(255,255,255,0) 64%),radial-gradient(120% 92% at 24% 10%,#eae5fb 0%,#dcdcf3 46%,#c9cee9 100%)'),
     },
     dock: { dark: 'rgba(24,20,46,.7)', light: 'rgba(250,249,255,.72)' },
     glass: {
@@ -54,8 +99,10 @@ export const PACKS: Record<PackId, Pack> = {
     icons: 'clear',
     prefers: 'light',
     wall: {
-      light: 'radial-gradient(70% 52% at 84% 6%,rgba(255,243,219,.9) 0%,rgba(255,243,219,0) 62%),radial-gradient(56% 46% at 4% 96%,rgba(180,85,45,.10) 0%,rgba(180,85,45,0) 66%),linear-gradient(168deg,#f6f2ea 0%,#eae5da 46%,#d9d6cb 100%)',
-      dark: 'radial-gradient(70% 52% at 84% 6%,rgba(255,206,140,.13) 0%,rgba(255,206,140,0) 62%),radial-gradient(56% 46% at 4% 96%,rgba(180,85,45,.12) 0%,rgba(180,85,45,0) 68%),linear-gradient(168deg,#282520 0%,#1c1a16 48%,#131210 100%)',
+      light: desk('light',
+        'radial-gradient(70% 52% at 84% 6%,rgba(255,243,219,.9) 0%,rgba(255,243,219,0) 62%),radial-gradient(56% 46% at 4% 96%,rgba(180,85,45,.10) 0%,rgba(180,85,45,0) 66%),linear-gradient(168deg,#f6f2ea 0%,#eae5da 46%,#d9d6cb 100%)'),
+      dark: desk('dark',
+        'radial-gradient(70% 52% at 84% 6%,rgba(255,206,140,.13) 0%,rgba(255,206,140,0) 62%),radial-gradient(56% 46% at 4% 96%,rgba(180,85,45,.12) 0%,rgba(180,85,45,0) 68%),linear-gradient(168deg,#282520 0%,#1c1a16 48%,#131210 100%)'),
     },
     dock: { light: 'rgba(252,250,246,.7)', dark: 'rgba(30,27,23,.72)' },
     glass: {
@@ -72,7 +119,7 @@ export const PACK_BY_NAME: Record<string, PackId> = {
   Daylight: 'daylight',
 }
 
-/** Finder-only folder tinting. Fixed palette, not a colour wheel. */
+/** Finder tag colours. Fixed palette, not a colour wheel; `blue` is also every folder's default. */
 export const FOLDER_TINTS: Record<FolderTint, [string, string]> = {
   blue: ['#4ea3f5', '#1c62c9'],
   green: ['#5cc36a', '#2b8743'],
@@ -82,26 +129,13 @@ export const FOLDER_TINTS: Record<FolderTint, [string, string]> = {
   graphite: ['#8e97a6', '#4c545f'],
 }
 
-/** Default folder colours for the projects the site shipped with. */
-export const FOLDER_COLORS: Partial<Record<AppId, [string, string]>> = {
-  'project-lazarus': ['#5cc36a', '#2b8743'],
-  'project-ai-video': ['#4ea3f5', '#1c62c9'],
-  'project-pm25': ['#f6cd4c', '#cf9611'],
-  'project-sar': ['#f79a3e', '#cd6212'],
-  'project-multi-agent': ['#a97bf0', '#6a3ec0'],
-  'project-airbnb': ['#f26a63', '#c33026'],
-}
-
-const TINT_CYCLE = Object.values(FOLDER_TINTS)
-
 /**
- * The colour a project folder gets. The six original projects keep the exact pairs above; a
- * project added through the CMS takes the next tint in the palette, so it looks deliberate
- * rather than defaulting to grey.
+ * The colour a folder gets when the visitor has not tagged it.
+ *
+ * Every folder on a Mac is the same blue, and six differently-coloured folders was the
+ * loudest remaining tell that this desktop is not one. Project identity lives in the label
+ * and in the window that opens — not in a colour a visitor has to learn. Tagging still
+ * recolours a single folder, through the Finder tag row and the desk context menu, exactly
+ * as macOS Finder tags do.
  */
-export function folderColorFor(id: AppId, index: number): [string, string] {
-  // Object.hasOwn, not a plain lookup: an id like `constructor` finds something on the
-  // prototype chain and hands back a function where a [start, end] colour pair is expected.
-  return (Object.hasOwn(FOLDER_COLORS, id) ? FOLDER_COLORS[id] : undefined) ??
-    TINT_CYCLE[index % TINT_CYCLE.length]!
-}
+export const folderColor = (): [string, string] => FOLDER_TINTS.blue

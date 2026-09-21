@@ -13,7 +13,7 @@ export function Shortcuts() {
       id="shortcuts"
       onClick={() => dispatch({ type: 'overlay', name: 'shortcuts', on: false })}
       style={s(
-        'position:absolute;inset:0;z-index:310;background:rgba(0,0,0,.4);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center',
+        'position:absolute;inset:0;z-index:var(--z-shortcuts);background:rgba(0,0,0,.4);backdrop-filter:var(--s-blur-scrim);-webkit-backdrop-filter:var(--s-blur-scrim);display:flex;align-items:center;justify-content:center',
       )}
     >
       <div

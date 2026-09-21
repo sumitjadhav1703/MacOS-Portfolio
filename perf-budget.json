@@ -1,7 +1,8 @@
 {
   "note": "Baseline for scripts/check-bundle.mjs: the gzipped total of .next/static/chunks. Warns above +5%, fails above +10%. Update deliberately, in the same commit as the change that justifies it.",
-  "gzipBytes": 244503,
-  "rawBytes": 808738,
+  "gzipBytes": 268077,
+  "rawBytes": 888454,
   "files": 7,
-  "recordedAt": "2026-08-20"
+  "recordedAt": "2026-09-17",
+  "why": "The compiled-in fallback caught up with the CMS: six projects became the twelve D1 actually serves, so the bundled copy of the portfolio doubled. That copy is what first paint renders and what a standalone build renders forever, so the bytes buy the thing the budget exists to protect. Raised from 244503 (2026-08-20), which the previous number would have failed on the next project through /admin rather than on the change that caused it."
 }
