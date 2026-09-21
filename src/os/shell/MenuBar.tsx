@@ -7,7 +7,6 @@ import { s } from '../css'
 import { pressable } from '../pressable'
 import { titleOf } from '../registry'
 import { useDispatch, useOpenApp, useOs } from '../store'
-import { useTheme } from '../useTheme'
 import { useOnline } from '../useMedia'
 import { Popovers } from './Popovers'
 import { menusFor, type MenuCtx } from './appMenus'
@@ -140,7 +139,6 @@ export function MenuBar() {
   const { active, wins, prefs, status, activity, finderPath } = useOs()
   const dispatch = useDispatch()
   const openApp = useOpenApp()
-  const { accent } = useTheme()
   const busy = activity === 'Working' || activity === 'Processing'
 
   const front = active
@@ -241,11 +239,10 @@ export function MenuBar() {
         {prefs.showStatus ? (
           <div
             data-menu="status"
+            {...pressable(`Status — ${status}`, () => dispatch({ type: 'popover', name: 'status' }), {
+              stopPropagation: true,
+            })}
             style={s('cursor:default;display:flex;align-items:center;gap:6px;padding:2px 7px;border-radius:5px')}
-            onClick={(e) => {
-              e.stopPropagation()
-              dispatch({ type: 'popover', name: 'status' })
-            }}
           >
             <span
               id="status-dot"
@@ -264,11 +261,10 @@ export function MenuBar() {
         {prefs.showActivity ? (
           <div
             data-menu="activity"
+            {...pressable(`Activity — ${activity}`, () => dispatch({ type: 'popover', name: 'activity' }), {
+              stopPropagation: true,
+            })}
             style={s('cursor:default;display:flex;align-items:center;gap:5px;padding:2px 6px;border-radius:5px')}
-            onClick={(e) => {
-              e.stopPropagation()
-              dispatch({ type: 'popover', name: 'activity' })
-            }}
           >
             {/* The cap is flush against the body. As a sibling of the row's 5px gap it read
                 as a stray tick floating beside the battery rather than part of it. */}
@@ -309,7 +305,7 @@ export function MenuBar() {
 
         <div
           style={s('cursor:default;width:14px;height:14px;position:relative')}
-          {...pressable('Search', () => dispatch({ type: 'overlay', name: 'spotlight', on: true }), {
+          {...pressable('Search', () => dispatch({ type: 'overlay', name: 'spotlight' }), {
             stopPropagation: true,
           })}
         >
@@ -336,7 +332,7 @@ export function MenuBar() {
         </div>
       </div>
 
-      <Popovers accent={accent} />
+      <Popovers />
     </div>
   )
 }

@@ -94,6 +94,9 @@ function Header({ degraded }: { degraded: boolean }) {
 
 /** Three dots, so a pending answer reads as work rather than as a stalled window. */
 function Thinking() {
+  // Reduce Motion is a preference, not a suggestion — and a bouncing row of dots is exactly
+  // the kind of perpetual motion it exists to stop. The dots stay; they just hold still.
+  const reduced = useReducedMotion()
   return (
     <div style={s('display:flex;align-items:center;gap:5px;padding:2px 0')} aria-hidden="true">
       {[0, 1, 2].map((i) => (
@@ -101,7 +104,8 @@ function Thinking() {
           key={i}
           style={{
             ...s('width:6px;height:6px;border-radius:50%;background:var(--s-dim)'),
-            animation: `thinkDot 1.05s ease-in-out ${i * 0.16}s infinite`,
+            animation: reduced ? 'none' : `thinkDot 1.05s ease-in-out ${i * 0.16}s infinite`,
+            opacity: reduced ? 0.3 + i * 0.25 : undefined,
           }}
         />
       ))}

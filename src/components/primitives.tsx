@@ -43,28 +43,58 @@ export function Sec({ heading, children }: { heading?: string; children: ReactNo
 }
 
 /** A tag chip. Conceptual tags (no sourced logo) render as a plain label. */
-export function Chip({ label, color }: { label: string; color?: string }) {
+export function Chip({
+  label,
+  color,
+  brand,
+  delay,
+}: {
+  label: string
+  color?: string
+  /** Draw the mark in the brand's own colour — see `Icon`. */
+  brand?: boolean
+  delay?: number
+}) {
   const slug = tagSlug(label)
   return (
     <span
+      data-chip="1"
       style={{
         ...s(
           'display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:11.5px;background:var(--s-fill-2);border:1px solid var(--s-line)',
         ),
         color: color ?? 'var(--s-text)',
+        ...(delay === undefined ? {} : { animation: `lpTile .34s ${EASE} ${delay}ms backwards` }),
       }}
     >
-      {slug && hasIcon(slug) ? <Icon slug={slug} size={13} /> : null}
+      {slug && hasIcon(slug) ? <Icon slug={slug} size={13} brand={brand} /> : null}
       {label}
     </span>
   )
 }
 
-export function Chips({ items, color }: { items: string[]; color?: string }) {
+export function Chips({
+  items,
+  color,
+  brand,
+  stagger,
+}: {
+  items: string[]
+  color?: string
+  brand?: boolean
+  /** Milliseconds between chips, or 0 for none. Capped by the caller. */
+  stagger?: number
+}) {
   return (
     <div style={s('display:flex;flex-wrap:wrap;gap:7px;margin:14px 0 18px')}>
-      {items.map((item) => (
-        <Chip key={item} label={item} color={color} />
+      {items.map((item, i) => (
+        <Chip
+          key={item}
+          label={item}
+          color={color}
+          brand={brand}
+          delay={stagger ? Math.min(i * stagger, 240) : undefined}
+        />
       ))}
     </div>
   )

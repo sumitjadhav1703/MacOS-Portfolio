@@ -6,6 +6,7 @@ import { s } from '../css'
 import { DOCK_H, MENUBAR_H } from '../metrics'
 import { pressable } from '../pressable'
 import { titleOf } from '../registry'
+import { finderCrumb } from '../apps/finderPath'
 import { useDispatch, useOs } from '../store'
 import { useReducedMotion } from '../useTheme'
 import { useContextMenu } from '../shell/ContextMenu'
@@ -245,7 +246,9 @@ export function Window({
       ? { left: 0, top: MENUBAR_H, width: '100%', height: `calc(100% - ${MENUBAR_H + DOCK_H}px)`, borderRadius: 0 }
       : { left: win.x, top: win.y, width: win.w, height: win.h, borderRadius: RADIUS }
 
-  const title = titleOf(id) + (id === 'finder' && finderPath !== '/' ? ' — Projects' : '')
+  // Finder names where it is looking, the way a Mac window does. It used to say "— Projects"
+  // for every path but the root, which stopped being true once the sidebar navigated in place.
+  const title = titleOf(id) + (id === 'finder' ? finderCrumb(finderPath) : '')
 
   // macOS sucks a minimised window into its own dock icon. The real genie is a fifty-row
   // mesh deformation; aiming the scale at the right icon is the part that reads.

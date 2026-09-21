@@ -6,7 +6,7 @@ import { useContent } from '../content'
 import { s } from '../css'
 import { pressable } from '../pressable'
 import { useDispatch, useOpenApp, useOs } from '../store'
-import { useTheme } from '../useTheme'
+import { useReducedMotion, useTheme } from '../useTheme'
 import { Calendar } from './Calendar'
 
 const WIDGET = 'padding:14px 16px;border-radius:16px;background:var(--s-pop);border:1px solid var(--s-line);box-shadow:var(--s-shadow-rest)'
@@ -19,6 +19,7 @@ export function NotificationCenter() {
   // Was the literal '6', which stopped being true the moment the CMS published a seventh.
   const projects = useContent().projects
   const { accent } = useTheme()
+  const reduced = useReducedMotion()
   const [now, setNow] = useState(() => new Date())
 
   useEffect(() => {
@@ -37,7 +38,7 @@ export function NotificationCenter() {
         ...s(
           'position:absolute;top:var(--s-menubar-h);right:0;bottom:0;width:320px;z-index:var(--z-notif-center);padding:14px 12px 20px;display:flex;flex-direction:column;gap:10px;overflow:auto;background:rgba(10,12,16,.22);backdrop-filter:var(--s-blur-heavy);-webkit-backdrop-filter:var(--s-blur-heavy);border-left:1px solid var(--s-line)',
         ),
-        animation: `toastIn .34s ${EASE} both`,
+        animation: reduced ? 'none' : `toastIn .34s ${EASE} both`,
       }}
     >
       <div style={s(WIDGET)}>

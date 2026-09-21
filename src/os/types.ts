@@ -75,7 +75,21 @@ export type ActivityState = 'Idle' | 'Ready' | 'Working' | 'Processing'
 /** `quiet` is recorded in Notification Center but never toasted — see Toasts.tsx. */
 export type Notification = { id: number; title: string; msg: string; at: Date; quiet?: boolean }
 
-export type PopoverName = 'status' | 'activity' | 'cal' | 'net' | null
+export type PopoverName = 'status' | 'activity' | 'net' | null
+
+/**
+ * Where the Finder window is looking.
+ *
+ * `/` is the root folder and `projects` the folder of project folders; the rest are the
+ * sidebar's own sections, which used to open a second window each instead of filling the
+ * pane they were clicked in. Every value but `/` and `projects` is a `StaticAppId`, so the
+ * pane can render it through the same `appContentFor` map the window manager uses.
+ */
+export type FinderSection = Extract<
+  StaticAppId,
+  'skills' | 'certificates' | 'education' | 'experience' | 'resume' | 'about'
+>
+export type FinderPath = '/' | 'projects' | FinderSection
 
 /** One row of a context menu; `divider` rows carry no label. */
 export type MenuEntry =
@@ -89,12 +103,15 @@ export type OsState = {
   wins: Partial<Record<AppId, WindowState>>
   z: number
   active: AppId | null
-  finderPath: '/' | 'projects'
+  finderPath: FinderPath
   prefs: Prefs
   notifications: Notification[]
   status: string
   task: string
   activity: ActivityState
+  /** The desk icon with the blue plate, or null. Lives here so a click on the desk can clear
+   * it — as local component state it was unreachable and the plate never went away. */
+  deskSelection: AppId | null
   /** Overlay visibility. */
   spotlight: boolean
   shortcuts: boolean

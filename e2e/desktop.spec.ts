@@ -246,3 +246,60 @@ test.describe('the desk holds every project without scrolling', () => {
     })
   }
 })
+
+test('a menu-bar extra closes on the second click', async ({ page }) => {
+  const problems = watchConsole(page)
+  await boot(page)
+
+  const status = page.locator('#menubar [aria-label^="Status"]')
+  const popover = page.locator('#status-pop')
+
+  await status.click()
+  await expect(popover).toBeVisible()
+  await status.click()
+  await expect(popover).toBeHidden()
+
+  // A different extra switches rather than stacking.
+  await status.click()
+  await page.locator('#menubar [aria-label^="Network"]').click()
+  await expect(popover).toBeHidden()
+  await expect(page.locator('#net-pop')).toBeVisible()
+
+  expectCleanConsole(problems)
+})
+
+test('a click on the desk clears the selected icon', async ({ page }) => {
+  const problems = watchConsole(page)
+  await boot(page)
+
+  const plate = page.locator('#desktop-grid [data-dsklabel][data-selected]')
+  await page.locator('#desktop-grid [data-dsk]').first().click({ force: true })
+  await expect(plate).toHaveCount(1)
+
+  // The selection used to be component state inside DesktopGrid, which this click could not
+  // reach — so the blue plate stayed on the icon for the life of the page.
+  await page.locator('#wallpaper').click({ position: { x: 40, y: 300 } })
+  await expect(plate).toHaveCount(0)
+
+  expectCleanConsole(problems)
+})
+
+test('a Finder sidebar row fills the pane instead of opening a window', async ({ page }) => {
+  const problems = watchConsole(page)
+  await boot(page)
+  await openFromDock(page, 'finder')
+
+  const finder = windowFor(page, 'finder')
+  await finder.locator('[data-side][aria-label="Skills"]').click()
+
+  await expect(finder.locator('[data-appbody="1"]')).toBeVisible()
+  await expect(finder.getByRole('heading', { name: 'Skills' })).toBeVisible()
+  await expect(windowFor(page, 'skills')).toHaveCount(0)
+  await expect(finder.locator('[data-tlgroup]').first()).toBeVisible()
+
+  // Back to Projects, and the folder grid returns.
+  await finder.locator('[data-side][aria-label="Projects"]').click()
+  await expect(finder.locator('[data-folder]').first()).toBeVisible()
+
+  expectCleanConsole(problems)
+})

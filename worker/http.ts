@@ -71,6 +71,30 @@ export const DOCUMENT_HEADERS: Record<string, string> = {
 }
 
 /**
+ * Headers for a public asset out of R2 — and only those.
+ *
+ * The portfolio shows a certificate by framing its PDF, which `frame-ancestors 'none'` makes
+ * impossible: a refused frame renders as nothing and cannot be detected from the page. So
+ * `/files/` names the site instead of refusing everyone. `X-Frame-Options` has no origin-list
+ * form, so it is dropped here rather than contradicting the CSP; every browser that matters
+ * has honoured `frame-ancestors` for years, and the older header is what would win if both
+ * were sent.
+ *
+ * The list is `allowedOrigins(env)` — the same one CORS and the `/api/ask` origin check read,
+ * so there is no second place to keep in step. What is being allowed is a public, read-only
+ * object that any visitor can already open in a tab. `/admin`, every JSON response and every
+ * error keep `DOCUMENT_HEADERS`, so the sign-in form stays unframeable.
+ */
+export function assetHeaders(env: Env): Record<string, string> {
+  const origins = allowedOrigins(env)
+  return {
+    'X-Content-Type-Options': 'nosniff',
+    'Content-Security-Policy': `frame-ancestors 'self'${origins.map((o) => ` ${o}`).join('')}`,
+    'Referrer-Policy': 'strict-origin-when-cross-origin',
+  }
+}
+
+/**
  * Error responses carry a short, fixed message. Database text, stack traces and the reason an
  * auth check failed never reach the client — those go to the log instead.
  */

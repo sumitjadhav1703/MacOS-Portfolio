@@ -182,3 +182,59 @@ describe('the two top-right panels', () => {
     expect(back.notifCenter).toBe(false)
   })
 })
+
+describe('a menu-bar extra', () => {
+  it('closes on a second click, the way the app menus already did', () => {
+    // It used to be a plain assignment, so clicking "Ready" twice left the popover open and
+    // the only way out was the desk or Escape.
+    const open = reducer(initialState(), { type: 'popover', name: 'status' })
+    expect(open.popover).toBe('status')
+
+    const shut = reducer(open, { type: 'popover', name: 'status' })
+    expect(shut.popover).toBe(null)
+  })
+
+  it('switches rather than stacks when a different one is clicked', () => {
+    const status = reducer(initialState(), { type: 'popover', name: 'status' })
+    const net = reducer(status, { type: 'popover', name: 'net' })
+    expect(net.popover).toBe('net')
+  })
+
+  it('puts away the panels it would otherwise paint on top of', () => {
+    const cc = reducer(initialState(), { type: 'overlay', name: 'controlCenter', on: true })
+    const pop = reducer(cc, { type: 'popover', name: 'activity' })
+    expect(pop.popover).toBe('activity')
+    expect(pop.controlCenter).toBe(false)
+    expect(pop.notifCenter).toBe(false)
+  })
+})
+
+describe('desk selection', () => {
+  it('is cleared by the click that lands on the desk', () => {
+    // The blue plate used to be component state inside DesktopGrid, which the desk's own click
+    // handler had no way to reach — so it stayed on the last icon opened, for good.
+    const picked = reducer(initialState(), { type: 'deskSelect', app: 'project-pm25' })
+    expect(picked.deskSelection).toBe('project-pm25')
+
+    const desk = reducer(picked, { type: 'closeTransient' })
+    expect(desk.deskSelection).toBe(null)
+  })
+})
+
+describe('the Finder pane', () => {
+  it('follows a sidebar row instead of opening a second window', () => {
+    const skills = reducer(initialState(), { type: 'finderPath', path: 'skills' })
+    expect(skills.finderPath).toBe('skills')
+    expect(Object.keys(skills.wins)).toHaveLength(0)
+  })
+
+  it('still lets a deep link open Finder straight into Projects', () => {
+    const opened = reducer(initialState(), {
+      type: 'open',
+      app: 'finder',
+      sub: 'projects',
+      viewport: { w: 1440, h: 900 },
+    })
+    expect(opened.finderPath).toBe('projects')
+  })
+})
