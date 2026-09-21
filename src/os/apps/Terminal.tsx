@@ -91,6 +91,13 @@ export function Terminal() {
       // A bare Enter just echoes the prompt, as in the original.
     } else if (low === 'neofetch') {
       result = <Neofetch />
+    } else if (low === 'projects') {
+      // Built from the published list, not from the string in the CMS. That string was a
+      // second copy of the project list and it went stale every time /admin published one —
+      // twelve slugs against fourteen on the desk, in the same window.
+      const slugs = content.projects.map((project) => project.slug)
+      const hint = slugs[0] ? `  → try: project ${slugs[0]}` : ''
+      result = slugs.join(' · ') + hint
     } else if (content.os.term[low]) {
       result = content.os.term[low]
     } else if (low.startsWith('project ')) {

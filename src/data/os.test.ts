@@ -68,6 +68,14 @@ const RECRUITER_VOCABULARY = [
   'Any LSTM work?',
   'What is the heart disease project?',
   'Has he used KNN?',
+  'Has he done any credit risk modelling?',
+  'Does he use XGBoost?',
+  'Any explainable AI or SHAP work?',
+  'Has he calibrated a classifier?',
+  'What graph neural network work has he done?',
+  'Does he know GNNs?',
+  'Any PyTorch Geometric experience?',
+  'Tell me about the Cora citation network project',
 ]
 
 describe('Ask Sumit offline index', () => {
@@ -90,6 +98,10 @@ describe('Ask Sumit offline index', () => {
       ['Does he know PyTorch?', 'Python first'],
       ['Tell me about the SAR crop-yield work', 'SAR Crop Yield Forecasting'],
       ['Any LLM work?', 'generative AI and applied deep learning'],
+      // Both of these arrived after the last sync and are the reason for this one. `graph`
+      // and `credit` are short enough to be caught by something earlier if the order slips.
+      ['Does he use XGBoost?', 'Credit Risk ML System'],
+      ['Tell me about the Cora citation network project', 'Graph Convolutional Network'],
     ]
     for (const [question, expected] of cases) {
       expect(answerFrom(FALLBACK, question), question).toContain(expected)

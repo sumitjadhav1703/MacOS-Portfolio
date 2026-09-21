@@ -5,8 +5,11 @@ export const TERM: Record<string, string> = {
   help: 'Commands: about, projects, project <name>, skills, education, experience, resume, contact, links, whoami, neofetch, open <app>, clear',
   about:
     'Sumit Jadhav — third-year B.Tech, AI & Data Science, JNEC / MGM University. Focus: generative AI, RAG, applied deep learning.',
+  // Seed only. `Terminal.tsx` builds this line from the published projects instead of printing
+  // it, the way the neofetch "Projects" count is derived — a hand-kept copy of the project
+  // list is exactly the thing that drifts, and this one did.
   projects:
-    'ai-video · pm25 · sar-yield · multi-agent · airbnb · movie-recommendation-system · linkedin-post-agent · emotion-classification-with-bigru · mental-health-score · next-word-prediction · heart-disease-risk-prediction · emotion-classification-pipeline  → try: project sar-yield',
+    'pm25 · sar-yield · airbnb · movie-recommendation-system · emotion-classification-pipeline · credit-risk-ml-system · emotion-classification-with-bigru · heart-disease-risk-prediction · next-word-prediction · mental-health-score · ai-video · multi-agent · linkedin-post-agent · research-topic-classification  → try: project credit',
   links:
     'github.com/sumitjadhav1703 · kaggle.com/sumit1703 · huggingface.co/sumit1703 · linkedin.com/in/sumit-jadhav-1703s',
   whoami: 'sumit — AI/ML engineering intern candidate.',
@@ -25,7 +28,7 @@ export const NEOFETCH_ROWS: [string, string][] = [
   ['Focus', 'AI / ML'],
   ['Primary language', 'Python'],
   ['Direction', 'Generative AI'],
-  ['Projects', '12'],
+  ['Projects', '14'],
   ['Status', 'Ready'],
 ]
 
@@ -54,6 +57,11 @@ export const PROJ_ALIAS: Record<string, AppId> = {
   'next-word': 'project-next-word-prediction',
   heart: 'project-heart-disease-risk-prediction',
   'emotion-pipeline': 'project-emotion-classification-pipeline',
+  credit: 'project-credit-risk-ml-system',
+  'credit-risk': 'project-credit-risk-ml-system',
+  cora: 'project-research-topic-classification',
+  gnn: 'project-research-topic-classification',
+  'research-topic': 'project-research-topic-classification',
 }
 
 /**
@@ -97,6 +105,37 @@ export const KB: [string[], string][] = [
   [
     ['sar', 'crop', 'yield', 'gujarat', 'sokhda', 'capella', 'satellite', 'remote sensing', 'x-band', 'radar', 'unsupervised', 'gdal', 'sentinel-2'],
     'SAR Crop Yield Forecasting is a validation-first yield pipeline for 966 farm plots in Sokhda, Gujarat, built on six Capella Space X-band SAR passes: they derive a season-complete canopy signal that modulates the yield estimate over 447.5 hectares — groundnut, maize, rice, bajra and cotton.',
+  ],
+  [
+    [
+      'credit risk',
+      'credit',
+      'xgboost',
+      'shap',
+      'explainab',
+      'calibrat',
+      'default probability',
+      'underwriting',
+      'loan',
+      'tabular',
+      'threshold',
+    ],
+    'The Credit Risk ML System estimates default probability with a calibrated XGBoost classifier — 5-fold sigmoid calibration, a decision threshold tuned on precision-recall F1 — and explains every prediction with SHAP. 92% test accuracy and 0.81 F1 on the default class over 6,305 held-out samples, served as a FastAPI endpoint with Pydantic validation and a browser underwriting dashboard.',
+  ],
+  [
+    [
+      'research topic',
+      'cora',
+      'graph neural',
+      'gnn',
+      'gcn',
+      'citation',
+      'pytorch geometric',
+      'node classification',
+      'graph',
+      'onnx',
+    ],
+    'Research Topic Classification is a two-layer Graph Convolutional Network over the Cora citation network: 2,708 papers, 10,556 citation edges, 1,433-dimensional features, classified into seven topics. 79.2% accuracy and 0.782 macro-F1, against 58.1% for a random forest on the features alone — the citation edges are what the graph buys. Exported to ONNX and served through FastAPI with a Streamlit front end.',
   ],
   [
     ['movie', 'recommend', 'tf-idf', 'tfidf', 'cosine', 'similarity', 'content-based', 'collaborative'],
@@ -204,7 +243,7 @@ export const KB: [string[], string][] = [
  * more, so the one message whose whole job is to redirect was sending people nowhere.
  */
 export const AI_FALLBACK =
-  "I only know Sumit's portfolio. Try asking about the AI Video Assistant's RAG pipeline, PM2.5 forecasting, SAR crop-yield forecasting, the multi-agent research system, the LinkedIn post agent, the emotion classifiers, his stack, education or how to reach him."
+  "I only know Sumit's portfolio. Try asking about the AI Video Assistant's RAG pipeline, PM2.5 forecasting, SAR crop-yield forecasting, the multi-agent research system, the credit-risk model, the Cora graph classifier, the LinkedIn post agent, the emotion classifiers, his stack, education or how to reach him."
 
 /**
  * The chips shown before the first question. Seed values only — the live list comes from
