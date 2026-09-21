@@ -84,7 +84,8 @@ export function StatusPill({ label, ok }: { label: string; ok: boolean }) {
       <span
         style={{
           ...s('width:6px;height:6px;border-radius:50%'),
-          background: ok ? '#30d158' : 'rgba(255,255,255,.45)',
+          // Was a literal white at 45%, which is invisible on the light theme's window.
+          background: ok ? 'var(--s-ok)' : 'var(--s-faint)',
         }}
       />
       {label}

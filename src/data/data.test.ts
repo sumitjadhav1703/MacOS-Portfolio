@@ -26,6 +26,30 @@ describe('project data', () => {
   })
 })
 
+describe('the compiled-in certificates', () => {
+  it('are there at all — an empty list renders an apology, not a portfolio', () => {
+    expect(FALLBACK.certificates.length).toBeGreaterThan(0)
+  })
+
+  it('carry no Worker or R2 URL, which is the whole point of a fallback', () => {
+    // A compiled-in `fileUrl` resolves only through the API, so it would be dead in exactly the
+    // offline case this list exists for. `credentialUrl` points at the issuer and stands alone.
+    for (const certificate of FALLBACK.certificates) {
+      expect(certificate.fileUrl, certificate.title).toBeUndefined()
+      expect(certificate.imageUrl, certificate.title).toBeUndefined()
+      if (certificate.credentialUrl) {
+        const host = new URL(certificate.credentialUrl).hostname
+        expect(host, certificate.title).not.toContain('workers.dev')
+      }
+    }
+  })
+
+  it('has unique ids, so the live list can replace it without remounting every row', () => {
+    const ids = FALLBACK.certificates.map((c) => c.id)
+    expect(new Set(ids).size).toBe(ids.length)
+  })
+})
+
 describe('profile links', () => {
   it('all parse as URLs', () => {
     for (const link of PROFILE_LINKS) {
