@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { s } from '../css'
-import { Calendar } from './Calendar'
 import { useOs } from '../store'
 import { useOnline } from '../useMedia'
 import { useRuntime } from '../runtime'
@@ -82,8 +81,8 @@ function Quiet({ label, value, divided }: { label: string; value: string; divide
   )
 }
 
-export function Popovers({ accent }: { accent: string }) {
-  const { popover, status, activity, task, wins, notifications } = useOs()
+export function Popovers() {
+  const { popover, status, activity, task, wins } = useOs()
   const [started] = useState(() => Date.now())
   const online = useOnline()
   const runtime = useRuntime()
@@ -219,41 +218,8 @@ export function Popovers({ accent }: { accent: string }) {
     )
   }
 
-  return (
-    <div
-      id="cal-pop"
-      style={{ ...s(POP), right: 12, width: 288, padding: 14 }}
-      onClick={(e) => e.stopPropagation()}
-    >
-      <Calendar accent={accent} />
-      <div style={s('height:1px;background:var(--s-line);margin:13px 0 10px')} />
-      <div
-        style={s(
-          'font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--s-faint);margin-bottom:8px',
-        )}
-      >
-        Notifications
-      </div>
-      <div
-        id="notif-list"
-        style={s('display:flex;flex-direction:column;gap:6px;max-height:150px;overflow:auto')}
-      >
-        {notifications.length ? (
-          notifications.map((n) => (
-            <div key={n.id} style={s('padding:8px 10px;border-radius:9px;background:var(--s-fill);font-size:12px')}>
-              <div style={s('display:flex;justify-content:space-between;gap:8px')}>
-                <span style={s('font-weight:600')}>{n.title}</span>
-                <span style={s('color:var(--s-faint);font-size:11px')}>
-                  {n.at.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
-                </span>
-              </div>
-              <div style={s('color:var(--s-dim);margin-top:2px')}>{n.msg}</div>
-            </div>
-          ))
-        ) : (
-          <div style={s('color:var(--s-faint);font-size:12px')}>Nothing new.</div>
-        )}
-      </div>
-    </div>
-  )
+  // Every reachable popover has returned by now. `'cal'` used to fall through to a calendar
+  // panel here, but nothing ever dispatched it — the clock opens Notification Center — so the
+  // name is gone from `PopoverName` and the panel with it.
+  return null
 }

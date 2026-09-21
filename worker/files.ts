@@ -1,5 +1,5 @@
 import type { Env } from './env'
-import { DOCUMENT_HEADERS, fail, json, log } from './http'
+import { assetHeaders, fail, json, log } from './http'
 import { ASSET_KEY, SPECS, SINGLETONS } from './tables'
 
 const MAX_BYTES = 8 * 1024 * 1024
@@ -155,12 +155,15 @@ export async function serveFile(env: Env, key: string): Promise<Response> {
   if (!isOwnKey(key)) return fail(404, 'Not found.')
   const object = await env.BUCKET.get(key)
   if (!object) return fail(404, 'Not found.')
-  const headers = new Headers(DOCUMENT_HEADERS)
+  // `assetHeaders`, not `DOCUMENT_HEADERS`: the portfolio frames these to show a certificate,
+  // and the stricter set refused it silently. Everything else this Worker serves keeps the
+  // stricter set.
+  const headers = new Headers(assetHeaders(env))
   object.writeHttpMetadata(headers)
   headers.set('etag', object.httpEtag)
   headers.set('Cache-Control', 'public, max-age=31536000, immutable')
   // The content type comes from the magic-byte sniff at upload, never from the client, and
-  // `nosniff` (in DOCUMENT_HEADERS) holds the browser to it. `inline` is still spelled out
+  // `nosniff` (in assetHeaders) holds the browser to it. `inline` is still spelled out
   // because these objects are served from the origin that also serves /admin, and a PDF is a
   // scriptable format in some viewers — the filename is the stored one, display-only.
   headers.set('Content-Disposition', 'inline')

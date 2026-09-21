@@ -63,15 +63,17 @@ export const SIZE: Partial<Record<StaticAppId, [number, number]>> = {
   safari: [900, 600],
   finder: [860, 520],
   'sumit-ai': [620, 560],
-  about: [640, 470],
+  // A hero, four stat tiles and four paragraphs; 470 sliced the social row off the bottom.
+  about: [760, 620],
   resume: [820, 620],
   contact: [700, 520],
   settings: [820, 560],
   trash: [520, 320],
-  skills: [720, 520],
+  skills: [740, 560],
   education: [720, 420],
   experience: [720, 460],
-  certificates: [700, 400],
+  // Each card can open a 460px preview of the certificate itself.
+  certificates: [760, 620],
   code: [880, 560],
   monitor: [720, 520],
 }

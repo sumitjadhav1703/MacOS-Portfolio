@@ -43,4 +43,15 @@ export function useTheme() {
   }
 }
 
-export const brightnessFilter = (prefs: Prefs) => `brightness(${(prefs.bright || 100) / 100})`
+/**
+ * The desk's Brightness slider, or `none` when it is where it started.
+ *
+ * `brightness(1)` is not free. Any filter but `none` promotes the element to its own composited
+ * layer, and a full-viewport layer is rastered at 8 bits with no dithering — measured on a wide
+ * gradient, the identity filter alone cut it from 1366 colour transitions to 771 and widened
+ * the flattest band from 3px to 8px. That is the contouring a dropped wallpaper shows.
+ */
+export const brightnessFilter = (prefs: Prefs) => {
+  const bright = prefs.bright || 100
+  return bright === 100 ? 'none' : `brightness(${bright / 100})`
+}

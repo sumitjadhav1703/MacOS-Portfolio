@@ -100,6 +100,7 @@ export type Action =
   | { type: 'space'; index: number }
   | { type: 'addSpace' }
   | { type: 'moveToSpace'; app: AppId; space: number }
+  | { type: 'deskSelect'; app: AppId | null }
   | { type: 'popover'; name: PopoverName }
   | { type: 'menu'; name: MenuName }
   | { type: 'booted' }
@@ -285,6 +286,9 @@ export function reducer(state: OsState, action: Action): OsState {
     case 'finderPath':
       return { ...state, finderPath: action.path }
 
+    case 'deskSelect':
+      return { ...state, deskSelection: action.app }
+
     case 'prefs': {
       const prefs = { ...state.prefs, ...action.patch }
       // Switching pack pulls its preferred appearance with it, as in the original.
@@ -344,8 +348,14 @@ export function reducer(state: OsState, action: Action): OsState {
       }
     }
 
-    case 'popover':
-      return { ...state, popover: action.name, menu: null }
+    case 'popover': {
+      // A menu extra toggles: clicking the one already showing puts it away, the way the app
+      // menus on the left have always worked. This used to be a plain assignment, so a second
+      // click was a no-op and the only way out was the desk or Escape. Opening one also closes
+      // the two top-right panels, which it would otherwise paint on top of.
+      const open = state.popover === action.name ? null : action.name
+      return { ...state, popover: open, menu: null, controlCenter: false, notifCenter: false }
+    }
 
     case 'menu':
       return { ...state, menu: action.name, popover: null }
@@ -467,6 +477,9 @@ export function reducer(state: OsState, action: Action): OsState {
         ...state,
         menu: null,
         popover: null,
+        // A click on the desk deselects the icon, exactly as it does on a Mac. This is the
+        // reason the selection lives in the store at all.
+        deskSelection: null,
         controlCenter: false,
         spotlight: false,
         shortcuts: false,
@@ -484,6 +497,7 @@ export function initialState(): OsState {
     z: 100,
     active: null,
     finderPath: '/',
+    deskSelection: null,
     prefs: DEFAULT_PREFS,
     notifications: [],
     status: 'Ready',

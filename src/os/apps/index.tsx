@@ -5,30 +5,25 @@ import { CodeViewer } from './CodeViewer'
 import { Contact } from './Contact'
 import { Finder } from './Finder'
 import { MissingProject, ProjectWindow } from './ProjectWindow'
-import { Resume } from './Resume'
 import { Safari } from './Safari'
 import { Settings } from './Settings'
 import { SumitAI } from './SumitAI'
 import { SystemMonitor } from './SystemMonitor'
 import { Terminal } from './Terminal'
-import { About, Certificates, Education, Experience, Skills, Trash } from './simple'
+import { SECTION_CONTENT, Trash } from './simple'
 
 export const APP_CONTENT: Record<StaticAppId, ComponentType> = {
   finder: Finder,
   terminal: Terminal,
   safari: Safari,
   'sumit-ai': SumitAI,
-  about: About,
-  resume: Resume,
   contact: Contact,
   settings: Settings,
   trash: Trash,
   code: CodeViewer,
-  skills: Skills,
-  education: Education,
-  experience: Experience,
-  certificates: Certificates,
   monitor: SystemMonitor,
+  // The six the Finder sidebar also renders in place — declared once, in simple.tsx.
+  ...SECTION_CONTENT,
 }
 
 /**

@@ -3,7 +3,7 @@
 // can make a browser attach the admin cookie and read the result.
 
 import { describe, expect, it } from 'vitest'
-import { allowedOrigins, corsHeaders, fail, json } from './http'
+import { DOCUMENT_HEADERS, allowedOrigins, assetHeaders, corsHeaders, fail, json } from './http'
 import { SITE, makeEnv } from './test-harness'
 
 const env = makeEnv()
@@ -30,6 +30,32 @@ describe('the allowlist', () => {
 
   it('drops an unset SITE_ORIGIN rather than allowing an empty origin', () => {
     expect(allowedOrigins(makeEnv({ SITE_ORIGIN: '' }))).toEqual([])
+  })
+})
+
+describe('framing', () => {
+  it('refuses it everywhere by default — /admin must never render in someone else\'s page', () => {
+    expect(DOCUMENT_HEADERS['Content-Security-Policy']).toBe("frame-ancestors 'none'")
+    expect(DOCUMENT_HEADERS['X-Frame-Options']).toBe('DENY')
+  })
+
+  it('allows the site to frame a public asset, and nobody else', () => {
+    // The portfolio shows a certificate by framing its PDF. A refused frame renders as nothing
+    // and cannot be detected from the page, so this is the difference between a preview and a
+    // blank box — but it is scoped to /files/, which serves public read-only objects.
+    expect(assetHeaders(env)['Content-Security-Policy']).toBe(`frame-ancestors 'self' ${SITE}`)
+  })
+
+  it('drops X-Frame-Options on assets rather than contradicting the CSP', () => {
+    // It has no origin-list form, so DENY alongside an allowing frame-ancestors is just DENY.
+    expect(assetHeaders(env)['X-Frame-Options']).toBeUndefined()
+    expect(assetHeaders(env)['X-Content-Type-Options']).toBe('nosniff')
+  })
+
+  it('allows nothing when SITE_ORIGIN is unset', () => {
+    expect(assetHeaders(makeEnv({ SITE_ORIGIN: '' }))['Content-Security-Policy']).toBe(
+      "frame-ancestors 'self'",
+    )
   })
 })
 

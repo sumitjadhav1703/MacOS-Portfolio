@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import { SPRING } from '../anim'
 import { s } from '../css'
 import { FOLDER_TINTS, folderColor } from '../packs'
@@ -33,14 +32,17 @@ const LABEL_H = 33
  */
 
 export function DesktopGrid() {
-  const { iconScale, desktopHidden, prefs } = useOs()
+  const { iconScale, desktopHidden, prefs, deskSelection } = useOs()
   // The desktop folders are the published projects — no second list to keep in step.
   const projects = useContent().projects
   const openApp = useOpenApp()
   const dispatch = useDispatch()
   const reduced = useReducedMotion()
   const contextMenu = useContextMenu()
-  const [selected, setSelected] = useState<AppId | null>(null)
+  // Selection is store state, not component state: the click that should clear it lands on the
+  // desk background, which has no way to reach a `useState` in here. It never did, so the blue
+  // plate stayed on the last icon opened for the life of the page.
+  const select = (app: AppId | null) => dispatch({ type: 'deskSelect', app })
 
   const folderMenu = (id: AppId) =>
     contextMenu([
@@ -101,7 +103,7 @@ export function DesktopGrid() {
             onKeyDown={(e) => {
               if (e.key !== 'Enter' && e.key !== ' ') return
               e.preventDefault()
-              setSelected(id)
+              select(id)
               openApp(id)
             }}
             style={{
@@ -110,18 +112,21 @@ export function DesktopGrid() {
               ),
               width: CELL_W,
               height: CELL_H,
-              animation: reduced ? 'none' : `riseIn .7s ${SPRING} ${0.15 + i * 0.05}s both`,
+              // `backwards`, not `both`: with `both` the finished animation kept `transform: none`
+              // applied at animation priority, which outranks the `[data-dsk]:hover` lift in
+              // os.css — so the icons never rose on hover.
+              animation: reduced ? 'none' : `riseIn .7s ${SPRING} ${0.15 + i * 0.05}s backwards`,
             }}
             onClick={(e) => {
               e.stopPropagation()
-              setSelected(id)
+              select(id)
             }}
             onDoubleClick={(e) => {
               e.stopPropagation()
               openApp(id)
             }}
             onContextMenu={(e) => {
-              setSelected(id)
+              select(id)
               folderMenu(id)(e)
             }}
           >
@@ -162,7 +167,7 @@ export function DesktopGrid() {
             </div>
             <span
               data-dsklabel="1"
-              data-selected={selected === id ? '1' : undefined}
+              data-selected={deskSelection === id ? '1' : undefined}
               title={label}
               style={{
                 ...s(
@@ -171,11 +176,11 @@ export function DesktopGrid() {
                   'font-size:11.5px;line-height:1.25;text-align:center;padding:2px 6px;border-radius:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere;-webkit-backdrop-filter:var(--s-blur-scrim);backdrop-filter:var(--s-blur-scrim);transition:background .16s ease,color .16s ease',
                 ),
                 maxHeight: LABEL_H,
-                color: selected === id ? '#fff' : 'var(--s-onwall)',
-                textShadow: selected === id ? 'none' : 'var(--s-onwall-shadow)',
+                color: deskSelection === id ? 'var(--s-on-accent)' : 'var(--s-onwall)',
+                textShadow: deskSelection === id ? 'none' : 'var(--s-onwall-shadow)',
                 // Bare until hovered or selected, the way macOS leaves it. The hover plate is
                 // in os.css so it does not need a second piece of React state per icon.
-                background: selected === id ? 'var(--s-onwall-sel)' : 'transparent',
+                background: deskSelection === id ? 'var(--s-onwall-sel)' : 'transparent',
               }}
             >
               {label}

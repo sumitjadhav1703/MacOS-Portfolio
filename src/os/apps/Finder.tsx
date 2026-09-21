@@ -3,18 +3,35 @@ import { s } from '../css'
 import { EASE } from '../anim'
 import { FOLDER_TINTS, folderColor } from '../packs'
 import { useContent } from '../content'
+import { pressable } from '../pressable'
+import { finderLabel } from './finderPath'
 import { useDispatch, useOpenApp, useOs } from '../store'
-import { useTheme } from '../useTheme'
-import type { AppId, FolderTint } from '../types'
+import { useReducedMotion, useTheme } from '../useTheme'
+import { SECTION_CONTENT } from './simple'
+import type { AppId, FinderPath, FinderSection, FolderTint } from '../types'
 
-const SIDE_ITEMS: [AppId, string, string][] = [
-  ['skills', 'Skills', 'linear-gradient(180deg,#a97bf0,#6a3ec0)'],
-  ['certificates', 'Certificates', 'linear-gradient(180deg,#f79a3e,#cd6212)'],
-  ['education', 'Education', 'linear-gradient(180deg,#4ea3f5,#1c62c9)'],
-  ['experience', 'Experience', 'linear-gradient(180deg,#5cc36a,#2b8743)'],
-  ['resume', 'Resume', 'linear-gradient(180deg,#f26a63,#c33026)'],
-  ['about', 'About', 'linear-gradient(180deg,#8e97a6,#4c545f)'],
+/**
+ * The sidebar, below Projects. Each row now *navigates* — it swaps the content pane, the way
+ * Finder does — instead of opening a second window on top of the one that was clicked in.
+ * The tint is a `FOLDER_TINTS` key rather than a gradient: these six used to be hand-inlined
+ * copies of those same hexes, which is the one thing AGENTS.md says a component must not hold.
+ */
+const SIDE_ITEMS: [FinderSection, FolderTint][] = [
+  ['skills', 'violet'],
+  ['certificates', 'sand'],
+  ['education', 'blue'],
+  ['experience', 'green'],
+  ['resume', 'rose'],
+  ['about', 'graphite'],
 ]
+
+const swatch = (tint: FolderTint) => `linear-gradient(180deg,${FOLDER_TINTS[tint][0]},${FOLDER_TINTS[tint][1]})`
+
+const ROW =
+  'display:flex;align-items:center;gap:9px;padding:6px 9px;border-radius:7px;cursor:default;font-size:12.5px'
+
+/** `Portfolio › …` — `/` is the root itself, so it gets no second crumb. */
+const crumbOf = (path: FinderPath): string | null => (path === '/' ? null : finderLabel(path))
 
 function Folder({
   id,
@@ -23,6 +40,7 @@ function Folder({
   selected,
   onSelect,
   onOpen,
+  delay,
 }: {
   id: string
   label: string
@@ -30,13 +48,21 @@ function Folder({
   selected: boolean
   onSelect: () => void
   onOpen: () => void
+  delay: number
 }) {
   const { accent } = useTheme()
   const [c1, c2] = colors
   return (
     <div
       data-dsk="1"
-      style={s('width:96px;display:flex;flex-direction:column;align-items:center;gap:7px;cursor:default')}
+      data-focusable="1"
+      role="button"
+      tabIndex={0}
+      aria-label={`${label} — double-click to open`}
+      style={{
+        ...s('width:96px;display:flex;flex-direction:column;align-items:center;gap:7px;cursor:default'),
+        animation: delay || delay === 0 ? `lpTile .34s ${EASE} ${delay}ms backwards` : undefined,
+      }}
       onClick={(e) => {
         e.stopPropagation()
         onSelect()
@@ -45,10 +71,18 @@ function Folder({
         e.stopPropagation()
         onOpen()
       }}
+      onKeyDown={(e) => {
+        // Single click selects, so Enter has to be the one that opens — spreading pressable()
+        // here would have made one click do both.
+        if (e.key !== 'Enter' && e.key !== ' ') return
+        e.preventDefault()
+        onSelect()
+        onOpen()
+      }}
       title={label}
       data-folder={id}
     >
-      <div style={s('position:relative;width:62px;height:48px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.4))')}>
+      <div style={s('position:relative;width:62px;height:48px;filter:var(--s-icon-shadow)')}>
         <div
           style={{
             ...s('position:absolute;left:1px;top:1px;width:28px;height:14px;border-radius:5px 10px 0 0'),
@@ -82,11 +116,39 @@ function Folder({
   )
 }
 
+function Row({ path, label, tint }: { path: FinderPath; label: string; tint: FolderTint }) {
+  const { finderPath } = useOs()
+  const dispatch = useDispatch()
+  const here = finderPath === path
+  return (
+    <div
+      data-side="1"
+      data-here={here ? '1' : undefined}
+      {...pressable(label, () => dispatch({ type: 'finderPath', path }))}
+      style={{
+        ...s(ROW),
+        background: here ? 'var(--s-fill-2)' : 'transparent',
+        transition: `background .2s ${EASE},transform .2s ${EASE}`,
+      }}
+    >
+      <span style={{ ...s('width:15px;height:15px;border-radius:4px;flex:none'), background: swatch(tint) }} />
+      {label}
+    </div>
+  )
+}
+
 export function Finder() {
   const { finderPath, prefs } = useOs()
   const dispatch = useDispatch()
   const openApp = useOpenApp()
+  const reduced = useReducedMotion()
   const [selected, setSelected] = useState<AppId | 'finder-projects' | null>(null)
+
+  // `/` and `projects` are folders of folders; every other path is a section that renders in
+  // place. Sidebar rows used to call openApp() and pile a second window on top instead.
+  const Section = finderPath === '/' || finderPath === 'projects' ? null : SECTION_CONTENT[finderPath]
+  const crumb = crumbOf(finderPath)
+  const paneIn = reduced ? 'none' : `lpIn .28s ${EASE} both`
 
   // The Projects folder lists whatever is published. Every folder is Finder blue unless the
   // visitor has tagged that one, which is what a Mac does.
@@ -110,40 +172,9 @@ export function Finder() {
         >
           Favourites
         </div>
-        <div
-          data-side="1"
-          style={{
-            ...s(
-              'display:flex;align-items:center;gap:9px;padding:6px 9px;border-radius:7px;cursor:default;font-size:12.5px',
-            ),
-            background: finderPath === 'projects' ? 'var(--s-fill-2)' : 'transparent',
-            transition: `background .2s ${EASE}`,
-          }}
-          onClick={() => dispatch({ type: 'finderPath', path: 'projects' })}
-        >
-          <span
-            style={{
-              ...s('width:15px;height:15px;border-radius:4px;flex:none'),
-              background: `linear-gradient(180deg,${FOLDER_TINTS.blue[0]},${FOLDER_TINTS.blue[1]})`,
-            }}
-          />
-          Projects
-        </div>
-        {SIDE_ITEMS.map(([id, label, color]) => (
-          <div
-            key={id}
-            data-side="1"
-            style={{
-              ...s(
-                'display:flex;align-items:center;gap:9px;padding:6px 9px;border-radius:7px;cursor:default;font-size:12.5px',
-              ),
-              transition: `background .2s ${EASE}`,
-            }}
-            onClick={() => openApp(id)}
-          >
-            <span style={{ ...s('width:15px;height:15px;border-radius:4px;flex:none'), background: color }} />
-            {label}
-          </div>
+        <Row path="projects" label="Projects" tint="blue" />
+        {SIDE_ITEMS.map(([id, tint]) => (
+          <Row key={id} path={id} label={finderLabel(id)} tint={tint} />
         ))}
       </div>
 
@@ -161,10 +192,10 @@ export function Finder() {
           >
             Portfolio
           </span>
-          {finderPath === 'projects' ? (
+          {crumb ? (
             <>
               <span>›</span>
-              <span style={s('padding:3px 8px;border-radius:6px;color:var(--s-text)')}>Projects</span>
+              <span style={s('padding:3px 8px;border-radius:6px;color:var(--s-text)')}>{crumb}</span>
             </>
           ) : null}
           <span style={s('flex:1')} />
@@ -189,33 +220,45 @@ export function Finder() {
           ) : null}
         </div>
 
-        <div style={s('display:flex;flex-wrap:wrap;gap:22px 14px')}>
-          {finderPath === 'projects' ? (
-            projects.map((project) => {
-              const id = project.id as AppId
-              return (
+        {Section ? (
+          // The same component the window manager would open, rendered into the pane it was
+          // asked for. `Body` is already `height:100%;overflow:auto`, so it fills this box —
+          // but the pane scrolls too, and two scrollers would fight, so the pane gives up its
+          // own padding and lets the section keep its reading measure.
+          <div key={finderPath} style={{ ...s('margin:0 -24px -22px'), animation: paneIn }}>
+            <Section />
+          </div>
+        ) : (
+          <div style={{ ...s('display:flex;flex-wrap:wrap;gap:22px 14px'), animation: paneIn }}>
+            {finderPath === 'projects' ? (
+              projects.map((project, i) => {
+                const id = project.id as AppId
+                return (
+                  <Folder
+                    key={id}
+                    id={id}
+                    label={project.desktopLabel}
+                    colors={tintOf(id)}
+                    selected={selected === id}
+                    onSelect={() => setSelected(id)}
+                    onOpen={() => openApp(id)}
+                    delay={reduced ? 0 : Math.min(i * 22, 240)}
+                  />
+                )
+              })
+            ) : (
               <Folder
-                key={id}
-                id={id}
-                label={project.desktopLabel}
-                colors={tintOf(id)}
-                selected={selected === id}
-                onSelect={() => setSelected(id)}
-                onOpen={() => openApp(id)}
+                id="finder-projects"
+                label="Projects"
+                colors={FOLDER_TINTS.blue}
+                selected={selected === 'finder-projects'}
+                onSelect={() => setSelected('finder-projects')}
+                onOpen={() => dispatch({ type: 'finderPath', path: 'projects' })}
+                delay={0}
               />
-              )
-            })
-          ) : (
-            <Folder
-              id="finder-projects"
-              label="Projects"
-              colors={FOLDER_TINTS.blue}
-              selected={selected === 'finder-projects'}
-              onSelect={() => setSelected('finder-projects')}
-              onOpen={() => dispatch({ type: 'finderPath', path: 'projects' })}
-            />
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )

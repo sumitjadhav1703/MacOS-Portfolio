@@ -6,6 +6,11 @@
   html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#0b0d0f}
   a{color:var(--s-accent);text-decoration:none}
   a:hover{color:var(--s-accent-hi);text-decoration:underline}
+  /* `--s-menu-bg` used to be `transparent`, which sounds like the Tahoe menu bar and is not:
+     the bar's only surface is `backdrop-filter: … saturate(180%)`, so it took the wallpaper's
+     hue and made it *more* saturated. Over a strongly coloured picture the clock and the app
+     menus ended up as grey text on acid green. A thin wash is what a real menu bar has, and
+     Reduce Transparency still swaps it for the solid chrome colour. */
   /* `--s-faint` carries every section heading, hint and caption in the app. At .44/.45 it
      measured 4.0:1 on the dark window and 2.8:1 on the light one — under AA for text that
      small, and the reason the write-ups read as half-printed. .5/.62 puts both over 4.5:1. */
@@ -14,7 +19,7 @@
     --s-line:rgba(255,255,255,.12);--s-line-2:rgba(255,255,255,.2);
     --s-fill:rgba(255,255,255,.05);--s-fill-2:rgba(255,255,255,.09);--s-fill-3:rgba(255,255,255,.15);
     --s-side:rgba(255,255,255,.035);--s-win:#16181c;--s-chrome:#1b1e23;--s-bubble:#1c2128;--s-input:rgba(0,0,0,.28);
-    --s-pop:rgba(24,26,30,.94);--s-blur:blur(18px);--s-menu-bg:transparent;--s-menu-fg:#f2f3f5;
+    --s-pop:rgba(24,26,30,.94);--s-blur:blur(18px);--s-menu-bg:rgba(16,18,22,.30);--s-menu-fg:#f2f3f5;
     --s-menu-shadow:0 1px 2px rgba(0,0,0,.55);--s-accent:#3a6df0;--s-accent-hi:#7ba0f7;--s-on-accent:#fff;
     --s-shadow-win:0 24px 56px rgba(0,0,0,.5);--s-shadow-pop:0 16px 38px rgba(0,0,0,.5);
     --s-tip:rgba(30,32,36,.86);--s-sb:rgba(255,255,255,.28);
@@ -36,7 +41,7 @@
     --s-line:rgba(0,0,0,.12);--s-line-2:rgba(0,0,0,.2);
     --s-fill:rgba(0,0,0,.045);--s-fill-2:rgba(0,0,0,.07);--s-fill-3:rgba(0,0,0,.12);
     --s-side:rgba(0,0,0,.03);--s-win:#f6f7f9;--s-chrome:#eaecef;--s-bubble:#e7eaf0;--s-input:rgba(0,0,0,.05);
-    --s-pop:rgba(250,251,252,.95);--s-menu-bg:transparent;--s-menu-fg:#15171b;
+    --s-pop:rgba(250,251,252,.95);--s-menu-bg:rgba(250,251,252,.42);--s-menu-fg:#15171b;
     --s-menu-shadow:0 1px 2px rgba(255,255,255,.85),0 0 6px rgba(255,255,255,.5);--s-accent-hi:#22459f;
     --s-shadow-win:0 24px 52px rgba(20,24,32,.24);--s-shadow-pop:0 16px 36px rgba(20,24,32,.2);
     --s-tip:rgba(250,251,252,.94);--s-sb:rgba(0,0,0,.26);
@@ -77,22 +82,23 @@
   *{scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0) transparent}
   *:hover{scrollbar-color:var(--s-sb) transparent}
   @keyframes riseIn{from{opacity:0;transform:translateY(10px) scale(.96)}to{opacity:1;transform:none}}
-  @keyframes dockIn{from{opacity:0;transform:translateX(-50%) translateY(14px) scale(.96)}to{opacity:1;transform:translateX(-50%)}}
   @keyframes bootOut{0%{opacity:1;visibility:visible}70%{opacity:1}100%{opacity:0;visibility:hidden}}
   @keyframes bootBar{0%{width:0}100%{width:100%}}
   @keyframes markIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:none}}
-  @keyframes caret{0%,49%{opacity:1}50%,100%{opacity:0}}
-  #term-in:focus + [data-caret]{display:none}
   [data-tlgroup]:hover [data-glyph]{opacity:1}
   [data-menu]:hover{background:var(--s-fill-3)}
   [data-mi]:hover{background:var(--s-accent);color:var(--s-on-accent)}
+  [data-side]{transition:background .2s cubic-bezier(.32,.72,0,1),transform .2s cubic-bezier(.32,.72,0,1)}
   [data-side]:hover{background:var(--s-fill-2)}
+  [data-side]:hover:not([data-here]){transform:translateX(2px)}
   [data-dsk]:hover{transform:translateY(-2px)}
   [data-dsk]{transition:transform .2s cubic-bezier(.32,.72,0,1)}
   @keyframes pulseDot{0%,100%{opacity:1}50%{opacity:.35}}
   @keyframes toastIn{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:none}}
   [data-btn]:hover{filter:brightness(1.15)}
   [data-chipbtn]:hover{background:var(--s-fill-3)}
+  [data-chip]{transition:background .18s cubic-bezier(.32,.72,0,1),transform .18s cubic-bezier(.32,.72,0,1),border-color .18s ease}
+  [data-chip]:hover{background:var(--s-fill-3);border-color:var(--s-line-2);transform:translateY(-1px)}
   #mobile{display:none}
   @media (max-width:767px){
     #dock,#desktop-grid,#wm,#menubar,#desk-vignette,#toasts,#control-center,
@@ -198,11 +204,11 @@
 [data-dsk]:active { transform: translateY(0) scale(.96) }
 [data-dsk]:active [data-dskart] { filter: var(--s-icon-shadow) }
 [data-dsk]:focus-visible { outline: none }
+/* Keyboard focus is a ring, not a fill. It used to paint the same blue plate selection does,
+   so a focused icon and a selected icon were indistinguishable — and while the plate was
+   stuck there was no way to tell the two apart at all. */
 [data-dsk]:focus-visible [data-dsklabel] {
-  background: var(--s-onwall-sel);
-  color: #fff;
-  text-shadow: none;
-  box-shadow: 0 0 0 2px var(--s-glass-ring);
+  box-shadow: 0 0 0 2px var(--s-accent), 0 0 0 4px var(--s-glass-ring);
 }
 
 /* Traffic lights. Apple publishes no hex values; these are the community-measured set
@@ -339,6 +345,13 @@
 
 /* Launchpad. Animating backdrop-filter stutters, so the blurred plate cross-fades and
    the tiles do the moving. */
+/* The specular sweep on the About avatar. One pass, then a long wait — a loop that never
+   rests reads as a spinner. */
+@keyframes heroSheen {
+  0%, 62%, 100% { transform: translateX(-120%) }
+  18% { transform: translateX(120%) }
+}
+
 @keyframes lpIn { from { opacity: 0 } to { opacity: 1 } }
 @keyframes lpTile { from { opacity: 0; transform: scale(.9) } to { opacity: 1; transform: none } }
 

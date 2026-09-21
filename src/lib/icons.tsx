@@ -150,9 +150,18 @@ type IconProps = {
   size?: number
   /** Pass a label to expose the icon to assistive tech; omit to mark it decorative. */
   label?: string
+  /**
+   * Draw the mark in the brand's own colour instead of the surrounding text colour.
+   *
+   * Off everywhere by default, and deliberately so: a mask that inherits `currentColor` is
+   * what makes one glyph correct in both themes and beside any ink. Brand colour is opt-in
+   * for the one surface that is about the technologies themselves — the Skills chips — and
+   * it costs an `<img>` rather than a mask, because an image has no colour to inherit.
+   */
+  brand?: boolean
 }
 
-export function Icon({ slug, size = 16, label }: IconProps) {
+export function Icon({ slug, size = 16, label, brand }: IconProps) {
   const key = (slug ?? '').toLowerCase()
   const decorative = label === undefined
   const a11y = decorative
@@ -162,6 +171,20 @@ export function Icon({ slug, size = 16, label }: IconProps) {
   // Brand marks are painted as a mask so they inherit the surrounding text colour. The glyph
   // is one immutable, long-cached request; no path data ships in the bundle.
   if (!(key in LOCAL) && ICON_SLUGS.has(key)) {
+    if (brand) {
+      return (
+        // eslint-disable-next-line @next/next/no-img-element -- an SVG from this app's own
+        // route; the image loader would only add a redirect to a file that is already tiny.
+        <img
+          src={`/icons/${key}.svg?c=brand`}
+          alt={label ?? ''}
+          width={size}
+          height={size}
+          style={s(`display:block;flex:none;width:${size}px;height:${size}px`)}
+          {...(decorative ? { 'aria-hidden': true } : {})}
+        />
+      )
+    }
     const mask = `url(/icons/${key}.svg) center / contain no-repeat`
     return (
       <span
