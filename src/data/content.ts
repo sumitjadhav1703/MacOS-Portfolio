@@ -102,6 +102,8 @@ const DESKTOP_LABELS: Record<string, string> = {
   'project-next-word-prediction': 'Next Word Prediction',
   'project-heart-disease-risk-prediction': 'Heart Disease Risk Prediction',
   'project-emotion-classification-pipeline': 'Emotion Classification Pipeline',
+  'project-credit-risk-ml-system': 'Credit Risk',
+  'project-research-topic-classification': 'Research Topics',
 }
 
 /** The aliases in src/data/os.ts, inverted onto the project they point at. */
