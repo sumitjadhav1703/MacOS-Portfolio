@@ -59,7 +59,7 @@ export const ICONS: IconSpec[] = [
   {
     id: 'sumit-ai',
     tip: 'Ask Sumit',
-    grad: 'linear-gradient(180deg,#9370f4,#4a2cb2)',
+    grad: 'var(--s-assistant)',
     inks: [
       ['left:18px;top:18px;width:18px;height:18px;border-radius:50%;border:1.6px solid rgba(255,255,255,.72)', 'inkline'],
       ['left:24.5px;top:24.5px;width:5px;height:5px;border-radius:50%;background:#fff', 'ink'],

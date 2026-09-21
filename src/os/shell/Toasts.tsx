@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { SPRING } from '../anim'
 import { s } from '../css'
 import { useOs } from '../store'
@@ -25,18 +25,41 @@ export function Toasts() {
   const reduced = useReducedMotion()
   const [expired, setExpired] = useState<number[]>([])
 
+  const timers = useRef(new Map<number, number>())
+
   const loud = notifications.filter((n) => !n.quiet)
-
-  useEffect(() => {
-    if (!loud.length) return
-    const timers = loud.map((n) =>
-      window.setTimeout(() => setExpired((prev) => (prev.includes(n.id) ? prev : [...prev, n.id])), LIFETIME),
-    )
-    return () => timers.forEach(window.clearTimeout)
-    // `loud` is derived, so depend on the ids it carries rather than a fresh array each render.
-  }, [loud.map((n) => n.id).join(',')]) // eslint-disable-line react-hooks/exhaustive-deps
-
   const showing = loud.filter((n) => !expired.includes(n.id)).slice(0, STACK)
+
+  // The clock starts when a toast is *shown*, not when it arrives. Scheduling every loud
+  // notification meant three landing together all expired on the same timer, and the one the
+  // stack was holding back was marked seen without ever being painted.
+  //
+  // One timer per id, kept in a ref: re-running this on each render is cheap, and it means a
+  // toast's countdown is never restarted by a later notification joining the stack.
+  useEffect(() => {
+    for (const n of showing) {
+      if (timers.current.has(n.id)) continue
+      const handle = window.setTimeout(() => {
+        timers.current.delete(n.id)
+        setExpired((prev) => (prev.includes(n.id) ? prev : [...prev, n.id]))
+      }, LIFETIME)
+      timers.current.set(n.id, handle)
+    }
+  })
+
+  // Forget ids the store has dropped, so this does not grow for the life of the session.
+  const liveIds = notifications.map((n) => n.id).join(',')
+  useEffect(() => {
+    const live = new Set(notifications.map((n) => n.id))
+    setExpired((prev) => {
+      const kept = prev.filter((id) => live.has(id))
+      return kept.length === prev.length ? prev : kept
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [liveIds])
+
+  const pending = timers.current
+  useEffect(() => () => pending.forEach(window.clearTimeout), [pending])
 
   return (
     <div

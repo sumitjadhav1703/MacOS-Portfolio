@@ -79,7 +79,11 @@ export function Desktop({ initialApp }: { initialApp?: AppId }) {
     { divider: true },
     { label: 'Change Wallpaper…', onPick: pickWallpaper },
     { label: 'Show / Hide Desktop Items', onPick: () => dispatch({ type: 'toggleDesktop' }) },
-    { label: 'Show / Hide Dock', onPick: () => dispatch({ type: 'toggleDock' }) },
+    {
+      label: 'Show / Hide Dock',
+      onPick: () =>
+        dispatch({ type: 'toggleDock', viewport: { w: window.innerWidth, h: window.innerHeight } }),
+    },
     { divider: true },
     { label: 'Mission Control', hint: '⌘↑', onPick: () => dispatch({ type: 'overlay', name: 'mission', on: true }) },
   ])
@@ -99,7 +103,7 @@ export function Desktop({ initialApp }: { initialApp?: AppId }) {
       {...rootProps}
       style={{
         ...s(
-          "position:fixed;inset:0;overflow:hidden;background:var(--s-desk);color:var(--s-text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,Inter,'Helvetica Neue',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;font-size:13px;user-select:none",
+          "position:fixed;inset:0;overflow:hidden;background:var(--s-desk);color:var(--s-text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',Inter,system-ui,'Helvetica Neue',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;font-size:13px;user-select:none",
         ),
         ...rootVars,
       }}

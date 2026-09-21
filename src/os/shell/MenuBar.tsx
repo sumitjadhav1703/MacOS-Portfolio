@@ -327,13 +327,10 @@ export function MenuBar() {
 
         <div
           data-menu="cal"
-          role="button"
-          aria-label="Notification Center"
+          {...pressable('Notification Center', () => dispatch({ type: 'overlay', name: 'notifCenter' }), {
+            stopPropagation: true,
+          })}
           style={s('cursor:default;position:relative;padding:2px 4px;border-radius:5px')}
-          onClick={(e) => {
-            e.stopPropagation()
-            dispatch({ type: 'overlay', name: 'notifCenter' })
-          }}
         >
           <Clock />
         </div>

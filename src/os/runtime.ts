@@ -21,7 +21,13 @@ import { useIsClient, useOnline } from './useMedia'
  */
 const API = process.env.NEXT_PUBLIC_API_URL
 
-/** The model the AI Worker defaults to — `ai/src/config.py`'s `DEFAULT_MODEL`. */
+/**
+ * The model the AI Worker defaults to — `ai/src/config.py`'s `DEFAULT_MODEL`.
+ *
+ * A deploy can override it by setting `AI_MODEL` on the Worker without redeploying from
+ * source, and the response carries no model field, so this is the configured default rather
+ * than a reading of what actually answered. The panels word it that way.
+ */
 export const AI_MODEL = 'Llama 3.3 70B'
 
 export type Runtime = {
@@ -69,7 +75,7 @@ export function useRuntime(): Runtime {
     dataShort: live ? 'Live' : 'Bundled',
     host: local ? 'Running locally' : 'Next.js, prerendered on Vercel',
     assistant: API
-      ? `Workers AI — ${AI_MODEL}, grounded on the published portfolio`
+      ? `Workers AI — ${AI_MODEL} by default, grounded on the published portfolio`
       : 'Local keyword fallback — no model configured',
     assistantShort: API ? 'Workers AI' : 'Local fallback',
     backend: API

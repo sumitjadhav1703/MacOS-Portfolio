@@ -40,9 +40,12 @@ function historyOf(msgs: Msg[]): { role: string; content: string }[] {
  * to answer from. This says both, and it says the honest thing when there is no model: the
  * standalone build really does fall back to a keyword lookup.
  */
-function Header() {
+function Header({ degraded }: { degraded: boolean }) {
   const runtime = useRuntime()
-  const live = runtime.configured
+  // `configured` only means an API origin was compiled in. It says nothing about whether the
+  // last question reached the Worker — and once one has not, calling the answer on screen
+  // "Workers AI" is a claim about a request that failed.
+  const live = runtime.configured && !degraded
   return (
     <div
       style={s(
@@ -52,7 +55,7 @@ function Header() {
       <span
         aria-hidden="true"
         style={s(
-          'width:30px;height:30px;flex:none;border-radius:9px;background:linear-gradient(180deg,#9370f4,#4a2cb2);display:flex;align-items:center;justify-content:center;box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 2px 6px rgba(0,0,0,.3)',
+          'width:30px;height:30px;flex:none;border-radius:9px;background:var(--s-assistant);display:flex;align-items:center;justify-content:center;box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 2px 6px rgba(0,0,0,.3)',
         )}
       >
         <span style={s('width:12px;height:12px;border-radius:50%;border:1.6px solid rgba(255,255,255,.75)')} />
@@ -74,13 +77,15 @@ function Header() {
                 background: live ? 'var(--s-ok)' : 'var(--s-faint)',
               }}
             />
-            {live ? `Workers AI · ${AI_MODEL}` : 'Offline fallback'}
+            {live ? `Workers AI · ${AI_MODEL}` : degraded ? 'Offline — local fallback' : 'Offline fallback'}
           </span>
         </div>
         <div style={s('font-size:11.5px;color:var(--s-dim);margin-top:2px')}>
           {live
             ? 'Retrieval-grounded on the published portfolio. It answers from that, or not at all.'
-            : 'No model configured — answering from a local keyword index.'}
+            : degraded
+              ? 'The model did not answer — this reply came from a local keyword index.'
+              : 'No model configured — answering from a local keyword index.'}
         </div>
       </div>
     </div>
@@ -123,6 +128,8 @@ export function SumitAI() {
   const [typing, setTyping] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
   const [retry, setRetry] = useState<string | null>(null)
+  // True once a configured request has failed, so the header stops claiming Workers AI.
+  const [degraded, setDegraded] = useState(false)
   const [value, setValue] = useState('')
   const scrollRef = useRef<HTMLDivElement>(null)
   const timer = useRef<number>(0)
@@ -188,9 +195,11 @@ export function SumitAI() {
 
       const body = await response.json().catch(() => null)
       if (!response.ok || typeof body?.answer !== 'string') throw new Error('unavailable')
+      setDegraded(false)
       reveal(body.answer, Array.isArray(body.sources) ? body.sources : undefined)
     } catch {
       setRetry(q)
+      setDegraded(true)
       reveal(answerFrom(content, q))
     } finally {
       setPending(false)
@@ -230,7 +239,7 @@ export function SumitAI() {
 
   return (
     <div style={s('height:100%;display:flex;flex-direction:column')}>
-      <Header />
+      <Header degraded={degraded} />
       <div
         id="ai-scroll"
         ref={scrollRef}

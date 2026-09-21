@@ -108,7 +108,7 @@ export type Action =
   | { type: 'closeTransient' }
   | { type: 'iconScale'; scale: number }
   | { type: 'toggleDesktop' }
-  | { type: 'toggleDock' }
+  | { type: 'toggleDock'; viewport: { w: number; h: number } }
   | { type: 'closeAll' }
   | { type: 'minimizeAll' }
   | { type: 'frontAll' }
@@ -152,16 +152,29 @@ export function snapBox(
   }[zone]
 }
 
-/** Pull one window back inside a viewport, keeping at least a grabbable strip on screen. */
-function clampWindow(
-  win: WindowState,
-  viewport: { w: number; h: number },
-): WindowState {
-  const w = Math.min(win.w, viewport.w)
-  const h = Math.min(win.h, viewport.h - MENUBAR_H)
-  const x = Math.min(Math.max(win.x, 8 - w + 120), viewport.w - 120)
-  const y = Math.min(Math.max(win.y, MENUBAR_H), viewport.h - 60)
-  return win.w === w && win.h === h && win.x === x && win.y === y ? win : { ...win, x, y, w, h }
+type Box = { x: number; y: number; w: number; h: number }
+
+/** Pull one rectangle back inside a viewport, keeping at least a grabbable strip on screen. */
+function clampBox(box: Box, viewport: { w: number; h: number }): Box {
+  const w = Math.min(box.w, viewport.w)
+  const h = Math.min(box.h, viewport.h - MENUBAR_H)
+  const x = Math.min(Math.max(box.x, 8 - w + 120), viewport.w - 120)
+  const y = Math.min(Math.max(box.y, MENUBAR_H), viewport.h - 60)
+  return box.w === w && box.h === h && box.x === x && box.y === y ? box : { x, y, w, h }
+}
+
+/**
+ * Pull one window back inside a viewport — including the geometry it will restore to.
+ *
+ * `restore` holds where a snapped or maximised window goes when it is un-snapped. Clamping
+ * only the visible rectangle left that field at coordinates from the larger viewport, so the
+ * window came back on screen and then jumped off it again on the next un-snap.
+ */
+function clampWindow(win: WindowState, viewport: { w: number; h: number }): WindowState {
+  const box = clampBox(win, viewport)
+  const restore = win.restore ? clampBox(win.restore, viewport) : undefined
+  if (box === (win as Box) && restore === win.restore) return win
+  return { ...win, ...box, restore }
 }
 
 export function reducer(state: OsState, action: Action): OsState {
@@ -354,8 +367,18 @@ export function reducer(state: OsState, action: Action): OsState {
     case 'toggleDesktop':
       return { ...state, desktopHidden: !state.desktopHidden }
 
-    case 'toggleDock':
-      return { ...state, dockHidden: !state.dockHidden }
+    // Showing the dock raises the floor by DOCK_H, hiding it drops the floor back down, and a
+    // window tiled under the old floor keeps a rectangle that no longer means anything: the
+    // dock covers its bottom 82px, or it leaves a strip of bare desk. Re-tile with the flag.
+    case 'toggleDock': {
+      const dockVisible = state.dockHidden
+      const wins = { ...state.wins }
+      for (const key of Object.keys(wins) as AppId[]) {
+        const win = wins[key]!
+        if (win.snapped) wins[key] = { ...win, ...snapBox(win.snapped, action.viewport, dockVisible) }
+      }
+      return { ...state, dockHidden: !state.dockHidden, wins }
+    }
 
     case 'closeAll':
       return { ...state, wins: {}, active: null }
@@ -379,8 +402,15 @@ export function reducer(state: OsState, action: Action): OsState {
       let changed = false
       for (const key of Object.keys(wins) as AppId[]) {
         const win = wins[key]!
+        // A snapped window's visible rectangle is recomputed, never clamped — but `restore`
+        // is free geometry either way, and leaving it at the old viewport's coordinates sent
+        // the window straight back off screen the moment it was un-snapped.
         const next = win.snapped
-          ? { ...win, ...snapBox(win.snapped, action.viewport, !state.dockHidden) }
+          ? {
+              ...win,
+              ...snapBox(win.snapped, action.viewport, !state.dockHidden),
+              restore: win.restore ? clampBox(win.restore, action.viewport) : undefined,
+            }
           : clampWindow(win, action.viewport)
         if (next !== win) {
           wins[key] = next

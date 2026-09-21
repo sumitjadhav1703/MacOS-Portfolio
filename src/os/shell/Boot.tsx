@@ -108,7 +108,7 @@ export function Curtain({
         ...s(
           'position:absolute;inset:0;z-index:var(--z-curtain);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px;transition:background .6s ease',
         ),
-        background: hello ? 'var(--s-hello-wall)' : '#0b0d0f',
+        background: hello ? 'var(--s-hello-wall)' : 'var(--s-boot-wall)',
         animation: fading ? `bootOut ${DISSOLVE / 1000}s cubic-bezier(.32,.72,0,1) forwards` : undefined,
         cursor: onClick ? 'default' : undefined,
       }}
@@ -126,7 +126,7 @@ export function Curtain({
         >
           <div
             style={s(
-              'width:60px;height:60px;border-radius:14px;border:1px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:600;letter-spacing:.06em;color:#f2f3f5',
+              'width:60px;height:60px;border-radius:14px;border:1px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:600;letter-spacing:.06em;color:var(--s-boot-fg)',
             )}
           >
             SJ
@@ -150,7 +150,7 @@ export function Curtain({
         >
           <div
             style={{
-              ...s('height:100%;background:#fff;border-radius:3px'),
+              ...s('height:100%;background:var(--s-boot-fg);border-radius:3px'),
               animation: `bootBar ${POWER}ms cubic-bezier(.32,.72,0,1) forwards`,
             }}
           />
@@ -245,15 +245,25 @@ export function Boot() {
     } catch {
       // Private mode, or storage blocked. Play the full sequence; it is the better default.
     }
-    if (!seen) {
-      try {
-        localStorage.setItem(SEEN_KEY, '1')
-      } catch {
-        // Nothing to do — the visitor sees it again next time, which is harmless.
-      }
-    }
     setFull(!seen)
   }, [reduced, dispatch])
+
+  /**
+   * Written when the sequence finishes, not when it starts.
+   *
+   * The flag means "this browser has seen the full startup". Setting it up front made a
+   * reload, a tab close or a crash during those four seconds count as having seen it, and the
+   * visitor never got the animation again — on a first visit, which is the only visit it
+   * plays on.
+   */
+  const remember = useCallback(() => {
+    try {
+      localStorage.setItem(SEEN_KEY, '1')
+    } catch {
+      // Private mode, or storage blocked. The visitor sees it again next time; harmless.
+    }
+    setGone(true)
+  }, [])
 
   const booted = useCallback(() => dispatch({ type: 'booted' }), [dispatch])
 
@@ -261,7 +271,7 @@ export function Boot() {
   // Before the effect runs there is nothing to schedule yet, so hold the power beat.
   if (full === null) return <Curtain bar label="Sumit's Portfolio OS" />
 
-  return <Sequence full={full} onBooted={booted} onDone={() => setGone(true)} />
+  return <Sequence full={full} onBooted={booted} onDone={remember} />
 }
 
 /**

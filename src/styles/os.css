@@ -220,6 +220,11 @@
 /* The field the startup `hello` is drawn over. Derived per theme rather than being a
    second hardcoded palette; the pack's accent bleeds through via --s-accent. */
 [data-root] {
+  /* The power-on curtain, and the assistant's mark. Both were literals in a component, and
+     the curtain's was a second copy of the `html,body` background at the top of this file. */
+  --s-boot-wall: #0b0d0f;
+  --s-boot-fg: #f2f3f5;
+  --s-assistant: linear-gradient(180deg, #9370f4, #4a2cb2);
   --s-hello-wall:
     radial-gradient(52% 46% at 22% 26%, color-mix(in srgb, var(--s-accent) 42%, transparent) 0%, transparent 70%),
     radial-gradient(48% 44% at 82% 72%, rgba(236, 92, 140, .30) 0%, transparent 72%),

@@ -82,9 +82,38 @@ describe('window geometry', () => {
   })
 
   it('gives the tiled window the whole desk once the dock is hidden', () => {
-    const hidden = reducer(open(), { type: 'toggleDock' })
+    const hidden = reducer(open(), { type: 'toggleDock', viewport: VIEWPORT })
     const tiled = reducer(hidden, { type: 'snap', app: 'terminal', zone: 'left', viewport: VIEWPORT })
     expect(tiled.wins.terminal!.h).toBe(VIEWPORT.h - MENUBAR_H)
+  })
+
+  it('re-tiles a window that is already snapped when the dock is toggled', () => {
+    const tiled = reducer(open(), { type: 'snap', app: 'terminal', zone: 'left', viewport: VIEWPORT })
+    expect(tiled.wins.terminal!.h).toBe(VIEWPORT.h - MENUBAR_H - DOCK_H)
+
+    // Hiding the dock frees the band it occupied; the tile used to keep the short height
+    // until something else resized it, leaving a strip of bare desk under the window.
+    const hidden = reducer(tiled, { type: 'toggleDock', viewport: VIEWPORT })
+    expect(hidden.wins.terminal!.h).toBe(VIEWPORT.h - MENUBAR_H)
+
+    // Showing it again has to give the band back, or the dock paints over the window.
+    const shown = reducer(hidden, { type: 'toggleDock', viewport: VIEWPORT })
+    expect(shown.wins.terminal!.h).toBe(VIEWPORT.h - MENUBAR_H - DOCK_H)
+  })
+
+  it('clamps the geometry a window restores to, not only where it sits now', () => {
+    const tiled = reducer(open(), { type: 'snap', app: 'terminal', zone: 'left', viewport: VIEWPORT })
+    expect(tiled.wins.terminal!.restore).toBeDefined()
+
+    const small = { w: 620, h: 460 }
+    const clamped = reducer(tiled, { type: 'clampAll', viewport: small })
+    const restore = clamped.wins.terminal!.restore!
+    // Un-snapping after a shrink used to hand back coordinates from the larger viewport, so
+    // the window came back on screen and left it again on the next click.
+    expect(restore.w).toBeLessThanOrEqual(small.w)
+    expect(restore.h).toBeLessThanOrEqual(small.h - MENUBAR_H)
+    expect(restore.y).toBeGreaterThanOrEqual(MENUBAR_H)
+    expect(restore.x).toBeLessThanOrEqual(small.w - 120)
   })
 
   it('draws the preview where the window lands', () => {
