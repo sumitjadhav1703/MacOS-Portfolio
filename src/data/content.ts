@@ -59,6 +59,8 @@ export type Site = {
   email: string
   /** Resolved URL — the packaged PDF until one is uploaded. */
   resumeUrl: string
+  /** The PDF's text, extracted in /admin on upload. Searched by Sumit Context (docs/mcp.md). */
+  resumeText?: string
 }
 
 export type OsContent = {

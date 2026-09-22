@@ -4,9 +4,14 @@
 // first, and only then does the profile row start pointing at it. Nothing removes the previous
 // PDF — it stays in Assets, so a replacement that turns out to be the wrong file is one click of
 // Attach away from being undone (spec §23).
+//
+// The PDF's text is read here, in the browser, and saved in the same write as the key, so Sumit
+// Context (the MCP server) can search what the resume says. A text that fails to extract never
+// blocks the upload: the resume is replaced, and the screen says it is not searchable yet.
 
 import { useEffect, useRef, useState } from 'react'
 import { api } from './api'
+import { pdfText } from './pdfText'
 import { ASSETS, useAdmin } from './store'
 import { relative } from './filters'
 import { Banner, Button, CARD, StatusBadge, useAction } from './ui'
@@ -18,6 +23,8 @@ const PACKAGED = 'the PDF packaged with the site'
 export function Resume() {
   const { assets, ensure, refresh } = useAdmin()
   const [key, setKey] = useState<string | null>(null)
+  const [chars, setChars] = useState(0)
+  const [indexing, setIndexing] = useState(false)
   const [step, setStep] = useState<'idle' | 'uploading' | 'saving' | 'done'>('idle')
   const [notice, setNotice] = useState<string | null>(null)
   const input = useRef<HTMLInputElement>(null)
@@ -29,6 +36,7 @@ export function Resume() {
     run(async () => {
       const site = await api.singleton('site')
       setKey(typeof site?.resume_key === 'string' && site.resume_key ? site.resume_key : null)
+      setChars(typeof site?.resume_text === 'string' ? site.resume_text.length : 0)
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -40,6 +48,10 @@ export function Resume() {
     if (!file) return
     setNotice(null)
     setStep('uploading')
+    const text = await file
+      .arrayBuffer()
+      .then(pdfText)
+      .catch(() => '')
     let uploaded: { key: string } | null = null
     const stored = await run(async () => void (uploaded = await api.upload(file, 'resume')))
     if (input.current) input.current.value = ''
@@ -50,18 +62,40 @@ export function Resume() {
     // Only now that R2 has answered does the database learn about it.
     setStep('saving')
     const next = (uploaded as { key: string }).key
-    if (!(await run(() => api.saveSingleton('site', { resume_key: next })))) {
+    if (!(await run(() => api.saveSingleton('site', { resume_key: next, resume_text: text })))) {
       setStep('idle')
       setNotice('The file uploaded, but the profile was not updated. Try Replace again.')
       return
     }
     setKey(next)
+    setChars(text.length)
     setStep('done')
-    setNotice('Resume replaced. The previous file is still in Assets, in case you want it back.')
+    setNotice(
+      `Resume replaced. The previous file is still in Assets, in case you want it back.${
+        text ? '' : ' Its text could not be read, so Sumit Context cannot search it yet.'
+      }`,
+    )
     await refresh(ASSETS)
   }
 
-  const busy = step === 'uploading' || step === 'saving'
+  /** For a resume uploaded before text was stored: read the live PDF and save its text. */
+  const index = async () => {
+    if (!key) return
+    setNotice(null)
+    setIndexing(true)
+    const saved = await run(async () => {
+      const response = await fetch(`/files/${key}`)
+      if (!response.ok) throw new Error('The resume file could not be read.')
+      const text = await pdfText(await response.arrayBuffer())
+      if (!text) throw new Error('No text could be read from this PDF — is it a scanned image?')
+      await api.saveSingleton('site', { resume_text: text })
+      setChars(text.length)
+    })
+    setIndexing(false)
+    if (saved) setNotice('Sumit Context can now search the resume. It shows up within a minute.')
+  }
+
+  const busy = step === 'uploading' || step === 'saving' || indexing
 
   return (
     <div>
@@ -83,8 +117,17 @@ export function Resume() {
                 ? `${asset ? `${Math.max(1, Math.round(asset.size / 1024))} KB · ` : ''}uploaded ${relative(asset?.created_at)}`
                 : `Visitors are being served ${PACKAGED}. Uploading one replaces it everywhere the resume is offered.`}
             </div>
+            {key ? (
+              <div style={s('font-size:11px;color:var(--s-faint);margin-top:5px')}>
+                {chars
+                  ? `Searchable by Sumit Context · ${chars.toLocaleString()} characters of text`
+                  : 'Not searchable by Sumit Context yet — its text has not been read.'}
+              </div>
+            ) : null}
             <div role="status" aria-live="polite" style={s('font-size:11px;color:var(--s-faint);margin-top:5px')}>
-              {step === 'uploading'
+              {indexing
+                ? 'Reading the PDF…'
+                : step === 'uploading'
                 ? 'Uploading to storage…'
                 : step === 'saving'
                   ? 'Stored. Pointing the profile at it…'
@@ -102,6 +145,11 @@ export function Resume() {
                   Download
                 </a>
               </>
+            ) : null}
+            {key && !chars ? (
+              <Button onClick={index} disabled={busy}>
+                Make searchable
+              </Button>
             ) : null}
             <Button tone="accent" onClick={() => input.current?.click()} disabled={busy}>
               {busy ? 'Working…' : key ? 'Replace' : 'Upload'}

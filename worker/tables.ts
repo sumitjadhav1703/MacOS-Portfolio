@@ -165,6 +165,9 @@ export const SINGLETONS: Record<
       // than "anything that is not whitespace or @".
       email: { kind: 'text', max: 160, pattern: /^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+$/ },
       resume_key: { kind: 'text', max: 200, pattern: ASSET_KEY },
+      // Extracted from the PDF in the admin's browser (worker/admin-ui/Resume.tsx). Plain text,
+      // searched by Sumit Context; the PDF itself is already public.
+      resume_text: { kind: 'text', max: 20000 },
     },
   },
   os: {

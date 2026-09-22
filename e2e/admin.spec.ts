@@ -5,6 +5,7 @@
 // AGENTS.md says the admin has no DOM tests by design and the browser is the only place several
 // of these paths can fail. That stays true of unit tests — this is the browser, automated.
 
+import { readFileSync } from 'node:fs'
 import { expect, test, type Page } from '@playwright/test'
 
 const PASSWORD = process.env.E2E_ADMIN_PASSWORD ?? ''
@@ -180,6 +181,27 @@ test('uploads a file, refuses to delete it while it is in use, then deletes it',
   await page.request.patch(`/admin/api/projects/${row.id}`, { data: { cover_key: '' }, headers: { Origin: origin } })
   const deleted = await page.request.delete(`/admin/api/files/${key}`, { headers: { Origin: origin } })
   expect(deleted.ok()).toBe(true)
+})
+
+test('reads a replaced resume into text Sumit Context can search, and publishes it', async ({ page }) => {
+  await signIn(page)
+  await page.goto('/admin#/resume')
+  const pdf = readFileSync(new URL('../public/Sumit_Jadhav_Resume.pdf', import.meta.url))
+  await page.locator('input[type="file"][accept="application/pdf"]').setInputFiles({
+    name: 'resume.pdf',
+    mimeType: 'application/pdf',
+    buffer: pdf,
+  })
+  // Extracted in this browser, saved with the key, and said so on the screen.
+  await expect(page.getByText(/Searchable by Sumit Context · [\d,]+ characters/)).toBeVisible({ timeout: 30_000 })
+
+  const site = await (await page.request.get('/admin/api/site')).json()
+  expect(site.item.resume_text).toContain('EDUCATION')
+
+  // The public bundle carries it, which is all Sumit Context reads.
+  await expect
+    .poll(async () => (await (await page.request.get('/api/content')).json()).site.resumeText ?? '', { timeout: 70_000 })
+    .toContain('EDUCATION')
 })
 
 test('refuses a file whose bytes are not what it claims', async ({ page }) => {

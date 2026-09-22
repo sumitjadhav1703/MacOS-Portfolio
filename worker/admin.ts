@@ -424,6 +424,8 @@ async function writeSingleton(
   const { values, errors } = validate(single.fields, payload, true)
   if (errors.length) return fail(422, 'Some fields need attention.', { fields: errors })
   if (!Object.keys(values).length) return fail(400, 'Nothing to update.')
+  // A new resume without its text would leave the old file's words describing the new one.
+  if (name === 'site' && 'resume_key' in values && !('resume_text' in values)) values.resume_text = ''
 
   const sets = [...Object.keys(values).map((c) => `${c} = ?`), 'updated_at = ?'].join(', ')
   await env.DB.prepare(`UPDATE ${single.table} SET ${sets} WHERE id = 1`)

@@ -23,7 +23,7 @@ const DATA_NOTE =
 
 const INSTRUCTIONS = [
   "Sumit Context: read-only access to Sumit Jadhav's published portfolio — projects, research",
-  'write-ups, skills, experience, education, certificates and profile.',
+  'write-ups, skills, experience, education, certificates, profile and the text of the resume PDF.',
   'Use search_context first, then get_context on the ids it returns for the full text of a record',
   'or one section of it. Cite the source URL. If nothing matches, say the portfolio does not cover',
   'it; do not fill the gap from general knowledge. This server cannot change anything —',
@@ -45,7 +45,8 @@ export type ToolObserver = (tool: string, resultCount: number) => void
  */
 export async function createServer(source: ReadonlyContextSource, observe: ToolObserver = () => {}) {
   const content = await source.getContent()
-  const index = buildIndex(content, source.siteOrigin)
+  const resume = content.site.resumeText
+  const index = buildIndex(content, source.siteOrigin, resume)
   const slugs = content.projects.map((p) => p.slug).filter(Boolean)
 
   const server = new McpServer({ name: 'sumit-context', version: '1.0.0' }, { instructions: INSTRUCTIONS })
@@ -58,7 +59,7 @@ export async function createServer(source: ReadonlyContextSource, observe: ToolO
         "Search Sumit Jadhav's published portfolio and research. Returns up to 8 short snippets with ids " +
         'and source URLs; call get_context with an id for the full text. Types: project (overview), ' +
         'research (one section of a project — methodology, results, architecture…), profile, ' +
-        `experience, education, skill, certificate. Known project slugs: ${slugs.join(', ') || 'none'}. ` +
+        `experience, education, skill, certificate, resume (a section of the resume PDF). Known project slugs: ${slugs.join(', ') || 'none'}. ` +
         DATA_NOTE,
       inputSchema: searchInput,
       annotations: { title: 'Search Sumit context', ...READ_ONLY },
@@ -115,14 +116,14 @@ export async function createServer(source: ReadonlyContextSource, observe: ToolO
       title: 'Get Sumit profile',
       description:
         'Structured public profile: identity, skills, experience, education, certificates, links, resume. ' +
-        'Pass section for one part. ' +
+        'Pass section for one part; section "resume" includes the resume PDF text. ' +
         DATA_NOTE,
       inputSchema: profileInput,
       annotations: { title: 'Get Sumit profile', ...READ_ONLY },
     },
     async ({ section }) => {
       observe('get_profile', 1)
-      return reply(getProfile(content, source.siteOrigin, section))
+      return reply(getProfile(content, source.siteOrigin, section, resume))
     },
   )
 

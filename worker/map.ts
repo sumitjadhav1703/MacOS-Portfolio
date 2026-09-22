@@ -127,6 +127,7 @@ export function buildContent(rows: ContentRows, origin: string, siteOrigin: stri
       paragraphs: parse<string[]>(site.paragraphs, []),
       email: str(site.email),
       resumeUrl: resumeKey ? `${origin}/files/${resumeKey}` : `${siteOrigin}${PACKAGED_RESUME}`,
+      resumeText: str(site.resume_text) || undefined,
     },
     projects: rows.projects.map((r) => mapProject(r, origin)),
     certificates: rows.certificates.map((r) => mapCertificate(r, origin)),

@@ -110,6 +110,13 @@ describe('buildContent', () => {
     ).toBe(`${ORIGIN}/files/portfolio/resume/cv.pdf`)
   })
 
+  it('carries the resume text when one was extracted, and nothing when not', () => {
+    expect(buildContent(emptyRows, ORIGIN, SITE).site.resumeText).toBeUndefined()
+    expect(
+      buildContent({ ...emptyRows, site: { resume_text: 'EDUCATION\nB.Tech' } }, ORIGIN, SITE).site.resumeText,
+    ).toBe('EDUCATION\nB.Tech')
+  })
+
   it('reports the newest timestamp across every table', () => {
     const content = buildContent(
       {
