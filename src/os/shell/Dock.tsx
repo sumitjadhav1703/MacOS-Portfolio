@@ -61,7 +61,9 @@ function DockIcon({
         ...s('position:relative;width:54px;height:54px;transform-origin:bottom center;will-change:transform;cursor:default'),
         transform: bouncing ? 'translateY(-17px) scale(1.05)' : `scale(${scale})`,
         margin: `0 ${5 + (scale - 1) * 27}px`,
-        zIndex: Math.round(scale * 10),
+        // The label escapes the icon's own box, so the icon has to outrank its neighbours
+        // while it is showing — otherwise the next icon's glass is painted over the text.
+        zIndex: labelled ? 40 : Math.round(scale * 10),
         transition: bouncing
           ? 'transform .12s cubic-bezier(.3,0,.2,1)'
           : `transform .78s ${SPRING_B},margin .13s ${EASE}`,
@@ -130,6 +132,9 @@ function MiniWindow({
         ...s('position:relative;width:38px;height:38px;margin:0 4px 8px;cursor:default;transform-origin:bottom center'),
         transform: hover ? 'translateY(-4px)' : 'none',
         transition: `transform .22s ${EASE}`,
+        // Above its neighbours while hovered, or the next icon's glass paints over the label —
+        // every dock icon carries a z-index of its own from the magnification.
+        zIndex: hover ? 40 : 1,
       }}
     >
       <AppIcon spec={specFor(id)} size={38} />
@@ -137,7 +142,10 @@ function MiniWindow({
         data-tip={title}
         style={{
           ...s(
-            'position:absolute;left:50%;top:-34px;transform:translateX(-50%);padding:4px 9px;border-radius:8px;background:var(--s-tip);-webkit-backdrop-filter:var(--s-blur);backdrop-filter:var(--s-blur);border:1px solid var(--s-line);color:var(--s-text);font-size:11.5px;white-space:nowrap;pointer-events:none;transition:opacity .18s ease',
+            // Clear of the dock, not merely above the tile: these tiles are 38px in a row of
+            // 54px icons, so a label hung off this one at the app icons' offset landed inside
+            // the dock and was read through the trash icon's glass.
+            'position:absolute;left:50%;bottom:calc(100% + 18px);transform:translateX(-50%);padding:4px 9px;border-radius:8px;background:var(--s-tip);-webkit-backdrop-filter:var(--s-blur);backdrop-filter:var(--s-blur);border:1px solid var(--s-line);box-shadow:var(--s-shadow-pop);color:var(--s-text);font-size:11.5px;white-space:nowrap;pointer-events:none;transition:opacity .18s ease',
           ),
           opacity: hover ? 1 : 0,
           visibility: hover ? 'visible' : 'hidden',
