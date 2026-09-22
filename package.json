@@ -33,16 +33,20 @@
     "e2e": "playwright test",
     "e2e:admin": "node scripts/e2e-admin.mjs",
     "smoke": "node scripts/smoke.mjs",
+    "mcp:inspect": "npx @modelcontextprotocol/inspector",
     "check:migrations": "node scripts/check-migrations.mjs",
     "check:bundle": "node scripts/check-bundle.mjs",
     "check:install-scripts": "node scripts/check-install-scripts.mjs",
     "preworker:deploy": "node scripts/check-deploy.mjs"
   },
   "dependencies": {
+    "@cloudflare/workers-oauth-provider": "^0.10.3",
+    "@modelcontextprotocol/server": "^2.0.0",
     "next": "^16.3.4",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
-    "simple-icons": "^16.30.0"
+    "simple-icons": "^16.30.0",
+    "zod": "^4.6.5"
   },
   "overrides": {
     "sharp": "^0.35.4"
