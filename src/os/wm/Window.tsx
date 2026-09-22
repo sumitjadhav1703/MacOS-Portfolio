@@ -136,7 +136,12 @@ export function Window({
   // possible on the very first minimise; the transition simply re-aims, which is invisible.
   useEffect(() => {
     if (!win.min || dockHidden) return
-    const el = document.querySelector<HTMLElement>(`#dock [data-item="${id}"]`)
+    // The app's own dock icon if it has one, else the tile the dock parks the window on.
+    // A project has no dock icon at all, so before this it fell back to the centre of the
+    // screen — it flew to a point with nothing at it.
+    const el = document.querySelector<HTMLElement>(
+      `#dock [data-item="${id}"], #dock [data-min="${id}"]`,
+    )
     if (!el) return
     const rect = el.getBoundingClientRect()
     setDockX(rect.left + rect.width / 2)

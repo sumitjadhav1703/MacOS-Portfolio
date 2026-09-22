@@ -6,10 +6,9 @@ import { pressable } from '../pressable'
 import { titleOf } from '../registry'
 import { fuzzy } from '../search/Spotlight'
 import { useContent } from '../content'
-import { folderColor } from '../packs'
 import { useDispatch, useOpenApp, useOs } from '../store'
 import { useReducedMotion } from '../useTheme'
-import { AppIcon, iconFor, type IconSpec } from './AppIcon'
+import { AppIcon, specFor } from './AppIcon'
 import type { AppId } from '../types'
 
 /** Everything launchable, in the order macOS would lay it out: apps first, then documents. */
@@ -29,21 +28,6 @@ const APPS: AppId[] = [
   'education',
   'certificates',
 ]
-
-/** A published project, wearing the folder colour it has everywhere else. */
-function projectSpec(id: AppId): IconSpec {
-  const [c1, c2] = folderColor()
-  return {
-    id,
-    tip: titleOf(id),
-    grad: `linear-gradient(180deg,${c1},${c2})`,
-    inks: [
-      ['left:14px;top:17px;width:11px;height:7px;border-radius:2px 3px 0 0;background:rgba(255,255,255,.5)', 'ink'],
-      ['left:14px;top:21px;width:26px;height:18px;border-radius:3px;background:rgba(255,255,255,.9)', 'ink'],
-      ['left:14px;top:27px;width:26px;height:1.6px;background:rgba(0,0,0,.16)', 'ink'],
-    ],
-  }
-}
 
 export function Launchpad() {
   const { launchpad } = useOs()
@@ -107,10 +91,7 @@ export function Launchpad() {
         )}
       >
         {items.map((id, i) => {
-          // A project has no icon of its own, and a two-letter monogram is the one thing in
-          // this grid that looks like a placeholder. Give it the same folder the desktop and
-          // Finder already give it, from the same `folderColor`.
-          const spec = iconFor(id) ?? projectSpec(id)
+          const spec = specFor(id)
           return (
             <div
               key={id}

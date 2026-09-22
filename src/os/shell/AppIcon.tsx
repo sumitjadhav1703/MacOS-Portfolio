@@ -1,6 +1,8 @@
 'use client'
 
 import { s } from '../css'
+import { folderColor } from '../packs'
+import { titleOf } from '../registry'
 import type { AppId } from '../types'
 
 /** An icon is a tinted face plus a few hand-drawn ink shapes — no bitmaps anywhere. */
@@ -187,6 +189,29 @@ export const EXTRA_ICONS: IconSpec[] = [
 
 export const iconFor = (id: string): IconSpec | undefined =>
   ICONS.find((icon) => icon.id === id) ?? EXTRA_ICONS.find((icon) => icon.id === id)
+
+/**
+ * A published project, wearing the folder it has everywhere else.
+ *
+ * Projects are not in `ICONS` — the CMS can add one at any moment — and a two-letter monogram
+ * is the one thing in a row of icons that reads as a placeholder.
+ */
+function projectSpec(id: AppId): IconSpec {
+  const [c1, c2] = folderColor()
+  return {
+    id,
+    tip: titleOf(id),
+    grad: `linear-gradient(180deg,${c1},${c2})`,
+    inks: [
+      ['left:14px;top:17px;width:11px;height:7px;border-radius:2px 3px 0 0;background:rgba(255,255,255,.5)', 'ink'],
+      ['left:14px;top:21px;width:26px;height:18px;border-radius:3px;background:rgba(255,255,255,.9)', 'ink'],
+      ['left:14px;top:27px;width:26px;height:1.6px;background:rgba(0,0,0,.16)', 'ink'],
+    ],
+  }
+}
+
+/** An icon for any window id, project or not. Launchpad and the dock both need this. */
+export const specFor = (id: AppId): IconSpec => iconFor(id) ?? projectSpec(id)
 
 /**
  * The icon face itself, sized by `size`; the dock and Launchpad share it.
