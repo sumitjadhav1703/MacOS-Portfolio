@@ -177,6 +177,10 @@ describe('/admin/authorize', () => {
     const html = await response.text()
     expect(html).toContain('Sign in to connect')
     expect(html).not.toContain('name="decision"')
+    // Not reload(): after claude.ai opens this page cross-site, a reload withholds the
+    // SameSite=Strict cookie and the form loops.
+    expect(html).toContain('location.assign(location.href)')
+    expect(html).not.toContain('location.reload')
     expect(response.headers.get('Content-Security-Policy')).toContain("frame-ancestors 'none'")
   })
 

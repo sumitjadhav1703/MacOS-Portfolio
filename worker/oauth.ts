@@ -49,7 +49,12 @@ button.go{background:var(--accent);border-color:var(--accent);color:#fff}#err{co
   })
 }
 
-/** Sign-in reuses /admin/api/login: same limiter, same cookie. Reloading then shows consent. */
+/**
+ * Sign-in reuses /admin/api/login: same limiter, same cookie. Then it navigates to itself rather
+ * than reloading. claude.ai opens this page from its own origin, and the session cookie is
+ * SameSite=Strict: a reload keeps that cross-site origin and the cookie stays behind, so the
+ * sign-in form would come back forever. A navigation this page starts is same-site.
+ */
 const signIn = () =>
   page(
     'Sign in · Sumit Context',
@@ -62,7 +67,7 @@ document.getElementById('f').addEventListener('submit', async (e) => {
   e.preventDefault()
   const r = await fetch('/admin/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ password: document.getElementById('pw').value }) })
-  if (r.ok) location.reload()
+  if (r.ok) location.assign(location.href)
   else document.getElementById('err').textContent = (await r.json().catch(() => ({}))).error || 'Sign-in failed.'
 })
 </script>`,
