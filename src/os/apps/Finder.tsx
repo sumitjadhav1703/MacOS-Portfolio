@@ -178,11 +178,17 @@ export function Finder() {
         ))}
       </div>
 
-      <div style={s('flex:1;overflow:auto;padding:22px 24px')}>
+      {/* A column, not a scroller. A section brings its own `Body`, which is
+          `height:100%;overflow:auto` — and `height:100%` needs a parent with a definite height
+          or it resolves to auto and the child collapses. Resume did exactly that: its viewer
+          is `flex:1` inside a `height:100%` column, so the <object> measured 672x0 and the pane
+          showed a toolbar over nothing. The breadcrumb is `flex:none`, the content below it
+          owns the scrolling. */}
+      <div style={s('flex:1;min-width:0;display:flex;flex-direction:column')}>
         <div
           data-glasspane="1"
           style={s(
-            'display:flex;align-items:center;gap:10px;margin:-22px -24px 18px;padding:9px 24px;font-size:12px;color:var(--s-dim);border-bottom:1px solid var(--s-line);position:sticky;top:-22px;z-index:2',
+            'flex:none;display:flex;align-items:center;gap:10px;padding:9px 24px;font-size:12px;color:var(--s-dim);border-bottom:1px solid var(--s-line);z-index:2',
           )}
         >
           <span
@@ -222,14 +228,18 @@ export function Finder() {
 
         {Section ? (
           // The same component the window manager would open, rendered into the pane it was
-          // asked for. `Body` is already `height:100%;overflow:auto`, so it fills this box —
-          // but the pane scrolls too, and two scrollers would fight, so the pane gives up its
-          // own padding and lets the section keep its reading measure.
-          <div key={finderPath} style={{ ...s('margin:0 -24px -22px'), animation: paneIn }}>
+          // asked for. `min-height:0` is what lets it shrink inside the column rather than
+          // pushing the pane taller than the window.
+          <div key={finderPath} style={{ ...s('flex:1;min-height:0'), animation: paneIn }}>
             <Section />
           </div>
         ) : (
-          <div style={{ ...s('display:flex;flex-wrap:wrap;gap:22px 14px'), animation: paneIn }}>
+          <div
+            style={{
+              ...s('flex:1;min-height:0;overflow:auto;padding:22px 24px;display:flex;flex-wrap:wrap;align-content:flex-start;gap:22px 14px'),
+              animation: paneIn,
+            }}
+          >
             {finderPath === 'projects' ? (
               projects.map((project, i) => {
                 const id = project.id as AppId

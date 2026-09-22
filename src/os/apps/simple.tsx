@@ -1,4 +1,4 @@
-import { useState, type ComponentType, type CSSProperties } from 'react'
+import { useEffect, useRef, useState, type ComponentType, type CSSProperties } from 'react'
 import { EASE } from '../anim'
 import { Body, Chips, MetricGrid, PageHead, StatusPill, externalAttrs } from '../../components/primitives'
 import { Icon, PlatformIcon, platformSlug } from '../../lib/icons'
@@ -251,6 +251,9 @@ export function Experience() {
  */
 const IMAGE = /\.(png|jpe?g|webp|gif|avif)(\?|#|$)/i
 
+const THUMB_W = 88
+const THUMB_H = 66
+
 type Preview = { kind: 'image'; url: string } | { kind: 'pdf'; url: string } | null
 
 function previewOf(certificate: Certificate): Preview {
@@ -259,6 +262,78 @@ function previewOf(certificate: Certificate): Preview {
   return IMAGE.test(certificate.fileUrl)
     ? { kind: 'image', url: certificate.fileUrl }
     : { kind: 'pdf', url: certificate.fileUrl }
+}
+
+/**
+ * The first page of a PDF, small enough to be a thumbnail.
+ *
+ * There is no way to rasterise a PDF in the browser without shipping a renderer, and this repo
+ * does not add dependencies — so the thumbnail *is* the PDF, laid out at page size and scaled
+ * down into a clipped box. It costs a plugin instance, which is why it mounts only once the
+ * card has been scrolled near: fourteen of them at once, to draw fourteen postage stamps, is
+ * not a trade worth making.
+ *
+ * `pointer-events:none` keeps the click on the card, and the `PDF` chip is the object's own
+ * fallback, so a browser with no viewer shows it without any detection — which is just as well,
+ * because a refused frame cannot be detected.
+ */
+const PAGE_W = 210
+
+function PdfThumb({ url, width }: { url: string; width: number }) {
+  const box = useRef<HTMLDivElement>(null)
+  const [near, setNear] = useState(false)
+
+  useEffect(() => {
+    const el = box.current
+    if (!el || near) return
+    if (typeof IntersectionObserver !== 'function') {
+      setNear(true)
+      return
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) setNear(true)
+      },
+      { rootMargin: '240px' },
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [near])
+
+  return (
+    <div ref={box} style={s('position:absolute;inset:0;overflow:hidden')}>
+      {near ? (
+        <object
+          data={`${url}#toolbar=0&navpanes=0&scrollbar=0&view=FitH&page=1`}
+          type="application/pdf"
+          aria-hidden="true"
+          style={{
+            ...s('position:absolute;left:0;top:0;border:0;pointer-events:none'),
+            width: PAGE_W,
+            height: PAGE_W * 1.35,
+            transform: `scale(${width / PAGE_W})`,
+            transformOrigin: 'top left',
+          }}
+        >
+          <PdfChip />
+        </object>
+      ) : (
+        <PdfChip />
+      )}
+    </div>
+  )
+}
+
+function PdfChip() {
+  return (
+    <span
+      style={s(
+        'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--s-paper-desk)',
+      )}
+    >
+      PDF
+    </span>
+  )
 }
 
 function CertificateCard({ certificate, delay }: { certificate: Certificate; delay?: number }) {
@@ -282,8 +357,10 @@ function CertificateCard({ certificate, delay }: { certificate: Certificate; del
             aria-expanded={open}
             style={{
               ...s(
-                'width:74px;height:56px;flex:none;border-radius:9px;overflow:hidden;border:1px solid var(--s-line);background:var(--s-paper);display:flex;align-items:center;justify-content:center;position:relative',
+                'flex:none;border-radius:9px;overflow:hidden;border:1px solid var(--s-line);background:var(--s-paper);display:flex;align-items:center;justify-content:center;position:relative',
               ),
+              width: THUMB_W,
+              height: THUMB_H,
               cursor: open ? 'zoom-out' : 'zoom-in',
             }}
           >
@@ -297,13 +374,7 @@ function CertificateCard({ certificate, delay }: { certificate: Certificate; del
                 style={s('width:100%;height:100%;object-fit:cover;display:block')}
               />
             ) : (
-              <span
-                style={s(
-                  'font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--s-paper-desk)',
-                )}
-              >
-                PDF
-              </span>
+              <PdfThumb url={preview.url} width={THUMB_W} />
             )}
           </div>
         ) : null}
