@@ -95,6 +95,13 @@ applied in SQL, and the public bundle is built field by field rather than by spr
 draft column cannot leak by accident. The Ask Sumit assistant is a separate Worker with an `AI`
 binding and no database at all — it can only see the bundle it is handed.
 
+**The MCP server is read-only by construction.** `/mcp` (docs/mcp.md) requires an OAuth access
+token for the `/mcp` resource with scope `mcp:read` — the only scope that exists — issued after
+the owner signs in with the admin password at `/admin/authorize`. Its tools are handed a function
+that returns the published bundle and nothing else: no database, bucket, KV, secret or admin
+handler is in reach, so there is no write path to guard. Inputs are strict and bounded, there is
+no outbound fetch, and a browser `Origin` other than the Worker or the site is refused.
+
 **No HTML is ever constructed from content.** There is no `dangerouslySetInnerHTML` anywhere in
 the application. React escapes text; the injection surface is URLs, which is why they are the part
 that is validated.

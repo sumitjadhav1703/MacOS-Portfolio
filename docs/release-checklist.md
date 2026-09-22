@@ -37,6 +37,8 @@ npm run ci
 - [ ] `npm audit` reviewed — a high or critical in a runtime dependency blocks the release
 - [ ] Nothing new in `git ls-files` that should not be tracked
 - [ ] No `.env`, `.dev.vars` or credential in the diff
+- [ ] If `worker/mcp/` or `worker/oauth.ts` changed: anonymous `POST /mcp` is 401, and an
+      authorised `tools/list` still shows exactly four tools, all `readOnlyHint: true`
 
 ## Migrations
 

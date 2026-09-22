@@ -1,6 +1,6 @@
 // A smoke test that is safe to point at production.
 //
-// Everything here is a GET, except one anonymous POST that is expected to be refused. There is no
+// Everything here is a GET, except anonymous POSTs that are expected to be refused. There is no
 // login: spec §25 forbids automating an admin sign-in with a committed credential, and there is
 // no good reason to hold a production password just to prove a page renders. Admin verification
 // stays manual and is listed in docs/release-checklist.md.
@@ -128,6 +128,25 @@ if (API) {
       must(response.status === 401, `${method} ${path} returned ${response.status}, expected 401`)
     }
     return 'all four 401'
+  })
+
+  await check('an anonymous MCP request is refused', async () => {
+    const response = await fetch(`${API}/mcp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
+      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list', params: {} }),
+    })
+    must(response.status === 401, `expected 401, got ${response.status}`)
+    must((response.headers.get('www-authenticate') ?? '').startsWith('Bearer '), 'no Bearer challenge')
+    return '401 with a Bearer challenge'
+  })
+
+  await check('the MCP resource metadata', async () => {
+    const response = await get(`${API}/.well-known/oauth-protected-resource/mcp`)
+    must(response.status === 200, `expected 200, got ${response.status}`)
+    const meta = await response.json()
+    must(JSON.stringify(meta.scopes_supported) === '["mcp:read"]', `scopes are ${JSON.stringify(meta.scopes_supported)}`)
+    return 'scope mcp:read only'
   })
 
   await check('no draft reaches the public bundle', async () => {

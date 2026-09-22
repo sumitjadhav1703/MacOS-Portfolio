@@ -1,10 +1,14 @@
 import type { Env } from './env'
-import { DOCUMENT_HEADERS, corsHeaders, fail, json, log } from './http'
+import { DOCUMENT_HEADERS, allowedOrigins, corsHeaders, fail, json, log } from './http'
 import { TTL_SECONDS, cachedContent } from './content'
 import { serveFile } from './files'
 import { currentSession, handleLogin, handleLogout, originAllowed } from './auth'
 import { handleAdminApi } from './admin'
 import { askOriginAllowed, handleAsk } from './ask'
+import { OAuthProvider } from '@cloudflare/workers-oauth-provider'
+import { AUTHORIZE_PATH, handleAuthorize, MCP_SCOPE } from './oauth'
+import type { McpProps } from './oauth'
+import { handleMcp } from './mcp/server'
 
 const MUTATIONS = ['POST', 'PUT', 'PATCH', 'DELETE']
 
@@ -58,7 +62,8 @@ async function publicApi(
   return value === undefined ? null : json(value)
 }
 
-export default {
+/** Everything that is not OAuth or `/mcp`: the public API, the admin API and the admin SPA. */
+export const app = {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url)
     const origin = url.origin
@@ -178,3 +183,71 @@ export default {
     }
   },
 }
+
+/**
+ * `/mcp`, reached only with a valid, unexpired access token issued for this resource — the
+ * provider below refuses anything else with a 401 before this runs.
+ *
+ * What crosses into worker/mcp/ is a `ReadonlyContextSource`: one function returning the
+ * published bundle, and the site's origin. Not `env`. The tools cannot reach D1, R2, KV, a secret
+ * or an admin handler, because they are never handed one.
+ */
+async function mcpApi(request: Request, env: Env, ctx: ExecutionContext & { props?: McpProps }): Promise<Response> {
+  const props = ctx.props
+  if (!props?.scope?.includes(MCP_SCOPE)) {
+    log('mcp.auth_failure', { reason: 'scope' })
+    return fail(403, 'Insufficient scope.')
+  }
+  const { success } = await env.MCP_LIMIT.limit({ key: `mcp:${props.sub}` })
+  if (!success) {
+    log('mcp.rate_limited', {})
+    return fail(429, 'Too many requests. Try again in a minute.')
+  }
+  const url = new URL(request.url)
+  try {
+    return await handleMcp(
+      request,
+      {
+        getContent: async () => (await cachedContent(env, url.origin, ctx)).content,
+        siteOrigin: env.SITE_ORIGIN,
+      },
+      { allowedOriginHostnames: [url.hostname, ...allowedOrigins(env).map((o) => new URL(o).hostname)] },
+    )
+  } catch (error) {
+    log('mcp.error', { message: String(error).slice(0, 200) })
+    return fail(500, 'Something went wrong.')
+  }
+}
+
+/**
+ * The Worker, wrapped in an OAuth 2.1 authorization server for `/mcp`. Every other path reaches
+ * `app` exactly as before; the provider only claims `/mcp`, `/oauth/*` and the `.well-known`
+ * metadata, and `/admin/authorize` is ours (worker/oauth.ts). Tokens live in OAUTH_KV, encrypted.
+ */
+export default new OAuthProvider<Env>({
+  apiRoute: '/mcp',
+  apiHandler: { fetch: mcpApi as ExportedHandlerFetchHandler<Env> },
+  defaultHandler: {
+    async fetch(request, env, ctx) {
+      if (new URL(request.url).pathname === AUTHORIZE_PATH) {
+        try {
+          return await handleAuthorize(request, env)
+        } catch (error) {
+          log('oauth.error', { message: String(error).slice(0, 200) })
+          return fail(500, 'Something went wrong.')
+        }
+      }
+      return app.fetch(request, env, ctx)
+    },
+  },
+  authorizeEndpoint: AUTHORIZE_PATH,
+  tokenEndpoint: '/oauth/token',
+  clientRegistrationEndpoint: '/oauth/register',
+  scopesSupported: [MCP_SCOPE],
+  accessTokenTTL: 3600,
+  refreshTokenTTL: 30 * 24 * 3600,
+  resourceMetadata: {
+    scopes_supported: [MCP_SCOPE],
+    resource_name: 'Sumit Context',
+  },
+})

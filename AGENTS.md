@@ -91,6 +91,9 @@ worker/                       Cloudflare Worker: public read API, admin API, adm
   tables.ts                   the declarative SPECS/SINGLETONS one CRUD handler is driven by
   map.ts                      D1 row → public bundle, pure — the admin's Preview imports it too
   drafts.ts                   merge/promote a project draft, and duplicate one. Pure, tested
+  oauth.ts                    /admin/authorize — sign-in + consent for Sumit Context's OAuth
+  mcp/                        Sumit Context, the read-only MCP server at /mcp (docs/mcp.md)
+    retrieval.ts              bundle → index → search / get, pure; tools.ts the four tools
   admin-ui/                   the admin SPA (Vite + React 19, no router, no state library)
     router.ts store.tsx       hash routing; one cache of every list, refreshed after a write
     schema.ts Fields.tsx      which fields exist and how each one is edited
@@ -190,6 +193,17 @@ withheld from the assistant by a rule someone has to remember — it is never in
 answers, and there is no second query to get wrong. It is also why publishing in `/admin` makes
 a project answerable within the 60-second cache TTL, with no knowledge file and no redeploy.
 Give that Worker a database binding and both properties are gone at once.
+
+**MCP is handed a `ReadonlyContextSource`, never `env`.** `/mcp` (Sumit Context, `docs/mcp.md`)
+is a read-only MCP server behind OAuth. `worker/index.ts` wraps the whole Worker in
+`@cloudflare/workers-oauth-provider`, checks the `mcp:read` scope and the `MCP_LIMIT` rate limit,
+then gives `worker/mcp/` exactly `{ getContent, siteOrigin }` — `getContent` being the same
+`cachedContent()` bundle `/api/content` serves. That is why it follows /admin with no code change
+and why it cannot write: nothing in its reach can. Do not pass it `env`, a binding, or a helper
+from `admin.ts`, `auth.ts` or `files.ts`; `scripts/mcp-readonly.test.mjs` fails the build if you
+do, and a new tool whose name starts `create_`/`update_`/`delete_`… fails `protocol.test.ts`.
+The consent page is `/admin/authorize` because the session cookie is `Path=/admin`; moved
+anywhere else it never sees the cookie and the sign-in loops.
 
 **Project ids are not a closed set.** `AppId` is `StaticAppId | \`project-${string}\``, so
 anything that looks up an id must tolerate one it has never seen. Use `isAppId` to validate
@@ -343,6 +357,9 @@ file.
 - `npm test`, `npm run ai:test` and `npm run worker:check`
 - If the Worker changed: `npm run worker:dev`, then confirm anonymous `POST`/`PATCH`/`DELETE`
   against `/admin/api/*` all return 401
+- If `worker/mcp/` or `worker/oauth.ts` changed: `npm run worker:dev`, then `curl -i -X POST
+  localhost:8787/mcp` must be 401 with a `WWW-Authenticate: Bearer` header, and one pass through
+  `npm run mcp:inspect` (sign in, Allow, `tools/list`, one search) must work
 - If `ai/` changed: `npm run ai:dev` and send one grounded ask. Workers AI has no local
   emulation, so this needs `wrangler login` and opens a remote session — a 502 there means the
   payload conversion in `providers/workers_ai.py` stopped matching what the binding accepts,

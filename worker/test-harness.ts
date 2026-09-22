@@ -109,6 +109,41 @@ export function fakeBucket(seed: Record<string, Uint8Array> = {}): FakeBucket {
   return bucket as unknown as FakeBucket
 }
 
+export type FakeKv = KVNamespace & { readonly store: Map<string, { value: string; expires?: number }> }
+
+/** A KV stand-in for the OAuth provider's token store. Honours `expirationTtl` against Date.now(). */
+export function fakeKv(): FakeKv {
+  const store = new Map<string, { value: string; expires?: number }>()
+  const live = (key: string) => {
+    const hit = store.get(key)
+    if (hit?.expires && hit.expires <= Date.now()) store.delete(key)
+    return store.get(key)
+  }
+  const kv = {
+    store,
+    get: async (key: string, options?: string | { type?: string }) => {
+      const hit = live(key)
+      if (!hit) return null
+      const type = typeof options === 'string' ? options : options?.type
+      return type === 'json' ? JSON.parse(hit.value) : hit.value
+    },
+    put: async (key: string, value: string, options?: { expirationTtl?: number }) => {
+      store.set(key, {
+        value,
+        expires: options?.expirationTtl ? Date.now() + options.expirationTtl * 1000 : undefined,
+      })
+    },
+    delete: async (key: string) => {
+      store.delete(key)
+    },
+    list: async (options: { prefix?: string } = {}) => ({
+      keys: [...store.keys()].filter((k) => live(k) && k.startsWith(options.prefix ?? '')).map((name) => ({ name })),
+      list_complete: true,
+    }),
+  }
+  return kv as unknown as FakeKv
+}
+
 export const SITE = 'https://site.example.com'
 export const ORIGIN = 'https://api.example.workers.dev'
 
@@ -145,6 +180,8 @@ export function makeEnv(overrides: Partial<Env> = {}): Env {
     ADMIN_PASSWORD_HASH: '',
     ASK_AI: { fetch: async () => new Response(JSON.stringify({ answer: 'x', sources: [] })) },
     ASK_LIMIT: { limit: async () => ({ success: true }) },
+    MCP_LIMIT: { limit: async () => ({ success: true }) },
+    OAUTH_KV: fakeKv(),
     ...overrides,
   } as unknown as Env
 }

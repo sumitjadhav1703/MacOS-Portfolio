@@ -31,6 +31,14 @@ if (!db?.database_id || /^REPLACE_WITH|^$/.test(db.database_id)) {
   )
 }
 
+const kv = config.kv_namespaces?.find((n) => n.binding === 'OAUTH_KV')
+if (!kv?.id || /^REPLACE_WITH|^$/.test(kv.id)) {
+  problems.push(
+    `kv_namespaces OAUTH_KV id is ${JSON.stringify(kv?.id)}.\n` +
+      '    Run `npx wrangler kv namespace create OAUTH_KV` and paste the id it prints.',
+  )
+}
+
 const site = config.vars?.SITE_ORIGIN
 if (!site) {
   problems.push('vars.SITE_ORIGIN is not set. It is the CORS allowlist; the site cannot read the API without it.')
