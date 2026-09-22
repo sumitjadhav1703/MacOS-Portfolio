@@ -5,7 +5,7 @@ CMS/admin system.**
 
 It lets an MCP client, such as Claude Code, search and read Sumit's **published** portfolio:
 projects, the individual sections of each project (methodology, results, architecture…), skills,
-experience, education, certificates and profile. It is not a chatbot, and there is no model
+experience, education, certificates, profile, and the text of the resume PDF. It is not a chatbot, and there is no model
 inside it. It returns sourced evidence, and the agent that called it does the reasoning.
 
 ```
@@ -61,6 +61,23 @@ a new `research:<slug>/<section>` document. The live project slugs also appear i
 `search_context` description, so they are visible in `tools/list`. None of this needs a code
 change or a deploy.
 
+### The resume
+
+The resume PDF's text is searchable too, as `resume:<section>` documents, split on the resume's
+own headings (`resume:education`, `resume:projects`, `resume:work-experience`…).
+`get_profile({ section: "resume" })` returns the whole text.
+
+The text is extracted **in the /admin browser** when you upload a resume. It is saved in the
+same write as the file key (`site.resume_text`, migration 0004) and then travels in the
+published bundle like everything else. It is deliberately not extracted in the Worker: a
+free-plan request gets 10 ms of CPU, and parsing a one-page PDF takes 20–100 ms. A write that
+changes the key without sending the text clears the text, so the text always belongs to the
+file being served.
+
+For a resume uploaded before this existed, open **/admin → Resume** and click
+**Make searchable**. The screen shows whether the current resume is searchable and how many
+characters were read.
+
 A draft is never visible. `projects.draft` is not in the bundle, and `readContent` filters on
 `published = 1` in SQL. MCP inherits that boundary and does not re-implement it.
 
@@ -91,7 +108,7 @@ The annotations are a hint to the client. They are not the security boundary.
 | field | type | notes |
 |---|---|---|
 | `query` | string, 1–300 | required |
-| `type` | `all` \| `project` \| `research` \| `profile` \| `experience` \| `education` \| `skill` \| `certificate` | optional |
+| `type` | `all` \| `project` \| `research` \| `profile` \| `experience` \| `education` \| `skill` \| `certificate` \| `resume` | optional |
 | `project` | slug | optional; must be a published project |
 | `limit` | 1–8 | default 5 |
 
@@ -221,6 +238,7 @@ Things to try:
 | `429` | `MCP_LIMIT` reached. Wait a minute. |
 | `invalid_target` at token exchange | The client asked for a `resource` other than this `/mcp` URL. |
 | The sign-in page keeps coming back | The login succeeded but the cookie was not stored. Check the page is served over https in production; `Secure` cookies do not set over http. |
+| The resume isn't found | Open /admin → Resume. If it says "Not searchable", click **Make searchable**. A scanned-image PDF has no text to read. |
 | A new project is missing | The bundle cache TTL is 60 s, and other colos keep their copy until it expires. Also check that the project is published, not only drafted. |
 | Deploy fails on `OAUTH_KV` | The id in `wrangler.jsonc` is still `REPLACE_WITH_OAUTH_KV_ID`. |
 

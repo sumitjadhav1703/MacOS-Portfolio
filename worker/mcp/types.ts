@@ -21,6 +21,7 @@ export const DOC_TYPES = [
   'education',
   'skill',
   'certificate',
+  'resume',
 ] as const
 
 export type DocType = (typeof DOC_TYPES)[number]

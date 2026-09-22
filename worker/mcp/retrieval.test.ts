@@ -4,7 +4,7 @@
 import { describe, expect, it } from 'vitest'
 import { FALLBACK } from '../../src/data/content'
 import type { Content } from '../../src/data/content'
-import { MAX_RESULTS, MAX_TEXT_CHARS, SNIPPET_CHARS, buildIndex, getContext, getProfile, listProjects, search } from './retrieval'
+import { MAX_RESULTS, MAX_TEXT_CHARS, SNIPPET_CHARS, buildIndex, getContext, getProfile, listProjects, resumeSections, search } from './retrieval'
 import { NO_MATCH } from './types'
 
 const SITE = 'https://site.test'
@@ -148,5 +148,52 @@ describe('get_profile', () => {
 
   it('never uses a database id as a document id', () => {
     for (const c of FALLBACK.certificates) expect(index.some((d) => d.id.includes(c.id))).toBe(false)
+  })
+})
+
+describe('the resume', () => {
+  const RESUME = [
+    'SUMIT JADHAV',
+    'Chhatrapati Sambhajinagar, India | jadhavsumit534@gmail.com',
+    'EDUCATION',
+    'MGM University | B.Tech, AI & Data Science',
+    'TECHNICAL SKILLS',
+    '● ML & Deep Learning: PyTorch, TensorFlow, LangGraph',
+    'WORK EXPERIENCE',
+    'Kalavati Technologies | Web Development Intern | Jun 2023 – Jul 2023',
+    'CERTIFICATIONS & ACHIEVEMENTS',
+    '● Rank 10 / 132 Teams: ANRF AISEHack 2.0 Round 1 SAR Crop Mapping Challenge',
+  ].join('\n')
+  const withResume = buildIndex(FALLBACK, SITE, RESUME)
+
+  it('splits on the resume\'s own headings, keeping the header block as contact', () => {
+    expect(resumeSections(RESUME).map((s) => s.slug)).toEqual([
+      'contact',
+      'education',
+      'technical-skills',
+      'work-experience',
+      'certifications-achievements',
+    ])
+  })
+
+  it('makes resume-only facts searchable, sourced to the PDF', () => {
+    const hit = search(withResume, { query: 'rank 10 of 132 teams' }).results[0]!
+    expect(hit.id).toBe('resume:certifications-achievements')
+    expect(hit.source).toMatchObject({ type: 'resume', url: FALLBACK.site.resumeUrl })
+  })
+
+  it('answers "resume" with the resume', () => {
+    expect(search(withResume, { query: 'resume' }).results.every((r) => r.type === 'resume')).toBe(true)
+  })
+
+  it('returns a resume section by id and the whole text through get_profile', () => {
+    expect(getContext(withResume, 'resume:work-experience').found).toBe(true)
+    const profile = getProfile(FALLBACK, SITE, 'resume', RESUME)
+    expect(profile.resume).toMatchObject({ text: RESUME, sections: expect.arrayContaining(['resume:education']) })
+  })
+
+  it('adds nothing when there is no resume text', () => {
+    expect(buildIndex(FALLBACK, SITE, null).some((d) => d.type === 'resume')).toBe(false)
+    expect(getProfile(FALLBACK, SITE).resume).toEqual({ url: FALLBACK.site.resumeUrl, sections: [] })
   })
 })

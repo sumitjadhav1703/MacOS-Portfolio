@@ -34,6 +34,7 @@ const ROUTES: [string[], DocType[]][] = [
   [['experience', 'job', 'role', 'intern', 'internship', 'company', 'worked'], ['experience']],
   [['education', 'degree', 'college', 'university', 'school', 'studied', 'gpa'], ['education']],
   [['certificate', 'certification', 'certified', 'course'], ['certificate']],
+  [['resume', 'cv'], ['resume']],
   [['contact', 'email', 'reach', 'github', 'linkedin', 'hire', 'link', 'profile', 'social', 'bio', 'background', 'who'], ['profile']],
 ]
 
@@ -99,7 +100,7 @@ const lines = (...parts: (string | undefined | false)[]) => parts.filter(Boolean
  * Every published record as a document. Nothing is filtered here: the bundle this is handed
  * was restricted to `published = 1` in SQL, so there is no second visibility rule to get wrong.
  */
-export function buildIndex(content: Content, siteOrigin: string): Doc[] {
+export function buildIndex(content: Content, siteOrigin: string, resume?: string | null): Doc[] {
   const at = content.updatedAt
   const docs: Doc[] = []
   const src = (type: DocType, title: string, url = siteOrigin, extra: Partial<Source> = {}): Source => ({
@@ -189,7 +190,38 @@ export function buildIndex(content: Content, siteOrigin: string): Doc[] {
     )
   }
 
+  for (const part of resumeSections(resume ?? '')) {
+    docs.push({
+      id: `resume:${part.slug}`,
+      type: 'resume',
+      title: `Resume — ${part.heading}`,
+      text: part.text,
+      section: part.slug,
+      heading: part.heading,
+      source: src('resume', 'Resume', content.site.resumeUrl, { section: part.slug }),
+      updatedAt: at,
+    })
+  }
+
   return docs.filter((d) => d.text.trim())
+}
+
+/**
+ * Split resume text on its own headings — the short all-capitals lines a resume is laid out
+ * with (EDUCATION, TECHNICAL SKILLS, WORK EXPERIENCE…). Whatever comes before the first one is
+ * the header block: name and contact line.
+ */
+export function resumeSections(text: string): { heading: string; slug: string; text: string }[] {
+  const out: { heading: string; slug: string; lines: string[] }[] = []
+  const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean)
+  lines.forEach((line, i) => {
+    const heading = i > 0 && /^[A-Z][A-Z &/,-]{2,40}$/.test(line) && /[A-Z]{3}/.test(line)
+    if (heading || !out.length) {
+      const name = heading ? line.charAt(0) + line.slice(1).toLowerCase() : 'Contact'
+      out.push({ heading: name, slug: slugify(name), lines: heading ? [] : [line] })
+    } else out[out.length - 1]!.lines.push(line)
+  })
+  return out.map((s) => ({ heading: s.heading, slug: s.slug, text: s.lines.join('\n') })).filter((s) => s.text)
 }
 
 function sectionsOf(list: ProjectSection[]) {
@@ -385,7 +417,7 @@ export type ProfileSection = (typeof PROFILE_SECTIONS)[number]
  * The public profile, section by section. Only fields the site already shows a visitor; no
  * database ids, no file keys — the certificate id is a UUID and is deliberately left out.
  */
-export function getProfile(content: Content, siteOrigin: string, section?: ProfileSection) {
+export function getProfile(content: Content, siteOrigin: string, section?: ProfileSection, resume?: string | null) {
   const s = content.site
   const all = {
     identity: { name: s.name, subtitle: s.subtitle, about: s.paragraphs, email: s.email, site: siteOrigin },
@@ -399,7 +431,11 @@ export function getProfile(content: Content, siteOrigin: string, section?: Profi
       url: c.credentialUrl ?? c.fileUrl,
     })),
     links: content.socialLinks.map((l) => ({ label: l.label, handle: l.handle, url: l.url })),
-    resume: { url: s.resumeUrl },
+    resume: {
+      url: s.resumeUrl,
+      sections: resumeSections(resume ?? '').map((r) => `resume:${r.slug}`),
+      ...(section === 'resume' && resume ? cap(resume) : {}),
+    },
   }
   const body: Partial<typeof all> = section ? { [section]: all[section] } : all
   return { ...body, source: { type: 'profile' as const, title: s.name, url: siteOrigin }, updatedAt: content.updatedAt }
