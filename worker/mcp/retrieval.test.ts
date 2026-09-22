@@ -53,7 +53,7 @@ describe('search_context', () => {
 
   it('carries provenance on every result', () => {
     for (const r of search(index, { query: 'forecasting', limit: 8 }).results) {
-      expect(r.source.url.startsWith(SITE)).toBe(true)
+      expect(new URL(r.source.url).origin).toBe(SITE)
       expect(r.updatedAt).toBe(FALLBACK.updatedAt)
     }
     const section = search(index, { query: 'forecasting pipeline' }).results[0]!
