@@ -29,6 +29,7 @@
     --s-shadow-rest:0 12px 28px rgba(0,0,0,.4);
     --s-term-bg:rgba(12,12,14,.9);--s-paper:#ffffff;--s-paper-ink:#16181c;--s-paper-desk:#3d4044;
     --s-menu-dim:rgba(242,243,245,.78);--s-menu-line:rgba(255,255,255,.04);
+    --s-menu-hover:rgba(255,255,255,.14);--s-menu-open:rgba(255,255,255,.24);
     --s-glass-icon:rgba(255,255,255,.15);--s-glass-icon-ring:rgba(255,255,255,.24);--s-glass-icon-ink:rgba(240,242,245,.9);
     --s-onwall:#f2f3f5;--s-onwall-bg:rgba(0,0,0,.46);--s-onwall-shadow:0 1px 2px rgba(0,0,0,.7);--s-onwall-sel:rgba(58,109,240,.95);
     --s-glass-ring:rgba(255,255,255,.2);--s-glass-edge:rgba(0,0,0,.28);
@@ -51,6 +52,7 @@
     --s-shadow-rest:0 12px 26px rgba(20,24,32,.16);
     --s-term-bg:#14161a;--s-paper:#ffffff;--s-paper-ink:#16181c;--s-paper-desk:#b6bcc4;
     --s-menu-dim:rgba(26,28,32,.78);--s-menu-line:rgba(0,0,0,.04);
+    --s-menu-hover:rgba(0,0,0,.09);--s-menu-open:rgba(0,0,0,.16);
     --s-glass-icon:rgba(255,255,255,.86);--s-glass-icon-ring:rgba(0,0,0,.14);--s-glass-icon-ink:rgba(46,50,58,.86);
     --s-onwall:#16181c;--s-onwall-bg:rgba(255,255,255,.74);--s-onwall-shadow:0 1px 2px rgba(255,255,255,.6);--s-onwall-sel:rgba(58,109,240,.95);
     --s-glass-ring:rgba(255,255,255,.85);--s-glass-edge:rgba(0,0,0,.12);
@@ -86,7 +88,19 @@
   @keyframes bootBar{0%{width:0}100%{width:100%}}
   @keyframes markIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:none}}
   [data-tlgroup]:hover [data-glyph]{opacity:1}
-  [data-menu]:hover{background:var(--s-fill-3)}
+  /* Every menu-bar control answers the pointer. `[data-extra]` is the whole right-hand group
+     plus the app menus: a plate on hover, a deeper one while the thing it opens is showing,
+     and a press state in between. Before this, half of them — Control Center, Search — had no
+     padding and no radius at all, so there was nothing for a plate to be drawn on. */
+  [data-extra]{transition:background .14s cubic-bezier(.32,.72,0,1)}
+  [data-extra]:hover{background:var(--s-menu-hover)}
+  [data-extra]:active{background:var(--s-menu-open)}
+  [data-extra][data-open]{background:var(--s-menu-open)}
+  /* The Resume button: the one deliberately non-macOS affordance in the bar, so it keeps a
+     resting fill the others do not have — and now answers the pointer like them. */
+  [data-menubtn]{background:var(--s-fill-2);border:1px solid var(--s-line);transition:background .14s cubic-bezier(.32,.72,0,1),border-color .14s ease}
+  [data-menubtn]:hover{background:var(--s-fill-3);border-color:var(--s-line-2)}
+  [data-menubtn]:active{background:var(--s-menu-open)}
   [data-mi]:hover{background:var(--s-accent);color:var(--s-on-accent)}
   [data-side]{transition:background .2s cubic-bezier(.32,.72,0,1),transform .2s cubic-bezier(.32,.72,0,1)}
   [data-side]:hover{background:var(--s-fill-2)}

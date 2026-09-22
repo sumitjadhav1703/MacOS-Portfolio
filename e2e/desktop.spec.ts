@@ -303,3 +303,57 @@ test('a Finder sidebar row fills the pane instead of opening a window', async ({
 
   expectCleanConsole(problems)
 })
+
+test('a minimised project window is reachable from the dock', async ({ page }) => {
+  const problems = watchConsole(page)
+  await boot(page)
+
+  await page.locator('#desktop-grid [data-dsk]').first().dblclick()
+  const id = await page.evaluate(
+    () => document.querySelector('#wm [id^="win-project-"]')!.id.replace('win-', ''),
+  )
+  const window = page.locator(`#win-${id}`)
+  await expect(window).toBeVisible()
+
+  // Only eight apps have a dock icon and a project is never one of them, so minimising used
+  // to leave nothing on screen to click: the window was unreachable, not merely hidden.
+  await page.locator(`#win-${id} [aria-label^="Minimise"]`).click()
+  const tile = page.locator(`#dock [data-min="${id}"]`)
+  await expect(tile).toBeVisible()
+
+  await tile.click()
+  await expect(window).toBeVisible()
+  await expect(tile).toHaveCount(0)
+
+  expectCleanConsole(problems)
+})
+
+test('every menu-bar control answers the pointer', async ({ page }) => {
+  const problems = watchConsole(page)
+  await boot(page)
+
+  // The app menus carried an inline `background: transparent`, which outranks a stylesheet
+  // rule — so the hover plate in os.css had never once painted.
+  // The apple menu is the one that is always in the bar; the app menus depend on what has
+  // focus, and a bare boot has nothing focused.
+  for (const selector of [
+    '[data-menu="apple"]',
+    '#menubar [aria-label^="Status"]',
+    '#menubar [aria-label="Control Center"]',
+    '#menubar [aria-label="Search"]',
+    '#menubar [aria-label="Notification Center"]',
+  ]) {
+    const control = page.locator(selector)
+    const rest = await control.evaluate((el) => getComputedStyle(el).backgroundColor)
+    await control.hover()
+    // The plate fades in over .14s, and a computed style read on the first frame still
+    // returns the old value — measuring immediately says "no change" for a change that
+    // is happening.
+    await page.waitForTimeout(260)
+    const hovered = await control.evaluate((el) => getComputedStyle(el).backgroundColor)
+    expect(hovered, selector).not.toBe(rest)
+    await page.mouse.move(700, 500)
+  }
+
+  expectCleanConsole(problems)
+})

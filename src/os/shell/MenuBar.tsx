@@ -32,10 +32,14 @@ function Menu({
   return (
     <div
       data-menu={name}
-      style={{
-        ...s('padding:2px 9px;border-radius:5px;cursor:default;position:relative;display:flex;align-items:center'),
-        background: open ? 'var(--s-fill-3)' : 'transparent',
-      }}
+      data-extra="1"
+      data-open={open ? '1' : undefined}
+      // No inline `background`. It used to say `transparent` when closed, and an inline
+      // declaration outranks a stylesheet one — so `[data-menu]:hover` in os.css has been
+      // there the whole time and has never once painted. os.css owns both states now.
+      style={s(
+        'padding:2px 9px;border-radius:5px;cursor:default;position:relative;display:flex;align-items:center',
+      )}
       onClick={(e) => {
         e.stopPropagation()
         dispatch({ type: 'menu', name: open ? null : name })
@@ -101,16 +105,18 @@ function deskDate(now: Date): string {
  * The Wi-Fi extra. Driven by `useOnline`, the same hook Control Center reads, so it is a
  * status indicator rather than a decoration.
  */
-function Wifi({ onOpen }: { onOpen: () => void }) {
+function Wifi({ onOpen, open }: { onOpen: () => void; open: boolean }) {
   const online = useOnline()
   return (
     <span
       data-menu="net"
+      data-extra="1"
+      data-open={open ? '1' : undefined}
       {...pressable(online ? 'Network — connected' : 'Network — offline', onOpen, {
         stopPropagation: true,
       })}
       style={s(
-        'display:flex;align-items:center;cursor:default;padding:2px 4px;border-radius:5px',
+        'display:flex;align-items:center;cursor:default;padding:2px 6px;border-radius:5px',
       )}
     >
       <svg viewBox="0 0 16 13" width="15" height="12" aria-hidden="true" style={{ opacity: online ? 0.92 : 0.45 }}>
@@ -136,7 +142,8 @@ export function MenuBar() {
   // changing it in /admin changes the menu item with it.
   const githubUrl =
     content.socialLinks.find((link) => platformSlug(link.url) === 'github')?.url ?? GITHUB_FALLBACK
-  const { active, wins, prefs, status, activity, finderPath } = useOs()
+  const { active, wins, prefs, status, activity, finderPath, popover, spotlight, controlCenter, notifCenter } =
+    useOs()
   const dispatch = useDispatch()
   const openApp = useOpenApp()
   const busy = activity === 'Working' || activity === 'Processing'
@@ -221,8 +228,11 @@ export function MenuBar() {
           href={site.resumeUrl}
           download="Sumit_Jadhav_Resume.pdf"
           data-focusable="1"
+          data-menubtn="1"
+          // Background and border live in os.css for the same reason as the menus above: an
+          // inline fill cannot be hovered over.
           style={s(
-            'display:flex;align-items:center;gap:6px;padding:2px 10px;border-radius:6px;background:var(--s-fill-2);border:1px solid var(--s-line);font-size:12px;text-decoration:none;color:inherit',
+            'display:flex;align-items:center;gap:6px;padding:2px 10px;border-radius:6px;font-size:12px;text-decoration:none;color:inherit',
           )}
         >
           <span style={s('position:relative;display:inline-block;width:9px;height:10px')}>
@@ -239,6 +249,8 @@ export function MenuBar() {
         {prefs.showStatus ? (
           <div
             data-menu="status"
+            data-extra="1"
+            data-open={popover === 'status' ? '1' : undefined}
             {...pressable(`Status — ${status}`, () => dispatch({ type: 'popover', name: 'status' }), {
               stopPropagation: true,
             })}
@@ -261,6 +273,8 @@ export function MenuBar() {
         {prefs.showActivity ? (
           <div
             data-menu="activity"
+            data-extra="1"
+            data-open={popover === 'activity' ? '1' : undefined}
             {...pressable(`Activity — ${activity}`, () => dispatch({ type: 'popover', name: 'activity' }), {
               stopPropagation: true,
             })}
@@ -289,12 +303,16 @@ export function MenuBar() {
           </div>
         ) : null}
 
-        <Wifi onOpen={() => dispatch({ type: 'popover', name: 'net' })} />
+        <Wifi open={popover === 'net'} onOpen={() => dispatch({ type: 'popover', name: 'net' })} />
 
         {/* Two stacked toggle switches, which is what macOS draws. Two plain bars read as a
             hamburger menu — the one glyph in this bar that promised the wrong thing. */}
         <div
-          style={s('cursor:default;display:flex;flex-direction:column;gap:2.5px;padding:2px')}
+          data-extra="1"
+          data-open={controlCenter ? '1' : undefined}
+          style={s(
+            'cursor:default;display:flex;flex-direction:column;gap:2.5px;padding:4px 7px;border-radius:5px',
+          )}
           {...pressable('Control Center', () => dispatch({ type: 'overlay', name: 'controlCenter' }), {
             stopPropagation: true,
           })}
@@ -304,25 +322,33 @@ export function MenuBar() {
         </div>
 
         <div
-          style={s('cursor:default;width:14px;height:14px;position:relative')}
+          data-extra="1"
+          data-open={spotlight ? '1' : undefined}
+          style={s(
+            'cursor:default;position:relative;width:28px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center',
+          )}
           {...pressable('Search', () => dispatch({ type: 'overlay', name: 'spotlight' }), {
             stopPropagation: true,
           })}
         >
-          <div
-            style={s(
-              'position:absolute;left:0;top:0;width:10px;height:10px;border:1.8px solid currentColor;border-radius:50%;opacity:.92',
-            )}
-          />
-          <div
-            style={s(
-              'position:absolute;left:8px;top:9px;width:6px;height:1.8px;background:currentColor;border-radius:2px;transform:rotate(45deg);transform-origin:left center;opacity:.92',
-            )}
-          />
+          <span style={s('position:relative;width:14px;height:14px')}>
+            <span
+              style={s(
+                'position:absolute;left:0;top:0;width:10px;height:10px;border:1.8px solid currentColor;border-radius:50%;opacity:.92',
+              )}
+            />
+            <span
+              style={s(
+                'position:absolute;left:8px;top:9px;width:6px;height:1.8px;background:currentColor;border-radius:2px;transform:rotate(45deg);transform-origin:left center;opacity:.92',
+              )}
+            />
+          </span>
         </div>
 
         <div
           data-menu="cal"
+          data-extra="1"
+          data-open={notifCenter ? '1' : undefined}
           {...pressable('Notification Center', () => dispatch({ type: 'overlay', name: 'notifCenter' }), {
             stopPropagation: true,
           })}

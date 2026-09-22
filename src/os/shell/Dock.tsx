@@ -7,9 +7,9 @@ import { pressable } from '../pressable'
 import { titleOf } from '../registry'
 import { useDispatch, useOpenApp, useOs } from '../store'
 import { useReducedMotion } from '../useTheme'
-import { AppIcon, ICONS, type IconSpec } from './AppIcon'
+import { AppIcon, ICONS, specFor, type IconSpec } from './AppIcon'
 import { useContextMenu } from './ContextMenu'
-import type { AppId } from '../types'
+import type { AppId, WindowState } from '../types'
 
 const MAGNIFY = 1.5
 const RADIUS = 190
@@ -95,6 +95,60 @@ function DockIcon({
   )
 }
 
+/**
+ * A window that has been minimised, parked in the dock the way macOS parks one.
+ *
+ * Only eight apps have a dock icon (`DOCK_FOR` in registry.ts), and a project is never one of
+ * them — so minimising a project window used to remove it from the screen with nothing left to
+ * click. It was not hidden, it was unreachable: no dock icon, no Mission Control card, and the
+ * window menu is the only other way back. These tiles are that way back.
+ *
+ * They are smaller than an app icon and sit past their own divider, which is the difference
+ * macOS draws between "this app is installed" and "this window is put away".
+ */
+function MiniWindow({
+  id,
+  onOpen,
+  onClose,
+}: {
+  id: AppId
+  onOpen: () => void
+  onClose: (e: React.MouseEvent) => void
+}) {
+  const title = titleOf(id)
+  const [hover, setHover] = useState(false)
+  return (
+    <div
+      data-min={id}
+      {...pressable(`${title} — minimised`, onOpen, { stopPropagation: true })}
+      onPointerEnter={() => setHover(true)}
+      onPointerLeave={() => setHover(false)}
+      onFocus={() => setHover(true)}
+      onBlur={() => setHover(false)}
+      onContextMenu={onClose}
+      style={{
+        ...s('position:relative;width:38px;height:38px;margin:0 4px 8px;cursor:default;transform-origin:bottom center'),
+        transform: hover ? 'translateY(-4px)' : 'none',
+        transition: `transform .22s ${EASE}`,
+      }}
+    >
+      <AppIcon spec={specFor(id)} size={38} />
+      <div
+        data-tip={title}
+        style={{
+          ...s(
+            'position:absolute;left:50%;top:-34px;transform:translateX(-50%);padding:4px 9px;border-radius:8px;background:var(--s-tip);-webkit-backdrop-filter:var(--s-blur);backdrop-filter:var(--s-blur);border:1px solid var(--s-line);color:var(--s-text);font-size:11.5px;white-space:nowrap;pointer-events:none;transition:opacity .18s ease',
+          ),
+          opacity: hover ? 1 : 0,
+          visibility: hover ? 'visible' : 'hidden',
+        }}
+      >
+        {title}
+      </div>
+    </div>
+  )
+}
+
 export function Dock() {
   const { wins, prefs, dockHidden } = useOs()
   const dispatch = useDispatch()
@@ -156,6 +210,13 @@ export function Dock() {
 
   if (dockHidden) return null
 
+  // Every minimised window, in the order it was minimised. Windows that already have a dock
+  // icon are left out: their icon is the way back, and a second tile for the same window would
+  // be two places to click for one thing.
+  const minimised = (Object.entries(wins) as [AppId, WindowState][])
+    .filter(([id, win]) => win.min && !DOCK_APPS.some((spec) => spec.id === id))
+    .map(([id]) => id)
+
   const render = (spec: IconSpec) => {
     const scale = scaleFor(spec.id)
     return (
@@ -193,6 +254,26 @@ export function Dock() {
         }}
       >
         {DOCK_APPS.map(render)}
+        {minimised.length ? (
+          <>
+            <div style={s('width:1px;height:44px;background:var(--s-line-2);margin:0 9px 4px')} />
+            {minimised.map((id) => (
+              <MiniWindow
+                key={id}
+                id={id}
+                onOpen={() => {
+                  openApp(id)
+                  dispatch({ type: 'closeTransient' })
+                }}
+                onClose={contextMenu([
+                  { label: `Show ${titleOf(id)}`, onPick: () => openApp(id) },
+                  { divider: true },
+                  { label: 'Close', onPick: () => dispatch({ type: 'close', app: id }) },
+                ])}
+              />
+            ))}
+          </>
+        ) : null}
         <div style={s('width:1px;height:44px;background:var(--s-line-2);margin:0 9px 4px')} />
         {render(TRASH)}
       </div>
