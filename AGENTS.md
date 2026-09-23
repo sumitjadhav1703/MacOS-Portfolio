@@ -57,6 +57,8 @@ app/                          routes only — thin server components
   page.tsx                    the desktop
   opengraph-image.tsx         site-level 1200×630 card
   recruiter/page.tsx          Recruiter view — server-rendered from getContent(), no desktop JS
+  not-found.tsx               the 404 for any unknown path — names it, links home and /recruiter
+  api/frame-check/route.ts    does a URL allow framing? Read from its headers, for Safari
   projects/[slug]/
     page.tsx                  generateStaticParams + generateMetadata + deep link
     opengraph-image.tsx       per-project card via next/og ImageResponse
@@ -262,7 +264,13 @@ during render.
    sends `frame-ancestors 'none'` is indistinguishable from one that loaded: both fire `load`,
    both report a null `contentDocument`, both throw on `contentWindow.location`. Measured, not
    assumed. Detecting it inside `onLoad` is how every code host became a blank white pane once.
-   The app frames optimistically and offers a way out instead.
+   So Safari asks first: `app/api/frame-check` fetches the page server-side and reads
+   `X-Frame-Options` / `frame-ancestors` (`src/lib/frame.ts`). A refusal gets an "opens in its own
+   tab" card instead of a frame. When the check cannot answer (a Render app still waking up), the
+   app frames optimistically and offers a way out, as before. `embedUrl()` swaps a Hugging Face
+   Space or a Streamlit app for its embeddable view — both refuse or redirect-loop otherwise. The
+   check's host guard (`checkableUrl`) is a trust boundary: it is the only thing that stops the
+   route from fetching localhost or an IP literal on a visitor's say-so.
 8. **An uncaught exception in a Python Worker is returned to the caller as its traceback.**
    Body and all, with `/session/metadata/*.py` paths in it. `ai/src/entry.py` therefore wraps
    the whole handler and emits one fixed sentence instead. Measured against `pywrangler dev`,

@@ -132,15 +132,37 @@ test.describe('project deep links', () => {
     expect(geometry).toEqual({ afterTitle: true, beforeSections: true, inView: true, scrolled: 0 })
   })
 
-  test('a slug that does not exist does not break the desktop', async ({ page }) => {
+  test('a slug that does not exist gets the 404 page, with a way home', async ({ page }) => {
     const response = await page.goto('/projects/no-such-project')
-    // Either a 404 route or the desktop with nothing opened; a blank page or a crash is not ok.
-    if (response && response.status() === 200) {
-      await expect(page.locator('#menubar')).toBeVisible()
-    } else {
-      expect(response?.status()).toBe(404)
-    }
+    expect(response?.status()).toBe(404)
+    await expect(page.getByText('/projects/no-such-project')).toBeVisible()
   })
+})
+
+test('an unknown path names itself and links back to the desktop', async ({ page }) => {
+  const problems = watchConsole(page)
+  const response = await page.goto('/xdf')
+  expect(response?.status()).toBe(404)
+  await expect(page.getByText('/xdf', { exact: true })).toBeVisible()
+  await page.getByRole('link', { name: /Go to the desktop/ }).click()
+  await expect(page.locator('#menubar')).toBeVisible()
+  expectCleanConsole(problems.filter((p) => !p.includes('404')))
+})
+
+test('Safari lists each project once, with its links as chips', async ({ page }) => {
+  const problems = watchConsole(page)
+  await boot(page)
+  await openFromDock(page, 'safari')
+  const win = windowFor(page, 'safari')
+  const cards = win.locator('[data-safari-project]')
+  await expect(cards.first()).toBeVisible()
+  const titles = await cards.locator('> div:first-child').allTextContents()
+  expect(new Set(titles).size).toBe(titles.length)
+
+  await win.getByRole('textbox', { name: 'Address' }).fill('zzz-no-match')
+  await win.getByRole('textbox', { name: 'Address' }).press('Enter')
+  await expect(win.getByText(/No project matches/)).toBeVisible()
+  expectCleanConsole(problems)
 })
 
 test('serves an OG image for a project', async ({ request }) => {
