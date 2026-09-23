@@ -489,21 +489,146 @@ function ParagraphsField({
 type SectionBody =
   | { text: string }
   | { flow: [string, string][] }
-  | { metrics: [string, string, string?][] }
+  | { metrics: Metric[] }
+  | { decision: Decision }
+  | { incident: Incident }
+  | { timeline: Triple[] }
+  | { limits: Triple[] }
   | { chart: 'sar-mse' }
-type Section = { heading?: string; body: SectionBody }
+type Section = { heading?: string; role?: string; body: SectionBody }
+// Mirrors src/data/projects.ts — the admin's DOM tsconfig cannot import it. The evidence kinds are
+// documented in docs/engineering-evidence.md.
+type Metric = [string, string, string?, string?]
+type Triple = [string, string, string?]
+type Decision = {
+  question: string
+  options: string[]
+  chosen: string
+  why: string
+  better: string
+  worse: string
+  trigger?: string
+  evidence?: Link[]
+}
+type Incident = {
+  title: string
+  expected: string
+  observed: string
+  cause: string
+  fix: string
+  verified?: string
+  learned?: string
+  evidence?: Link[]
+}
 
-const bodyKind = (body: SectionBody): string =>
-  'text' in body ? 'text' : 'flow' in body ? 'flow' : 'metrics' in body ? 'metrics' : 'chart'
+const KINDS = ['text', 'flow', 'metrics', 'decision', 'incident', 'timeline', 'limits', 'chart'] as const
 
-const emptyBody = (kind: string): SectionBody =>
-  kind === 'flow'
-    ? { flow: [] }
-    : kind === 'metrics'
-      ? { metrics: [] }
-      : kind === 'chart'
-        ? { chart: 'sar-mse' }
-        : { text: '' }
+const bodyKind = (body: SectionBody): string => KINDS.find((k) => k in body) ?? 'text'
+
+const emptyBody = (kind: string): SectionBody => {
+  switch (kind) {
+    case 'flow':
+      return { flow: [] }
+    case 'metrics':
+      return { metrics: [] }
+    case 'decision':
+      return { decision: { question: '', options: [], chosen: '', why: '', better: '', worse: '', evidence: [] } }
+    case 'incident':
+      return { incident: { title: '', expected: '', observed: '', cause: '', fix: '', evidence: [] } }
+    case 'timeline':
+      return { timeline: [] }
+    case 'limits':
+      return { limits: [] }
+    case 'chart':
+      return { chart: 'sar-mse' }
+    default:
+      return { text: '' }
+  }
+}
+
+/** Drop empty trailing optional cells, so an unused hint or proof URL is not stored as ''. */
+const trimTuple = <T extends string[]>(cells: T, keep: number): T => {
+  const out = [...cells]
+  while (out.length > keep && !out[out.length - 1]) out.pop()
+  return out as T
+}
+
+/** One labelled prose field of a decision or incident. Empty optional fields are not stored. */
+function Prose({
+  label,
+  value,
+  long,
+  onChange,
+}: {
+  label: string
+  value?: string
+  long?: boolean
+  onChange: (v: string) => void
+}) {
+  return (
+    <Label text={label}>
+      {long ? (
+        <Textarea value={value ?? ''} onChange={(e) => onChange(e.target.value)} />
+      ) : (
+        <Input value={value ?? ''} onChange={(e) => onChange(e.target.value)} />
+      )}
+    </Label>
+  )
+}
+
+const EVIDENCE: FieldUI = {
+  col: 'evidence',
+  label: 'Evidence',
+  input: 'links',
+  hint: 'The file, commit, log or notebook that shows this. No source, no claim.',
+  columns: ['What it is', 'https://github.com/…'],
+}
+
+/** Three text columns per row — a timeline step or a limitation. */
+function TripleRows({
+  label,
+  name,
+  columns,
+  keep,
+  items,
+  onChange,
+}: {
+  label: string
+  name: string
+  columns: [string, string, string]
+  /** How many leading cells are always stored; the rest are dropped when empty. */
+  keep: number
+  items: Triple[]
+  onChange: (v: Triple[]) => void
+}) {
+  return (
+    <Rows
+      label={label}
+      name={name}
+      items={items}
+      blank={(): Triple => ['', '']}
+      addLabel={`+ Add ${name}`}
+      onChange={onChange}
+      render={(row, setRow) => (
+        <>
+          {columns.map((placeholder, i) => (
+            <Input
+              key={placeholder}
+              value={row[i] ?? ''}
+              placeholder={placeholder}
+              aria-label={`${name} ${placeholder}`}
+              onChange={(e) => {
+                const next = [row[0], row[1], row[2] ?? ''] as [string, string, string]
+                next[i] = e.target.value
+                setRow(trimTuple(next, keep) as Triple)
+              }}
+            />
+          ))}
+        </>
+      )}
+    />
+  )
+}
 
 /** The project body: a list of blocks, each one of the four shapes ProjectWindow knows how to draw. */
 function SectionsField({
@@ -554,7 +679,25 @@ function SectionsField({
                 <option value="text">Text</option>
                 <option value="flow">Flow diagram</option>
                 <option value="metrics">Metrics</option>
+                <option value="decision">Engineering decision</option>
+                <option value="incident">Incident — what broke</option>
+                <option value="timeline">Evolution timeline</option>
+                <option value="limits">Limitations and next steps</option>
                 <option value="chart">SAR chart</option>
+              </Select>
+              <Select
+                value={section.role ?? ''}
+                aria-label="Research role"
+                style={s('width:auto;flex:none')}
+                onChange={(e) => {
+                  const { role: _drop, ...rest } = section
+                  set(e.target.value ? { ...rest, role: e.target.value } : rest)
+                }}
+              >
+                <option value="">No research label</option>
+                <option value="fact">Fact — supported by data</option>
+                <option value="interpretation">Interpretation</option>
+                <option value="limitation">Limitation — not proven</option>
               </Select>
             </div>
 
@@ -579,38 +722,115 @@ function SectionsField({
               <Rows
                 label="Metrics"
                 name="metric"
-                items={(section.body as { metrics: [string, string, string?][] }).metrics}
-                blank={(): [string, string, string?] => ['', '']}
+                items={(section.body as { metrics: Metric[] }).metrics}
+                blank={(): Metric => ['', '']}
                 addLabel="+ Add metric"
                 onChange={(metrics) => set({ ...section, body: { metrics } })}
-                render={(metric, setMetric) => (
-                  <>
-                    <Input
-                      value={metric[0]}
-                      placeholder="Label"
-                      aria-label="Metric label"
-                      onChange={(e) => setMetric([e.target.value, metric[1], metric[2]])}
-                    />
-                    <Input
-                      value={metric[1]}
-                      placeholder="Value"
-                      aria-label="Metric value"
-                      onChange={(e) => setMetric([metric[0], e.target.value, metric[2]])}
-                    />
-                    <Input
-                      value={metric[2] ?? ''}
-                      placeholder="Hint (optional)"
-                      aria-label="Metric hint"
-                      onChange={(e) =>
-                        setMetric(
-                          e.target.value
-                            ? [metric[0], metric[1], e.target.value]
-                            : ([metric[0], metric[1]] as [string, string, string?]),
-                        )
-                      }
-                    />
-                  </>
-                )}
+                render={(metric, setMetric) => {
+                  const cell = (i: number, v: string) => {
+                    const next = [metric[0], metric[1], metric[2] ?? '', metric[3] ?? ''] as [string, string, string, string]
+                    next[i] = v
+                    setMetric(trimTuple(next, 2) as Metric)
+                  }
+                  const problem = metric[3] ? urlProblem(metric[3]) : null
+                  return (
+                    <>
+                      <Input value={metric[0]} placeholder="Label" aria-label="Metric label" onChange={(e) => cell(0, e.target.value)} />
+                      <Input value={metric[1]} placeholder="Value" aria-label="Metric value" onChange={(e) => cell(1, e.target.value)} />
+                      <Input
+                        value={metric[2] ?? ''}
+                        placeholder="Hint (optional)"
+                        aria-label="Metric hint"
+                        onChange={(e) => cell(2, e.target.value)}
+                      />
+                      <div style={s('min-width:0')}>
+                        <Input
+                          value={metric[3] ?? ''}
+                          placeholder="Proof URL (optional)"
+                          aria-label="Metric proof URL"
+                          aria-invalid={!!problem}
+                          onChange={(e) => cell(3, e.target.value)}
+                        />
+                        {problem ? <Problem>{problem}</Problem> : null}
+                      </div>
+                    </>
+                  )
+                }}
+              />
+            ) : null}
+
+            {kind === 'decision'
+              ? (() => {
+                  const d = (section.body as { decision: Decision }).decision
+                  const put = (patch: Partial<Decision>) => set({ ...section, body: { decision: { ...d, ...patch } } })
+                  return (
+                    <div style={s('display:grid;gap:8px')}>
+                      <Prose label="Question — what problem needed solving?" value={d.question} onChange={(question) => put({ question })} />
+                      <Label text="Options considered" hint="One per line.">
+                        <Textarea
+                          value={d.options.join('\n')}
+                          onChange={(e) => put({ options: e.target.value.split('\n') })}
+                          onBlur={() => put({ options: d.options.map((o) => o.trim()).filter(Boolean) })}
+                        />
+                      </Label>
+                      <Label text="Chosen">
+                        <Select value={d.chosen} onChange={(e) => put({ chosen: e.target.value })}>
+                          <option value="">Pick one of the options</option>
+                          {d.options.filter((o) => o.trim()).map((o) => (
+                            <option key={o} value={o}>
+                              {o}
+                            </option>
+                          ))}
+                        </Select>
+                      </Label>
+                      <Prose label="Why" long value={d.why} onChange={(why) => put({ why })} />
+                      <Prose label="Trade-off — what got better (optional)" value={d.better} onChange={(better) => put({ better })} />
+                      <Prose label="Trade-off — what got worse (leave empty unless the source states one)" value={d.worse} onChange={(worse) => put({ worse })} />
+                      <Prose label="Revisit when (optional)" value={d.trigger} onChange={(trigger) => put({ trigger: trigger || undefined })} />
+                      <LinksField field={EVIDENCE} value={d.evidence} onChange={(evidence) => put({ evidence })} />
+                    </div>
+                  )
+                })()
+              : null}
+
+            {kind === 'incident'
+              ? (() => {
+                  const i = (section.body as { incident: Incident }).incident
+                  const put = (patch: Partial<Incident>) => set({ ...section, body: { incident: { ...i, ...patch } } })
+                  return (
+                    <div style={s('display:grid;gap:8px')}>
+                      <Prose label="Incident" value={i.title} onChange={(title) => put({ title })} />
+                      <Prose label="Expected behaviour" long value={i.expected} onChange={(expected) => put({ expected })} />
+                      <Prose label="Observed behaviour" long value={i.observed} onChange={(observed) => put({ observed })} />
+                      <Prose label="Root cause" long value={i.cause} onChange={(cause) => put({ cause })} />
+                      <Prose label="Fix — and what changed in the architecture" long value={i.fix} onChange={(fix) => put({ fix })} />
+                      <Prose label="Verified by (optional)" value={i.verified} onChange={(verified) => put({ verified: verified || undefined })} />
+                      <Prose label="What I learned (optional)" value={i.learned} onChange={(learned) => put({ learned: learned || undefined })} />
+                      <LinksField field={EVIDENCE} value={i.evidence} onChange={(evidence) => put({ evidence })} />
+                    </div>
+                  )
+                })()
+              : null}
+
+            {kind === 'timeline' ? (
+              <TripleRows
+                label="Stages"
+                name="stage"
+                columns={['Stage', 'What happened', 'Evidence URL (optional)']}
+                keep={2}
+                items={(section.body as { timeline: Triple[] }).timeline}
+                onChange={(timeline) => set({ ...section, body: { timeline } })}
+              />
+            ) : null}
+
+            {kind === 'limits' ? (
+              <TripleRows
+                label="Limitations"
+                name="limitation"
+                columns={['Limitation', 'Why it matters', 'What I would do next (optional)']}
+                keep={2}
+                items={(section.body as { limits: Triple[] }).limits}
+                onChange={(limits) => set({ ...section, body: { limits } })}
               />
             ) : null}
 
