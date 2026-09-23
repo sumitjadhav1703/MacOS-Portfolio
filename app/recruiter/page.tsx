@@ -30,8 +30,17 @@ function evidenceCount(project: Project): number {
   }, 0)
 }
 
-const repoOf = (project: Project) => project.links.find((l) => /github\.com/i.test(l.url))
-const demoOf = (project: Project) => project.links.find((l) => !/github\.com/i.test(l.url))
+/** Compared on the parsed host, so a demo at github.com.example.net is not taken for the repo. */
+const isGithub = (url: string) => {
+  try {
+    const host = new URL(url).hostname.toLowerCase()
+    return host === 'github.com' || host === 'www.github.com'
+  } catch {
+    return false
+  }
+}
+const repoOf = (project: Project) => project.links.find((l) => isGithub(l.url))
+const demoOf = (project: Project) => project.links.find((l) => !isGithub(l.url))
 
 function H2({ children }: { children: ReactNode }) {
   return (
