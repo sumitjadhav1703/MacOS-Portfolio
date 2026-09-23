@@ -183,6 +183,8 @@ export function MenuBar() {
     { divider: true },
     { label: 'System Settings…', onPick: () => openApp('settings') },
     { label: 'System Monitor', onPick: () => openApp('monitor') },
+    { label: 'Project Interview', onPick: () => openApp('interview') },
+    { label: 'View as Recruiter', onPick: () => window.location.assign('/recruiter') },
     { label: 'Control Center', onPick: () => dispatch({ type: 'overlay', name: 'controlCenter', on: true }) },
     { divider: true },
     { label: 'Appearance: Light', onPick: () => setTheme('light') },

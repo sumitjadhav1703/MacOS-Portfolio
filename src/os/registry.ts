@@ -27,6 +27,7 @@ export const TITLES: Record<string, string> = {
   experience: 'Experience',
   certificates: 'Certificates',
   monitor: 'System Monitor',
+  interview: 'Project Interview',
   ...Object.fromEntries(FALLBACK.projects.map((p) => [p.id, p.title])),
 }
 
@@ -76,6 +77,7 @@ export const SIZE: Partial<Record<StaticAppId, [number, number]>> = {
   certificates: [760, 620],
   code: [880, 560],
   monitor: [720, 520],
+  interview: [720, 640],
 }
 
 /** Which dock item bounces / shows a running dot for a given app. */

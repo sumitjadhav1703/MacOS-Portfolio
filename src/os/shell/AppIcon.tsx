@@ -185,6 +185,16 @@ export const EXTRA_ICONS: IconSpec[] = [
       ['left:34px;top:16px;width:6px;height:25px;border-radius:2px;background:rgba(255,255,255,.94)', 'ink'],
     ],
   },
+  {
+    id: 'interview',
+    tip: 'Project Interview',
+    grad: 'linear-gradient(180deg,#b78cf2,#6a3fc4)',
+    inks: [
+      ['left:10px;top:12px;width:24px;height:17px;border-radius:6px;background:rgba(255,255,255,.94)', 'ink'],
+      ['left:15px;top:27px;width:6px;height:6px;background:rgba(255,255,255,.94);transform:skewX(-30deg)', 'ink'],
+      ['left:22px;top:23px;width:22px;height:15px;border-radius:6px;background:rgba(255,255,255,.62)', 'ink'],
+    ],
+  },
 ]
 
 export const iconFor = (id: string): IconSpec | undefined =>

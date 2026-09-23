@@ -357,3 +357,19 @@ test('every menu-bar control answers the pointer', async ({ page }) => {
 
   expectCleanConsole(problems)
 })
+
+test('opens Project Interview through Spotlight, lazily, with answers from the project', async ({ page }) => {
+  const problems = watchConsole(page)
+  await boot(page)
+
+  await page.keyboard.press('Meta+k')
+  await page.locator('#spotlight-input').fill('Project Interview')
+  await page.keyboard.press('Enter')
+
+  const win = page.locator('#win-interview')
+  await expect(win).toBeVisible()
+  await win.getByRole('button', { name: 'Show answer' }).first().click()
+  await expect(win.getByRole('button', { name: 'Hide answer' }).first()).toBeVisible()
+
+  expectCleanConsole(problems)
+})
