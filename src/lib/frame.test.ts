@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { checkableUrl, embedUrl, frameVerdict } from './frame'
+import { checkableUrl, embedUrl, frameVerdict, isPrivateAddress, safeHref } from './frame'
 
 const ORIGIN = 'https://portfolio.example'
 const h = (init: Record<string, string>) => new Headers(init)
@@ -45,5 +45,24 @@ describe('embedUrl', () => {
     expect(embedUrl('https://x-abc.streamlit.app/')).toBe('https://x-abc.streamlit.app/?embed=true')
     expect(embedUrl('https://huggingface.co/sumit1703')).toBe('https://huggingface.co/sumit1703')
     expect(embedUrl('https://en.wikipedia.org/wiki/Cat')).toBe('https://en.wikipedia.org/wiki/Cat')
+  })
+})
+
+describe('safeHref', () => {
+  it('keeps web and mail addresses, drops script and data URLs', () => {
+    expect(safeHref('https://example.com/a')).toBe('https://example.com/a')
+    expect(safeHref('mailto:a@b.co')).toBe('mailto:a@b.co')
+    for (const bad of ['javascript:alert(1)', ' JavaScript:alert(1)', 'data:text/html,<b>x</b>', 'vbscript:x', 'nope']) {
+      expect(safeHref(bad), bad).toBeNull()
+    }
+  })
+})
+
+describe('isPrivateAddress', () => {
+  it('flags private, loopback and link-local addresses only', () => {
+    for (const ip of ['127.0.0.1', '10.1.2.3', '172.20.0.1', '192.168.1.1', '169.254.169.254', '100.64.0.1', '0.0.0.0', '::1', 'fd00::1', 'fe80::1', '::ffff:10.0.0.1']) {
+      expect(isPrivateAddress(ip), ip).toBe(true)
+    }
+    for (const ip of ['8.8.8.8', '172.32.0.1', '140.82.112.3', '2606:4700::1111']) expect(isPrivateAddress(ip), ip).toBe(false)
   })
 })

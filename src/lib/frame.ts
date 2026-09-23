@@ -69,3 +69,29 @@ export function embedUrl(raw: string): string {
   }
   return raw
 }
+
+/**
+ * The one gate every address passes before Safari stores, frames or links to it: re-serialised
+ * through URL, and only http(s) and mailto survive. A `javascript:` or `data:` URL typed into the
+ * bar, or smuggled into content, is dropped here rather than reaching an href, a src or location.
+ */
+export function safeHref(raw: string): string | null {
+  try {
+    const url = new URL(raw.trim())
+    return url.protocol === 'http:' || url.protocol === 'https:' || url.protocol === 'mailto:' ? url.href : null
+  } catch {
+    return null
+  }
+}
+
+/** True for an address no public checker should reach: loopback, private, link-local, CGNAT, ULA. */
+export function isPrivateAddress(ip: string): boolean {
+  const v4 = ip.replace(/^::ffff:/i, '').match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/)
+  if (v4) {
+    const [a, b] = [Number(v4[1]), Number(v4[2])]
+    return a === 0 || a === 10 || a === 127 || (a === 169 && b === 254) || (a === 172 && b >= 16 && b <= 31) ||
+      (a === 192 && b === 168) || (a === 100 && b >= 64 && b <= 127) || a >= 224
+  }
+  const v6 = ip.toLowerCase()
+  return v6 === '::' || v6 === '::1' || /^f[cd]/.test(v6) || /^fe[89ab]/.test(v6)
+}

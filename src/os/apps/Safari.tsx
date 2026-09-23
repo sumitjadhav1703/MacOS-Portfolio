@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { PlatformIcon, hostLabel } from '../../lib/icons'
-import { embedUrl } from '../../lib/frame'
+import { embedUrl, safeHref } from '../../lib/frame'
 import { useContent } from '../content'
 import { s } from '../css'
 import { useTheme } from '../useTheme'
@@ -71,8 +71,10 @@ export function Safari() {
     }
   }, [url])
 
-  function go(next: string | null) {
-    if (next && !/^https?:/i.test(next)) {
+  function go(raw: string | null) {
+    const next = raw === null ? null : safeHref(raw)
+    if (raw !== null && next === null) return
+    if (next?.startsWith('mailto:')) {
       window.location.href = next
       return
     }
