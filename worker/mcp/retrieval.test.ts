@@ -134,6 +134,73 @@ describe('following the CMS', () => {
   })
 })
 
+describe('engineering evidence sections', () => {
+  const next = structuredClone(FALLBACK) as Content
+  next.projects.push({
+    ...structuredClone(next.projects[0]!),
+    id: 'project-glacier',
+    slug: 'glacier-melt',
+    title: 'Glacier Melt Nowcasting',
+    sections: [
+      {
+        heading: 'Projection rule',
+        body: {
+          decision: {
+            question: 'How to project backscatter past the last pass?',
+            options: ['Flat hold', 'Decaying limb'],
+            chosen: 'Flat hold',
+            why: 'The decaying limb only won while a seasonal drift was uncontrolled.',
+            better: 'Honest skill under drift control',
+            worse: 'Lower raw score',
+            evidence: [{ label: 'experiments.md', url: 'https://github.com/x/y/blob/main/docs/experiments.md' }],
+          },
+        },
+      },
+      {
+        heading: 'Rule collapsed',
+        body: {
+          incident: {
+            title: 'Decaying limb collapsed under drift control',
+            expected: 'Positive skill',
+            observed: 'Skill fell to -0.409',
+            cause: 'It was biased in the direction of the unmodelled drift',
+            fix: 'Shipped the flat hold instead',
+          },
+        },
+      },
+      { heading: 'Known gaps', body: { limits: [['Paddy is predicted worst', 'Specular surface', 'Model the flood exit']] } },
+      { heading: 'How it got here', body: { timeline: [['Hypothesis', 'Signs pre-registered per crop', 'https://github.com/x/y']] } },
+    ],
+    aliases: [],
+  })
+  const fresh = buildIndex(next, SITE)
+
+  it('renders every kind to text an agent can read, evidence URLs included', () => {
+    const text = getContext(fresh, 'project:glacier-melt', 'rule-collapsed')
+    expect(text.found && text.text).toContain('Root cause: It was biased')
+    const decision = getContext(fresh, 'research:glacier-melt/projection-rule')
+    expect(decision.found && decision.text).toContain('Options considered: Flat hold, Decaying limb')
+    expect(decision.found && decision.text).toContain('docs/experiments.md')
+  })
+
+  it('resolves a section by its kind, whatever its heading says', () => {
+    const pick = (section: string) => {
+      const r = getContext(fresh, 'project:glacier-melt', section)
+      return r.found ? r.section : null
+    }
+    expect(pick('incidents')).toBe('rule-collapsed')
+    expect(pick('decisions')).toBe('projection-rule')
+    expect(pick('limitations')).toBe('known-gaps')
+    expect(pick('evolution')).toBe('how-it-got-here')
+  })
+
+  it('finds an incident when asked what broke', () => {
+    expect(search(fresh, { query: 'what broke in glacier melt', type: 'research' }).results[0]?.id).toBe(
+      'research:glacier-melt/rule-collapsed',
+    )
+  })
+})
+
 describe('get_profile', () => {
   it('returns the public profile without internal ids', () => {
     const profile = getProfile(FALLBACK, SITE)

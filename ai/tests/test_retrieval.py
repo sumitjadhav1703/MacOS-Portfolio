@@ -135,3 +135,24 @@ def test_sources_link_projects_and_only_projects(content):
 def test_sources_are_deduplicated(content):
     docs = retrieve("Which projects use PyTorch?", flatten(content))
     assert len(sources(docs + docs)) == len(sources(docs))
+
+
+def test_section_text_reads_the_evidence_kinds_without_their_urls():
+    from retrieval import _section_text
+
+    decision = _section_text({"heading": "Projection rule", "body": {"decision": {
+        "question": "Which rule?", "options": ["Flat hold", "Decaying limb"], "chosen": "Flat hold",
+        "why": "B5 only won under drift", "better": "honest", "worse": "lower score",
+        "evidence": [{"label": "log", "url": "https://github.com/x/y"}]}}})
+    assert "Chosen: Flat hold." in decision and "Options considered: Flat hold, Decaying limb." in decision
+    assert "github.com" not in decision
+
+    incident = _section_text({"body": {"incident": {"title": "OOM on Render", "cause": "whole file in memory",
+                                                     "fix": "stream with ffmpeg"}}})
+    assert "Root cause: whole file in memory." in incident
+
+    rest = _section_text({"body": {"metrics": [["Accuracy", "90%", "test", "https://proof.example"]],
+                                   "timeline": [["v0", "baseline", "https://x.example"]],
+                                   "limits": [["rice", "specular", "model floods"]]}})
+    assert "Accuracy 90% test" in rest and "baseline" in rest and "Limitation: rice" in rest
+    assert "example" not in rest
