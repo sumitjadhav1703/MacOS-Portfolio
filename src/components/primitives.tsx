@@ -1,4 +1,4 @@
-import { Fragment, type ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { EASE } from '../os/anim'
 import { s } from '../os/css'
 import { Icon, PlatformIcon, hasIcon, hostLabel, tagSlug } from '../lib/icons'
@@ -133,31 +133,53 @@ export function StatusPill({ label, ok }: { label: string; ok: boolean }) {
   )
 }
 
+/**
+ * A stepper: numbered, colour-coded steps of equal width joined by a rule. The grid wraps to as
+ * many columns as fit, so a six-step pipeline reads as one row in a wide window and a column on
+ * a phone, never as ragged pills with an arrow dangling off the end of a line.
+ */
 export function FlowDiagram({ steps }: { steps: FlowStep[] }) {
   return (
-    <div style={s('display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:4px')}>
-      {steps.map(([name, caption], i) => (
-        <Fragment key={name}>
-          <div style={s('display:flex;align-items:center;gap:8px')}>
-            <div
-              style={s(
-                'padding:9px 12px;border-radius:10px;background:var(--s-fill);border:1px solid var(--s-line);min-width:94px',
-              )}
-            >
-              <div style={s('font-weight:600;font-size:12px')}>{name}</div>
-              {caption ? (
-                <div style={s('color:var(--s-dim);font-size:11px;margin-top:2px;line-height:1.35')}>
-                  {caption}
-                </div>
+    <ol
+      style={s(
+        'list-style:none;margin:6px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,168px),1fr));gap:14px 10px',
+      )}
+    >
+      {steps.map(([name, caption], i) => {
+        const colour = `var(--s-flow-${(i % 4) + 1})`
+        return (
+          <li key={`${name}-${i}`} style={s('display:flex;flex-direction:column;gap:8px;min-width:0')}>
+            <div aria-hidden="true" style={s('display:flex;align-items:center;gap:8px')}>
+              <span
+                style={{
+                  ...s(
+                    'flex:none;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;color:#fff',
+                  ),
+                  background: colour,
+                }}
+              >
+                {i + 1}
+              </span>
+              {i < steps.length - 1 ? (
+                <span style={s('flex:1;height:2px;border-radius:1px;background:var(--s-line-2)')} />
               ) : null}
             </div>
-            {i < steps.length - 1 ? (
-              <span style={s('color:var(--s-faint);font-size:14px')}>→</span>
-            ) : null}
-          </div>
-        </Fragment>
-      ))}
-    </div>
+            <div
+              style={{
+                ...s('flex:1;padding:11px 13px;border-radius:12px;border:1px solid var(--s-line);border-top-width:3px'),
+                borderTopColor: colour,
+                background: `color-mix(in srgb, ${colour} 7%, var(--s-fill))`,
+              }}
+            >
+              <div style={s('font-weight:650;font-size:12.5px')}>{name}</div>
+              {caption ? (
+                <div style={s('color:var(--s-dim);font-size:11.5px;margin-top:3px;line-height:1.4')}>{caption}</div>
+              ) : null}
+            </div>
+          </li>
+        )
+      })}
+    </ol>
   )
 }
 
