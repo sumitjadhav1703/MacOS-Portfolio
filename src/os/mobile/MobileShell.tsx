@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from 'react'
+import dynamic from 'next/dynamic'
 import { useContent } from '../content'
 import { FOLDER_TINTS } from '../packs'
 import { s } from '../css'
@@ -6,6 +7,8 @@ import { ProjectWindow } from '../apps/ProjectWindow'
 import { About, Certificates, Education, Experience, Skills } from '../apps/simple'
 import { Contact } from '../apps/Contact'
 import { SumitAI } from '../apps/SumitAI'
+
+const Interview = dynamic(() => import('../apps/Interview').then((m) => m.Interview), { ssr: false })
 
 /**
  * `Resume` is deliberately absent: it is already the primary button in the header, and a
@@ -19,6 +22,9 @@ const TILES: [string, string][] = [
   ['experience', 'Experience'],
   ['education', 'Education'],
   ['contact', 'Contact'],
+  ['interview', 'Interview'],
+  ['certificates', 'Certificates'],
+  ['about', 'About'],
 ]
 
 function Section({ id, title, children }: { id: string; title: string; children: ReactNode }) {
@@ -51,6 +57,8 @@ function Card({ children }: { children: ReactNode }) {
 export function MobileShell() {
   const { site, projects } = useContent()
   const [open, setOpen] = useState<string | null>(null)
+  // The mobile page is in the DOM on desktop too, so the interview only loads when asked for.
+  const [interview, setInterview] = useState(false)
 
   const go = (id: string) => {
     document.getElementById(`m-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -101,6 +109,14 @@ export function MobileShell() {
             Email
           </a>
         </div>
+        <a
+          href="/recruiter"
+          style={s(
+            'margin-top:8px;min-height:44px;display:flex;align-items:center;justify-content:center;border-radius:11px;background:var(--s-fill-2);border:1px solid var(--s-line);color:var(--s-text);font-weight:600;font-size:14px;text-decoration:none',
+          )}
+        >
+          Recruiter view — the 30-second summary
+        </a>
       </div>
 
       <div style={s('display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:18px 20px 6px')}>
@@ -169,6 +185,29 @@ export function MobileShell() {
               ) : null}
             </div>
           ))}
+        </Section>
+
+        <Section id="interview" title="Project Interview">
+          {interview ? (
+            <Card>
+              <Interview />
+            </Card>
+          ) : (
+            <Card>
+              <div style={s('color:var(--s-dim);font-size:13px;line-height:1.55')}>
+                Questions an interviewer would ask about each project, answered only with what the project documents.
+              </div>
+              <button
+                type="button"
+                onClick={() => setInterview(true)}
+                style={s(
+                  'margin-top:12px;min-height:44px;padding:0 18px;border:0;border-radius:11px;background:var(--s-accent);color:#fff;font:inherit;font-weight:600;font-size:14px',
+                )}
+              >
+                Start the interview
+              </button>
+            </Card>
+          )}
         </Section>
 
         <Section id="resume" title="Resume">

@@ -2,7 +2,17 @@ import { Fragment, type ReactNode } from 'react'
 import { EASE } from '../os/anim'
 import { s } from '../os/css'
 import { Icon, PlatformIcon, hasIcon, hostLabel, tagSlug } from '../lib/icons'
-import type { FlowStep, Metric, ProjectSection } from '../data/projects'
+import type {
+  Decision,
+  FlowStep,
+  Incident,
+  Limit,
+  Metric,
+  ProjectLink,
+  ProjectSection,
+  SectionRole,
+  TimelineStep,
+} from '../data/projects'
 
 /** Window body: scrolls, with the design's reading measure. */
 export function Body({ children }: { children: ReactNode }) {
@@ -158,7 +168,7 @@ export function MetricGrid({ rows }: { rows: Metric[] }) {
         'display:grid;grid-template-columns:repeat(auto-fit,minmax(136px,1fr));gap:10px;margin-top:4px',
       )}
     >
-      {rows.map(([label, value, hint]) => (
+      {rows.map(([label, value, hint, source]) => (
         <div
           key={label}
           style={s('padding:12px 14px;border-radius:12px;background:var(--s-fill);border:1px solid var(--s-line)')}
@@ -175,6 +185,16 @@ export function MetricGrid({ rows }: { rows: Metric[] }) {
             <div style={s('color:var(--s-faint);font-size:11px;margin-top:4px;line-height:1.4')}>
               {hint}
             </div>
+          ) : null}
+          {source ? (
+            <a
+              href={source}
+              {...externalAttrs(source)}
+              aria-label={`Proof for ${label}`}
+              style={s('display:inline-block;font-size:11px;margin-top:6px')}
+            >
+              Proof ↗
+            </a>
           ) : null}
         </div>
       ))}
@@ -220,12 +240,164 @@ export function SarChart() {
   )
 }
 
-export function SectionBody({ section }: { section: ProjectSection }) {
-  const { body } = section
+// ── Engineering evidence (docs/engineering-evidence.md) ─────────────────────────────────────
+
+const CARD = 'padding:12px 14px;border-radius:12px;background:var(--s-fill);border:1px solid var(--s-line)'
+const LABEL = 'font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--s-faint)'
+
+function Labelled({ name, children }: { name: string; children: ReactNode }) {
+  return (
+    <div style={s('margin-top:8px')}>
+      <div style={s(LABEL)}>{name}</div>
+      <div style={s('font-size:12.5px;line-height:1.5;margin-top:2px')}>{children}</div>
+    </div>
+  )
+}
+
+function EvidenceLinks({ links }: { links?: ProjectLink[] }) {
+  if (!links?.length) return null
+  return (
+    <Labelled name="Evidence">
+      <span style={s('display:flex;flex-wrap:wrap;gap:4px 12px')}>
+        {links.map((link) => (
+          <a key={link.url} href={link.url} {...externalAttrs(link.url)}>
+            {link.label} ↗
+          </a>
+        ))}
+      </span>
+    </Labelled>
+  )
+}
+
+export function DecisionCard({ decision: d }: { decision: Decision }) {
+  return (
+    <div style={s(CARD)}>
+      <div style={s('font-weight:600;font-size:13px')}>{d.question}</div>
+      <div style={s('display:flex;flex-wrap:wrap;gap:6px;margin-top:8px')} aria-label="Options considered">
+        {d.options.map((option) => {
+          const chosen = option === d.chosen
+          return (
+            <span
+              key={option}
+              style={{
+                ...s('padding:3px 9px;border-radius:999px;font-size:11.5px;border:1px solid var(--s-line)'),
+                background: chosen ? 'var(--s-accent)' : 'var(--s-fill-2)',
+                color: chosen ? 'var(--s-on-accent)' : 'var(--s-dim)',
+              }}
+            >
+              {chosen ? '✓ ' : ''}
+              {option}
+            </span>
+          )
+        })}
+      </div>
+      <Labelled name="Why">{d.why}</Labelled>
+      {d.better || d.worse ? (
+        <div style={s('display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:0 14px')}>
+          {d.better ? <Labelled name="Got better">{d.better}</Labelled> : null}
+          {d.worse ? <Labelled name="Got worse">{d.worse}</Labelled> : null}
+        </div>
+      ) : null}
+      {d.trigger ? <Labelled name="Revisit when">{d.trigger}</Labelled> : null}
+      <EvidenceLinks links={d.evidence} />
+    </div>
+  )
+}
+
+/** Collapsed to a log line — title and root cause — so a list of them never becomes a wall. */
+export function IncidentCard({ incident: i }: { incident: Incident }) {
+  return (
+    <details style={s(CARD)}>
+      <summary style={s('cursor:pointer;list-style-position:outside')}>
+        <span style={s('font-weight:600;font-size:13px')}>{i.title}</span>
+        <div style={s('color:var(--s-dim);font-size:12px;margin-top:2px')}>
+          <span style={s('color:var(--s-warn);font-family:ui-monospace,monospace')}>root cause </span>
+          {i.cause}
+        </div>
+      </summary>
+      <Labelled name="Expected">{i.expected}</Labelled>
+      <Labelled name="Observed">{i.observed}</Labelled>
+      <Labelled name="Fix">{i.fix}</Labelled>
+      {i.verified ? <Labelled name="Verified by">{i.verified}</Labelled> : null}
+      {i.learned ? <Labelled name="Learned">{i.learned}</Labelled> : null}
+      <EvidenceLinks links={i.evidence} />
+    </details>
+  )
+}
+
+export function Timeline({ steps }: { steps: TimelineStep[] }) {
+  return (
+    <ol style={s('list-style:none;margin:4px 0 0;padding:0 0 0 14px;border-left:2px solid var(--s-line)')}>
+      {steps.map(([stage, text, url], i) => (
+        <li key={`${stage}-${i}`} style={s('position:relative;margin-bottom:12px')}>
+          <span
+            aria-hidden="true"
+            style={s(
+              'position:absolute;left:-20px;top:5px;width:10px;height:10px;border-radius:50%;background:var(--s-accent)',
+            )}
+          />
+          <div style={s('font-weight:600;font-size:12.5px')}>{stage}</div>
+          <div style={s('color:var(--s-dim);font-size:12.5px;line-height:1.5')}>
+            {text}
+            {url ? (
+              <>
+                {' '}
+                <a href={url} {...externalAttrs(url)} aria-label={`Evidence for ${stage}`}>
+                  Evidence ↗
+                </a>
+              </>
+            ) : null}
+          </div>
+        </li>
+      ))}
+    </ol>
+  )
+}
+
+export function LimitsList({ rows }: { rows: Limit[] }) {
+  return (
+    <div style={s('display:grid;gap:8px;margin-top:4px')}>
+      {rows.map(([limit, why, next]) => (
+        <div
+          key={limit}
+          style={s(`${CARD};display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:0 14px`)}
+        >
+          <Labelled name="Limitation">{limit}</Labelled>
+          <Labelled name="Why it matters">{why}</Labelled>
+          {next ? <Labelled name="Next">{next}</Labelled> : null}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+const ROLE_LABEL: Record<SectionRole, string> = {
+  fact: 'Fact · supported by data',
+  interpretation: 'Interpretation',
+  limitation: 'Limitation · not proven',
+}
+
+function SectionContent({ body }: { body: ProjectSection['body'] }) {
   if ('text' in body) return <span>{body.text}</span>
   if ('flow' in body) return <FlowDiagram steps={body.flow} />
   if ('metrics' in body) return <MetricGrid rows={body.metrics} />
-  return <SarChart />
+  if ('decision' in body) return <DecisionCard decision={body.decision} />
+  if ('incident' in body) return <IncidentCard incident={body.incident} />
+  if ('timeline' in body) return <Timeline steps={body.timeline} />
+  if ('limits' in body) return <LimitsList rows={body.limits} />
+  if ('chart' in body) return <SarChart />
+  // A kind this build does not know — a newer CMS than this client. Render nothing, not a guess.
+  return null
+}
+
+export function SectionBody({ section }: { section: ProjectSection }) {
+  const role = section.role && ROLE_LABEL[section.role]
+  return (
+    <>
+      {role ? <div style={s(`${LABEL};margin-bottom:6px;color:var(--s-dim)`)}>{role}</div> : null}
+      <SectionContent body={section.body} />
+    </>
+  )
 }
 
 export function Caveat({ children }: { children: ReactNode }) {

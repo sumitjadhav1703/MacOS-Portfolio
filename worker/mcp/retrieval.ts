@@ -51,9 +51,27 @@ export const SECTION_SYNONYMS: Record<string, string[]> = {
   results: ['results', 'result', 'performance', 'metrics', 'evaluation', 'validation', 'finding'],
   metrics: ['metrics', 'performance', 'results', 'evaluation'],
   deployment: ['deployment', 'api', 'demo', 'serving'],
-  limitations: ['limitation', 'caveat', 'note'],
+  limitations: ['limitation', 'caveat', 'note', 'limits', 'improve', 'next'],
   references: ['links', 'references', 'source'],
+  decisions: ['decision', 'trade-off', 'tradeoff', 'why'],
+  incidents: ['incident', 'failure', 'broke', 'bug', 'what broke'],
+  evolution: ['timeline', 'evolution', 'history', 'iteration'],
+  hypotheses: ['hypothes', 'contradict', 'assumption'],
 }
+
+/**
+ * The evidence kinds carry their meaning in their shape, not their heading — a decision headed
+ * "Projection rule" is still a decision. These words are matched against the kind so
+ * `section: "incidents"` and a search for "what broke" both find it.
+ */
+const KIND_WORDS: Record<string, string> = {
+  decision: 'decision decisions trade-off tradeoff why chose',
+  incident: 'incident incidents failure failures broke bug debugging root cause',
+  timeline: 'timeline evolution history iteration experiments',
+  limits: 'limitation limitations limits improve next steps',
+}
+
+const kindOf = (section: ProjectSection) => Object.keys(KIND_WORDS).find((k) => k in section.body)
 
 // ---- text helpers ---------------------------------------------------------------------------
 
@@ -86,7 +104,46 @@ function sectionText(section: ProjectSection): string {
   }
   if (Array.isArray(body.metrics)) {
     return (body.metrics as unknown[][])
-      .map(([label, value, hint]) => `${label}: ${value}${hint ? ` (${hint})` : ''}`)
+      .map(([label, value, hint, proof]) => `${label}: ${value}${hint ? ` (${hint})` : ''}${proof ? ` [proof: ${proof}]` : ''}`)
+      .join('\n')
+  }
+  const evidence = (links: unknown) =>
+    Array.isArray(links) && links.length
+      ? `Evidence: ${(links as { label?: string; url?: string }[]).map((l) => `${l.label} ${l.url}`).join('; ')}`
+      : undefined
+  if (body.decision && typeof body.decision === 'object') {
+    const d = body.decision as Record<string, unknown>
+    return lines(
+      `Decision: ${d.question}`,
+      Array.isArray(d.options) && `Options considered: ${d.options.join(', ')}`,
+      `Chosen: ${d.chosen}`,
+      `Why: ${d.why}`,
+      `Trade-off — better: ${d.better}; worse: ${d.worse}`,
+      !!d.trigger && `Revisit when: ${d.trigger}`,
+      evidence(d.evidence),
+    )
+  }
+  if (body.incident && typeof body.incident === 'object') {
+    const i = body.incident as Record<string, unknown>
+    return lines(
+      `Incident: ${i.title}`,
+      `Expected: ${i.expected}`,
+      `Observed: ${i.observed}`,
+      `Root cause: ${i.cause}`,
+      `Fix: ${i.fix}`,
+      !!i.verified && `Verified by: ${i.verified}`,
+      !!i.learned && `Learned: ${i.learned}`,
+      evidence(i.evidence),
+    )
+  }
+  if (Array.isArray(body.timeline)) {
+    return (body.timeline as unknown[][])
+      .map(([stage, text, url]) => `${stage}: ${text}${url ? ` [evidence: ${url}]` : ''}`)
+      .join('\n')
+  }
+  if (Array.isArray(body.limits)) {
+    return (body.limits as unknown[][])
+      .map(([limit, why, next]) => `Limitation: ${limit} — why: ${why}${next ? ` — next: ${next}` : ''}`)
       .join('\n')
   }
   return ''
@@ -157,10 +214,11 @@ export function buildIndex(content: Content, siteOrigin: string, resume?: string
         type: 'research',
         title: `${p.title} — ${s.heading}`,
         text: sectionText(s.section),
-        extra: [p.desktopLabel, p.slug, ...(p.aliases ?? [])].join(' '),
+        extra: [p.desktopLabel, p.slug, ...(p.aliases ?? []), KIND_WORDS[kindOf(s.section) ?? ''] ?? ''].join(' '),
         project: p.slug,
         section: s.slug,
         heading: s.heading,
+        kind: kindOf(s.section),
         source: src('research', p.title, url, { slug: p.slug, section: s.slug }),
         updatedAt: at,
       })
@@ -350,7 +408,7 @@ export function matchSections(docs: Doc[], wanted: string): Doc[] {
   if (exact.length) return exact
   const words = SECTION_SYNONYMS[wanted] ?? [wanted.replace(/-/g, ' ')]
   return docs.filter((d) => {
-    const heading = (d.heading ?? '').toLowerCase()
+    const heading = `${d.heading ?? ''} ${d.kind ? KIND_WORDS[d.kind] : ''}`.toLowerCase()
     return words.some((w) => heading.includes(w))
   })
 }

@@ -182,6 +182,34 @@ describe('project links', () => {
   })
 })
 
+describe('evidence links inside project sections', () => {
+  const fields = SPECS.projects!.fields
+  // Each place a section can hold a URL that renders as a link.
+  const shapes = (url: unknown) => [
+    { heading: 'D', body: { decision: { question: 'q', options: ['a'], chosen: 'a', why: '', better: '', worse: '', evidence: [{ label: 'e', url }] } } },
+    { heading: 'I', body: { incident: { title: 't', expected: '', observed: '', cause: '', fix: '', evidence: [{ label: 'e', url }] } } },
+    { heading: 'M', body: { metrics: [['Accuracy', '90%', 'hint', url]] } },
+    { heading: 'T', body: { timeline: [['Baseline', 'text', url]] } },
+  ]
+
+  it('refuses an executable URL in any of them', () => {
+    for (const url of [...DANGEROUS_URLS, 42]) {
+      for (const section of shapes(url)) {
+        const { errors } = validate(fields, { sections: [section] }, true)
+        expect(errors, `${section.heading} ${String(url)}`).not.toEqual([])
+      }
+    }
+  })
+
+  it('accepts ordinary URLs, and sections that carry none', () => {
+    for (const section of shapes('https://github.com/x/y/blob/main/docs/experiments.md')) {
+      expect(validate(fields, { sections: [section] }, true).errors, section.heading).toEqual([])
+    }
+    const plain = [{ body: { metrics: [['Accuracy', '90%']] } }, { body: { timeline: [['v0', 'text']] } }, { body: { text: 'x' } }]
+    expect(validate(fields, { sections: plain }, true).errors).toEqual([])
+  })
+})
+
 describe('the profile email', () => {
   const fields = SINGLETONS.site!.fields
 

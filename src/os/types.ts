@@ -15,6 +15,7 @@ export type StaticAppId =
   | 'experience'
   | 'certificates'
   | 'monitor'
+  | 'interview'
 
 /**
  * Project windows are not enumerable at compile time — the CMS can add one at any moment — so a

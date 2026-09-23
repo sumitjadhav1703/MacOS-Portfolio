@@ -20,6 +20,7 @@ const APPS: AppId[] = [
   'code',
   'settings',
   'monitor',
+  'interview',
   'contact',
   'about',
   'resume',

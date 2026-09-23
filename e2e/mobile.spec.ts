@@ -41,3 +41,31 @@ test('a project deep link works on a phone too', async ({ page }) => {
   await expect(page.locator('body')).toBeVisible()
   expectCleanConsole(problems)
 })
+
+test('the recruiter view is one readable column with the ways to verify and contact', async ({ page }) => {
+  const problems = watchConsole(page)
+  await page.goto('/recruiter')
+
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+  await expect(page.getByRole('navigation', { name: 'Verify and contact' }).getByRole('link', { name: /Resume/ })).toBeVisible()
+  // Every project card links to its own page.
+  await expect(page.locator('main h3 a[href^="/projects/"]').first()).toBeVisible()
+  const overflow = await page.locator('[data-recruiter]').evaluate((el) => el.scrollWidth - el.clientWidth)
+  expect(overflow).toBeLessThanOrEqual(1)
+
+  expectCleanConsole(problems)
+})
+
+test('the interview loads only when asked for, and answers from the project', async ({ page }) => {
+  const problems = watchConsole(page)
+  await page.goto('/')
+
+  const start = page.getByRole('button', { name: 'Start the interview' })
+  await start.scrollIntoViewIfNeeded()
+  await start.click()
+  const first = page.locator('#m-interview').getByRole('button', { name: 'Show answer' }).first()
+  await first.click()
+  await expect(page.locator('#m-interview').getByRole('button', { name: 'Hide answer' }).first()).toBeVisible()
+
+  expectCleanConsole(problems)
+})

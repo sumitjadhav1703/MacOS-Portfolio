@@ -8,7 +8,7 @@ export type Field =
   | { kind: 'url'; required?: boolean }
   | { kind: 'bool' }
   | { kind: 'int'; min?: number; max?: number }
-  | { kind: 'json'; of: 'strings' | 'any'; max: number; urls?: true }
+  | { kind: 'json'; of: 'strings' | 'any'; max: number; urls?: true; sectionUrls?: true }
 
 export type Spec = {
   table: string
@@ -69,7 +69,7 @@ export const SPECS: Record<string, Spec> = {
       status_label: { kind: 'text', max: 80 },
       status_ok: { kind: 'bool' },
       stack: { kind: 'json', of: 'strings', max: 40 },
-      sections: { kind: 'json', of: 'any', max: 40 },
+      sections: { kind: 'json', of: 'any', max: 40, sectionUrls: true },
       links: { kind: 'json', of: 'any', max: 20, urls: true },
       aliases: { kind: 'json', of: 'strings', max: 20 },
       note: { kind: 'text', max: 800 },
@@ -205,6 +205,28 @@ export function urlAllowed(text: string): boolean {
 }
 
 /**
+ * Every URL a project section can render as a link: decision and incident evidence, a metric's
+ * proof (its 4th cell) and a timeline step's evidence (its 3rd). `urls` only looks at a top-level
+ * `.url`, and these sit two or three levels down — so a `javascript:` URL in a decision's
+ * evidence would otherwise reach an href unchecked.
+ */
+export function sectionUrls(sections: unknown): unknown[] {
+  if (!Array.isArray(sections)) return []
+  const out: unknown[] = []
+  for (const section of sections) {
+    const body = (section as { body?: Record<string, unknown> } | null)?.body
+    if (!body || typeof body !== 'object') continue
+    for (const key of ['decision', 'incident'] as const) {
+      const evidence = (body[key] as { evidence?: unknown } | undefined)?.evidence
+      if (Array.isArray(evidence)) for (const link of evidence) out.push((link as { url?: unknown } | null)?.url)
+    }
+    if (Array.isArray(body.metrics)) for (const row of body.metrics) out.push(Array.isArray(row) ? row[3] : undefined)
+    if (Array.isArray(body.timeline)) for (const row of body.timeline) out.push(Array.isArray(row) ? row[2] : undefined)
+  }
+  return out.filter((url) => url !== undefined && url !== null && url !== '')
+}
+
+/**
  * Server-side validation. Every admin write goes through this — the admin UI's own checks are a
  * convenience and are never the thing that keeps bad data out.
  *
@@ -296,6 +318,10 @@ export function validate(
             errors.push(`${name} contains a link that is not a valid http, https or mailto URL`)
             break
           }
+        }
+        if (field.sectionUrls && sectionUrls(raw).some((url) => typeof url !== 'string' || !urlAllowed(url.trim()))) {
+          errors.push(`${name} contains an evidence link that is not a valid http, https or mailto URL`)
+          break
         }
         const text = JSON.stringify(raw)
         // A hard ceiling on any single JSON cell, so a deeply nested body cannot blow up a row.

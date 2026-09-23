@@ -1,4 +1,5 @@
 import type { ComponentType } from 'react'
+import dynamic from 'next/dynamic'
 import type { Content } from '../../data/content'
 import type { StaticAppId, AppId } from '../types'
 import { CodeViewer } from './CodeViewer'
@@ -12,6 +13,9 @@ import { SystemMonitor } from './SystemMonitor'
 import { Terminal } from './Terminal'
 import { SECTION_CONTENT, Trash } from './simple'
 
+// Not first paint, so not in the first bundle.
+const Interview = dynamic(() => import('./Interview').then((m) => m.Interview), { ssr: false })
+
 export const APP_CONTENT: Record<StaticAppId, ComponentType> = {
   finder: Finder,
   terminal: Terminal,
@@ -22,6 +26,7 @@ export const APP_CONTENT: Record<StaticAppId, ComponentType> = {
   trash: Trash,
   code: CodeViewer,
   monitor: SystemMonitor,
+  interview: Interview,
   // The six the Finder sidebar also renders in place — declared once, in simple.tsx.
   ...SECTION_CONTENT,
 }

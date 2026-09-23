@@ -130,7 +130,7 @@ Ranking is deterministic token overlap, and it uses the same ideas as `ai/src/re
 | field | type | notes |
 |---|---|---|
 | `id` | `type:key` from a search or `list_projects` | e.g. `project:sar-yield`, `research:sar-yield/core-model` |
-| `section` | slug | optional: a section slug, or `overview`, `methodology`, `architecture`, `dataset`, `experiments`, `results`, `metrics`, `deployment`, `limitations`, `references` |
+| `section` | slug | optional: a section slug, or `overview`, `methodology`, `architecture`, `dataset`, `experiments`, `results`, `metrics`, `deployment`, `limitations`, `references`, `decisions`, `incidents`, `evolution`, `hypotheses` |
 
 The tool returns `{ found: true, id, type, title, section?, text (≤6000 chars), truncated, availableSections?, source, updatedAt }`.
 An unknown id or section returns `{ found: false, message, availableSections? }`. The server does
@@ -246,8 +246,9 @@ Things to try:
 
 - Search is lexical. A question phrased in words that no record uses can miss. Add embeddings
   only when real questions show that happening.
-- "Research" means the sections of projects. A dedicated research document type
-  (objective / dataset / hypotheses / experiments / failed experiments / …) would be a CMS change.
+- "Research" means the sections of projects. The evidence kinds — decisions, incidents, timelines
+  and limitations (docs/engineering-evidence.md) — are sections too, and `decisions`, `incidents`,
+  `evolution` and `limitations` resolve by a section's kind, whatever its heading says.
   MCP would stay read-only and would simply index the new type.
 - There is one identity, the owner. Anyone else who registers a client cannot get past the
   sign-in page.

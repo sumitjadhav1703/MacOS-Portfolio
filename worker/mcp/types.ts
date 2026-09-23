@@ -49,6 +49,8 @@ export type Doc = {
   section?: string
   /** The section's own heading, as the project shows it. */
   heading?: string
+  /** An evidence section's kind — decision, incident, timeline or limits. Never shown. */
+  kind?: string
   source: Source
   updatedAt: string
 }

@@ -82,15 +82,42 @@ def _list(value: object) -> list:
     return value if isinstance(value, list) else []
 
 
+# The prose fields of the evidence kinds (docs/engineering-evidence.md), labelled so the model can
+# tell a root cause from a fix. Evidence URLs are left out, as link URLs are everywhere else here.
+_DECISION = (("question", "Decision"), ("chosen", "Chosen"), ("why", "Why"), ("better", "Better"),
+             ("worse", "Worse"), ("trigger", "Revisit when"))
+_INCIDENT = (("title", "Incident"), ("expected", "Expected"), ("observed", "Observed"),
+             ("cause", "Root cause"), ("fix", "Fix"), ("verified", "Verified by"), ("learned", "Learned"))
+
+
+def _labelled(record: object, fields: tuple[tuple[str, str], ...]) -> list[str]:
+    record = record if isinstance(record, dict) else {}
+    return [f"{label}: {_text(record.get(key))}." for key, label in fields if _text(record.get(key))]
+
+
 def _section_text(section: object) -> str:
-    """Flatten one project section — prose, flow diagram or metric table — into a sentence."""
+    """Flatten one project section — prose, flow, metrics or an evidence kind — into a sentence."""
     if not isinstance(section, dict):
         return ""
     body = section.get("body")
     body = body if isinstance(body, dict) else {}
     parts = [_text(section.get("heading")), _text(body.get("text"))]
-    for row in _list(body.get("flow")) + _list(body.get("metrics")):
+    for row in _list(body.get("flow")):
         parts.extend(_text(cell) for cell in _list(row))
+    # A metric's fourth cell and a timeline step's third are proof URLs, not prose.
+    for row in _list(body.get("metrics")):
+        parts.extend(_text(cell) for cell in _list(row)[:3])
+    for row in _list(body.get("timeline")):
+        parts.extend(_text(cell) for cell in _list(row)[:2])
+    for row in _list(body.get("limits")):
+        cells = [_text(cell) for cell in _list(row)]
+        parts.append("Limitation: " + " — ".join(c for c in cells if c) + ".")
+    parts.extend(_labelled(body.get("decision"), _DECISION))
+    if isinstance(body.get("decision"), dict):
+        options = [_text(o) for o in _list(body["decision"].get("options")) if _text(o)]
+        if options:
+            parts.append(f"Options considered: {', '.join(options)}.")
+    parts.extend(_labelled(body.get("incident"), _INCIDENT))
     return " ".join(p for p in parts if p)
 
 

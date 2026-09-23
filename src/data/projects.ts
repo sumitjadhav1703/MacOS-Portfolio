@@ -17,25 +17,73 @@
 /** A flow diagram row: [step, caption]. */
 export type FlowStep = [string, string]
 
-/** A metric row: [label, value, hint?]. */
-export type Metric = [string, string, string?]
+/** A metric row: [label, value, hint?, source?]. `source` is the URL that proves the number. */
+export type Metric = [string, string, string?, string?]
+
+export type ProjectLink = {
+  label: string
+  url: string
+}
+
+// The evidence kinds (docs/engineering-evidence.md). Every one of them is a section body, not a
+// column: they ride the draft → Publish flow, the admin Preview, /api/content, Ask Sumit and
+// Sumit Context with no second store. A project that documents none of them simply has none.
+
+/** A technical choice, with the road not taken and the price paid. */
+export type Decision = {
+  question: string
+  options: string[]
+  chosen: string
+  why: string
+  /** What the choice bought. Empty when the source states no trade-off. */
+  better: string
+  worse: string
+  /** When this decision would have to be revisited. */
+  trigger?: string
+  evidence?: ProjectLink[]
+}
+
+/** Something that broke, told as a debugging record rather than a success story. */
+export type Incident = {
+  title: string
+  expected: string
+  observed: string
+  cause: string
+  fix: string
+  verified?: string
+  learned?: string
+  evidence?: ProjectLink[]
+}
+
+/** One step of how a project got to its current shape: [stage, what happened, evidence URL?]. */
+export type TimelineStep = [string, string, string?]
+
+/**
+ * [known limitation, why it matters or what shows it, what I would do next?]. The next step is
+ * optional because most write-ups state a limit without a plan, and inventing one is the thing
+ * this layer exists to avoid.
+ */
+export type Limit = [string, string, string?]
 
 export type SectionBody =
   | { text: string }
   | { flow: FlowStep[] }
   | { metrics: Metric[] }
+  | { decision: Decision }
+  | { incident: Incident }
+  | { timeline: TimelineStep[] }
+  | { limits: Limit[] }
   // No project carries a chart today, but /admin can still author one — see
   // worker/admin-ui/Fields.tsx. Narrowing this would deny a body the CMS is able to serve.
   | { chart: 'sar-mse' }
 
+/** Research framing: what the data shows, what the author concluded, and what is not proven. */
+export type SectionRole = 'fact' | 'interpretation' | 'limitation'
+
 export type ProjectSection = {
   heading?: string
+  role?: SectionRole
   body: SectionBody
-}
-
-export type ProjectLink = {
-  label: string
-  url: string
 }
 
 export type Project = {
@@ -112,13 +160,13 @@ export const PROJECTS: Project[] = [
         body: {
           metrics: [
             [
-              '0.8795',
               'sMAPE',
+              '0.8795',
               'Kaggle Phase 2 score',
             ],
             [
-              'Rank 2',
               'Phase 2',
+              'Rank 2',
               'ANRF AISEHack pollution forecasting',
             ],
           ],
@@ -401,13 +449,13 @@ export const PROJECTS: Project[] = [
         body: {
           metrics: [
             [
-              '85.6%',
               'Accuracy',
+              '85.6%',
               'Overall classification accuracy',
             ],
             [
-              '74.1%',
               'Macro-F1',
+              '74.1%',
               'Balances performance across room-type classes',
             ],
           ],
@@ -952,13 +1000,13 @@ export const PROJECTS: Project[] = [
         body: {
           metrics: [
             [
-              '92.10%',
               'Test Accuracy',
+              '92.10%',
               'BiGRU test-set performance',
             ],
             [
-              '0.2257',
               'Test Loss',
+              '0.2257',
               'BiGRU test-set loss',
             ],
           ],
@@ -1186,16 +1234,16 @@ export const PROJECTS: Project[] = [
         body: {
           metrics: [
             [
-              '3,038',
               'Quotes',
+              '3,038',
             ],
             [
-              '8,978',
               'Vocabulary',
+              '8,978',
             ],
             [
-              '745',
               'Max sequence length',
+              '745',
             ],
           ],
         },
@@ -1217,16 +1265,16 @@ export const PROJECTS: Project[] = [
         body: {
           metrics: [
             [
-              '<10 ms',
               'N-gram prediction',
+              '<10 ms',
             ],
             [
-              '50–100 ms',
               'LSTM generation',
+              '50–100 ms',
             ],
             [
-              '7.5 MB',
               'LSTM artifact',
+              '7.5 MB',
             ],
           ],
         },
@@ -1548,8 +1596,8 @@ export const PROJECTS: Project[] = [
         body: {
           metrics: [
             [
-              '5/10',
               'Self-rated',
+              '5/10',
             ],
           ],
         },
