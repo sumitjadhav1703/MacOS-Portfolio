@@ -172,6 +172,15 @@
   --s-under-menubar: calc(var(--s-menubar-h) + var(--s-menu-gap));
 }
 
+/* The four step colours a project's flow diagram cycles through (Google's blue, red, yellow,
+   green). Readable on both the light and dark window, so one set serves every theme. */
+[data-root] {
+  --s-flow-1: #4285f4;
+  --s-flow-2: #ea4335;
+  --s-flow-3: #fbbc05;
+  --s-flow-4: #34a853;
+}
+
 /* The stacking order, in one place instead of 22 literals spread across the tree. */
 [data-root] {
   --z-desktop-grid: 20;
