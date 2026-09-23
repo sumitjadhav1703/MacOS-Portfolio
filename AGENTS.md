@@ -56,6 +56,7 @@ app/                          routes only — thin server components
   layout.tsx                  document + site metadata
   page.tsx                    the desktop
   opengraph-image.tsx         site-level 1200×630 card
+  recruiter/page.tsx          Recruiter view — server-rendered from getContent(), no desktop JS
   projects/[slug]/
     page.tsx                  generateStaticParams + generateMetadata + deep link
     opengraph-image.tsx       per-project card via next/og ImageResponse
@@ -67,6 +68,7 @@ src/
     content.ts                the Content shape, FALLBACK, and the pure helpers that used to
                               be hardcoded lists (aliases, skill index, Ask Sumit matching)
     server.ts                 getContent() for server components — revalidated, never fatal
+    interview.ts              Project Interview's questions, derived only from a project's sections
   og/card.tsx                 the card both OG images render
   lib/icons.tsx               tagSlug + platformSlug + Icon/PlatformIcon — the only resolvers
   os/
@@ -204,6 +206,14 @@ from `admin.ts`, `auth.ts` or `files.ts`; `scripts/mcp-readonly.test.mjs` fails 
 do, and a new tool whose name starts `create_`/`update_`/`delete_`… fails `protocol.test.ts`.
 The consent page is `/admin/authorize` because the session cookie is `Path=/admin`; moved
 anywhere else it never sees the cookie and the sign-in loops.
+
+**Engineering evidence is a section kind, not a column.** Decisions, incidents, timelines and
+limitations (`docs/engineering-evidence.md`) are bodies inside `projects.sections`, so they ride
+the draft flow and reach the window, `/recruiter`, the Interview, Ask Sumit and MCP with no second
+store. Do not add a column or table for a new kind — add a body shape, render it in `SectionBody`,
+teach `worker/mcp/retrieval.ts` and `ai/src/retrieval.py` to read it, and add any URL it carries to
+`sectionUrls` in `worker/tables.ts`, or that URL reaches an href unchecked. Every claim in one
+links to its source; a field the source does not state stays empty.
 
 **Project ids are not a closed set.** `AppId` is `StaticAppId | \`project-${string}\``, so
 anything that looks up an id must tolerate one it has never seen. Use `isAppId` to validate
